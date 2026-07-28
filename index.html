@@ -383,6 +383,10 @@
             <span class="note">coach, agent, produk</span>
           </div>
           <label>Coach<select id="compareLeaderAFilter"></select></label>
+          <div class="compare-box">
+            <label>Weekly<select id="leaderAWeekFilter"></select></label>
+            <label>Daily<select id="leaderADateFilter"></select></label>
+          </div>
           <div class="coach-summary" id="leaderASummary"></div>
           <div>
             <div class="panel-head">
@@ -405,6 +409,10 @@
             <span class="note">coach, agent, produk</span>
           </div>
           <label>Coach<select id="compareLeaderBFilter"></select></label>
+          <div class="compare-box">
+            <label>Weekly<select id="leaderBWeekFilter"></select></label>
+            <label>Daily<select id="leaderBDateFilter"></select></label>
+          </div>
           <div class="coach-summary" id="leaderBSummary"></div>
           <div>
             <div class="panel-head">
@@ -530,6 +538,21 @@
         select.innerHTML = `<option value="">Pilih leader</option>` + leaders.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
         if (leaders.includes(current)) select.value = current;
       });
+    }
+
+    function setSideDateOptions(prefix, rows) {
+      const weekSelect = document.getElementById(`${prefix}WeekFilter`);
+      const dateSelect = document.getElementById(`${prefix}DateFilter`);
+      const currentWeek = weekSelect.value;
+      const currentDate = dateSelect.value;
+      const weeks = [...new Set(rows.map((row) => clean(row[fields.week])).filter(Boolean))]
+        .sort((a, b) => Number(a) - Number(b));
+      const dates = [...new Set(rows.map((row) => clean(row[fields.date])).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      weekSelect.innerHTML = `<option value="">Semua weekly</option>` + weeks.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      dateSelect.innerHTML = `<option value="">Semua daily</option>` + dates.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (weeks.includes(currentWeek)) weekSelect.value = currentWeek;
+      if (dates.includes(currentDate)) dateSelect.value = currentDate;
     }
 
     function makeChart(id, config) {
@@ -686,10 +709,17 @@
     }
 
     function renderCoachSide(prefix, leader, color) {
-      const rows = leader ? allRows.filter((row) =>
+      const baseRows = leader ? allRows.filter((row) =>
         (selectedTeam === "ALL" || row._group === selectedTeam)
         && clean(row[fields.leader]) === leader
       ) : [];
+      setSideDateOptions(prefix, baseRows);
+      const week = document.getElementById(`${prefix}WeekFilter`).value;
+      const date = document.getElementById(`${prefix}DateFilter`).value;
+      const rows = baseRows.filter((row) =>
+        (!week || clean(row[fields.week]) === week)
+        && (!date || clean(row[fields.date]) === date)
+      );
       const agents = groupSum(rows, fields.agent).slice(0, 8);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
@@ -748,6 +778,9 @@
       });
       document.getElementById("compareLeaderAFilter").addEventListener("input", renderLeaderCompare);
       document.getElementById("compareLeaderBFilter").addEventListener("input", renderLeaderCompare);
+      ["leaderAWeekFilter", "leaderADateFilter", "leaderBWeekFilter", "leaderBDateFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", renderLeaderCompare);
+      });
       renderTabs();
       render();
       document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;

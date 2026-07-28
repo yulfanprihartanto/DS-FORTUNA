@@ -445,7 +445,16 @@
             }
           }
         },
-        scales: {
+        scales: horizontal ? {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
+            }
+          },
+          y: { grid: { display: false } }
+        } : {
           x: { grid: { display: false } },
           y: {
             beginAtZero: true,

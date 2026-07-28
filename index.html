@@ -84,7 +84,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      grid-template-columns: repeat(6, minmax(150px, 1fr));
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -276,8 +276,9 @@
     <div class="error" id="errorBox"></div>
 
     <section class="filters">
-      <label>Bulan<select id="monthFilter"></select></label>
-      <label>Minggu<select id="weekFilter"></select></label>
+      <label>Monthly<select id="monthFilter"></select></label>
+      <label>Weekly<select id="weekFilter"></select></label>
+      <label>Leader<select id="leaderFilter"></select></label>
       <label>Produk<select id="productFilter"></select></label>
       <label>Status<select id="statusFilter"></select></label>
       <label>Cari<input id="searchInput" type="search" placeholder="Invoice, agent, user..." /></label>
@@ -387,6 +388,7 @@
       month: "Month",
       week: "Week",
       agent: "Agent Name",
+      leader: "Leader Name",
       user: "User Name",
       invoice: "Invoice",
       product: "Product Type",
@@ -482,15 +484,17 @@
     function filteredRows() {
       const month = document.getElementById("monthFilter").value;
       const week = document.getElementById("weekFilter").value;
+      const leader = document.getElementById("leaderFilter").value;
       const product = document.getElementById("productFilter").value;
       const status = document.getElementById("statusFilter").value;
       const term = clean(document.getElementById("searchInput").value).toLowerCase();
 
       return allRows.filter((row) => {
-        const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
+        const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.leader], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
         return (selectedTeam === "ALL" || row._team === selectedTeam)
           && (!month || clean(row[fields.month]) === month)
           && (!week || clean(row[fields.week]) === week)
+          && (!leader || clean(row[fields.leader]) === leader)
           && (!product || clean(row[fields.product]) === product)
           && (!status || clean(row[fields.status]) === status)
           && (!term || text.includes(term));
@@ -635,9 +639,10 @@
     function initialize() {
       setOptions("monthFilter", allRows.map((row) => row[fields.month]), "bulan");
       setOptions("weekFilter", allRows.map((row) => row[fields.week]), "minggu");
+      setOptions("leaderFilter", allRows.map((row) => row[fields.leader]), "leader");
       setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
       setOptions("statusFilter", allRows.map((row) => row[fields.status]), "status");
-      ["monthFilter", "weekFilter", "productFilter", "statusFilter", "searchInput"].forEach((id) => {
+      ["monthFilter", "weekFilter", "leaderFilter", "productFilter", "statusFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
       renderTabs();

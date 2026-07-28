@@ -140,6 +140,40 @@
       color: #fff;
     }
 
+    .page-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 2px;
+    }
+
+    .page-tabs button {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .page-tabs button.active {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .compare-box {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(170px, 1fr));
@@ -287,6 +321,10 @@
 
     <div class="team-tabs" id="teamTabs"></div>
 
+    <div class="page-tabs" id="pageTabs">
+      <button type="button" class="active" data-page="pageLeader">Leader & Agent</button>
+    </div>
+
     <section class="kpis">
       <div class="kpi"><span>Total Amount</span><strong id="totalAmount">Rp0</strong></div>
       <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
@@ -294,55 +332,34 @@
       <div class="kpi"><span>Agent Terpilih</span><strong id="selectedAgent">Semua</strong></div>
     </section>
 
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Compare Amount per Group</h2>
-          <span class="note">Outbound vs Inbound</span>
+    <section class="page active" id="pageLeader">
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Performance Leader</h2>
+            <span class="note">berdasarkan amount</span>
+          </div>
+          <div class="chart-wrap"><canvas id="leaderChart"></canvas></div>
         </div>
-        <div class="chart-wrap"><canvas id="teamAmountChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Compare Transaksi per Group</h2>
-          <span class="note">jumlah data</span>
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Compare Leader</h2>
+            <span class="note">pilih leader pembanding</span>
+          </div>
+          <div class="compare-box">
+            <label>Leader Pembanding<select id="compareLeaderFilter"></select></label>
+          </div>
+          <div class="chart-wrap"><canvas id="leaderCompareChart"></canvas></div>
         </div>
-        <div class="chart-wrap"><canvas id="teamTxnChart"></canvas></div>
-      </div>
-    </section>
+      </section>
 
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Produk Terbesar</h2>
-          <span class="note">berdasarkan amount</span>
-        </div>
-        <div class="chart-wrap"><canvas id="productChart"></canvas></div>
-      </div>
-      <div class="panel">
+      <section class="panel wide">
         <div class="panel-head">
           <h2>Performance Agent</h2>
           <span class="note" id="agentNote">berdasarkan Agent Name</span>
         </div>
         <div class="chart-wrap"><canvas id="agentChart"></canvas></div>
-      </div>
-    </section>
-
-    <section class="grid">
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Campaign Terbesar</h2>
-          <span class="note">8 tertinggi</span>
-        </div>
-        <div class="chart-wrap"><canvas id="campaignChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Ranking Leader</h2>
-          <span class="note">berdasarkan amount</span>
-        </div>
-        <div class="chart-wrap"><canvas id="leaderChart"></canvas></div>
-      </div>
+      </section>
     </section>
   </main>
 
@@ -440,6 +457,17 @@
       const unique = [...new Set(values.map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
       select.innerHTML = `<option value="">Semua ${label}</option>` + unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
       if (unique.includes(current)) select.value = current;
+    }
+
+    function setCompareOptions() {
+      const selectedLeader = document.getElementById("leaderFilter").value;
+      const select = document.getElementById("compareLeaderFilter");
+      const current = select.value;
+      const leaders = [...new Set(allRows.map((row) => clean(row[fields.leader])).filter(Boolean))]
+        .filter((leader) => leader !== selectedLeader)
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      select.innerHTML = `<option value="">Pilih leader</option>` + leaders.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (leaders.includes(current)) select.value = current;
     }
 
     function makeChart(id, config) {
@@ -620,12 +648,39 @@
         },
         options: baseOptions({ horizontal: true })
       });
+      renderLeaderCompare();
+    }
+
+    function renderLeaderCompare() {
+      const leaderA = document.getElementById("leaderFilter").value;
+      const leaderB = document.getElementById("compareLeaderFilter").value;
+      const labels = [leaderA || "Semua leader"];
+      const values = [sum(filteredRows(), fields.amount)];
+
+      if (leaderB) {
+        const compareRows = allRows.filter((row) =>
+          (selectedTeam === "ALL" || row._group === selectedTeam)
+          && clean(row[fields.leader]) === leaderB
+        );
+        labels.push(leaderB);
+        values.push(sum(compareRows, fields.amount));
+      }
+
+      makeChart("leaderCompareChart", {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{ label: "Amount", data: values, backgroundColor: ["#0b67c2", "#c77700"], borderRadius: 5 }]
+        },
+        options: baseOptions()
+      });
     }
 
     function render() {
       const data = filteredRows();
       renderKpis(data);
       renderTeamCharts(data);
+      setCompareOptions();
       renderRankCharts(data);
     }
 
@@ -638,6 +693,7 @@
       ["monthFilter", "weekFilter", "leaderFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
+      document.getElementById("compareLeaderFilter").addEventListener("input", renderLeaderCompare);
       renderTabs();
       render();
       document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;

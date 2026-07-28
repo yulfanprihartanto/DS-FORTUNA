@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Compare All Team</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6fa;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #657287;
+      --line: #dbe3ef;
+      --blue: #0b67c2;
+      --green: #079b88;
+      --amber: #c77700;
+      --red: #c43b1c;
+      --shadow: 0 10px 26px rgba(18, 31, 52, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      padding: 26px clamp(16px, 4vw, 44px);
+    }
+
+    .header-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .status {
+      min-width: 220px;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    main {
+      width: min(1360px, calc(100% - 32px));
+      margin: 22px auto 38px;
+    }
+
+    .error {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid #f2ad9c;
+      border-radius: 8px;
+      color: #84240e;
+      background: #fff7ed;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    select, input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 10px;
+      font: inherit;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(11, 103, 194, .13);
+    }
+
+    .team-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .team-tabs button {
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .team-tabs button.active {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(170px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .kpi, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi {
+      padding: 18px;
+      min-height: 108px;
+    }
+
+    .kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .kpi strong {
+      display: block;
+      margin-top: 12px;
+      font-size: clamp(25px, 3vw, 34px);
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 320px;
+    }
+
+    .wide .chart-wrap { height: 365px; }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 920px;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .right { text-align: right; }
+    .empty { padding: 36px 12px; color: var(--muted); text-align: center; }
+
+    @media (max-width: 980px) {
+      .header-inner { flex-direction: column; }
+      .status { text-align: left; }
+      .filters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+      .kpis { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      main { width: min(100% - 20px, 1360px); }
+      .filters, .kpis { grid-template-columns: 1fr; }
+      .panel { padding: 14px; }
+      .chart-wrap { height: 285px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>DS Compare All Team</h1>
+        <p class="subtitle">Perbandingan Layer 1, Layer 2, dan Prompter Inbound dari Google Sheets.</p>
+      </div>
+      <div class="status" id="status">Memuat data...</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="error" id="errorBox"></div>
+
+    <section class="filters">
+      <label>Bulan<select id="monthFilter"></select></label>
+      <label>Minggu<select id="weekFilter"></select></label>
+      <label>Produk<select id="productFilter"></select></label>
+      <label>Status<select id="statusFilter"></select></label>
+      <label>Cari<input id="searchInput" type="search" placeholder="Invoice, agent, user..." /></label>
+    </section>
+
+    <div class="team-tabs" id="teamTabs"></div>
+
+    <section class="kpis">
+      <div class="kpi"><span>Total Amount</span><strong id="totalAmount">Rp0</strong></div>
+      <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
+      <div class="kpi"><span>Total NOA</span><strong id="totalNoa">0</strong></div>
+      <div class="kpi"><span>Agent Aktif</span><strong id="activeAgents">0</strong></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Compare Amount per Tim</h2>
+          <span class="note">berdasarkan Kategori Team</span>
+        </div>
+        <div class="chart-wrap"><canvas id="teamAmountChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Compare Transaksi & NOA</h2>
+          <span class="note">jumlah data</span>
+        </div>
+        <div class="chart-wrap"><canvas id="teamTxnChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Trend Amount per Minggu</h2>
+          <span class="note">Layer 1 vs Layer 2 vs Prompter</span>
+        </div>
+        <div class="chart-wrap"><canvas id="weeklyTrendChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Produk Terbesar</h2>
+          <span class="note">berdasarkan amount</span>
+        </div>
+        <div class="chart-wrap"><canvas id="productChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Top Agent</h2>
+          <span class="note">10 tertinggi</span>
+        </div>
+        <div class="chart-wrap"><canvas id="agentChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Campaign Terbesar</h2>
+          <span class="note">8 tertinggi</span>
+        </div>
+        <div class="chart-wrap"><canvas id="campaignChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel wide">
+      <div class="panel-head">
+        <h2>Detail Transaksi</h2>
+        <span class="note" id="rowCount">0 baris</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Team</th>
+              <th>Agent</th>
+              <th>User</th>
+              <th>Invoice</th>
+              <th>Product</th>
+              <th>Campaign</th>
+              <th class="right">Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="9" class="empty">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SHEET_ID = "1Z9zMCBlbnJy9V0CikwQ1emcFdv9xxp7j474qAXfuOf8";
+    const GID = "0";
+    const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
+    const COLORS = {
+      "LAYER 1": "#0b67c2",
+      "LAYER 2": "#079b88",
+      "Prompter Inbound": "#c77700"
+    };
+    const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
+    const number = new Intl.NumberFormat("id-ID");
+    const fields = {
+      date: "Date",
+      month: "Month",
+      week: "Week",
+      agent: "Agent Name",
+      user: "User Name",
+      invoice: "Invoice",
+      product: "Product Type",
+      campaign: "Campaign",
+      amount: "Amount",
+      txn: "Txn",
+      status: "Status",
+      noa: "NOA",
+      team: "Kategori Team"
+    };
+    let allRows = [];
+    let selectedTeam = "ALL";
+    const charts = {};
+
+    function clean(value) {
+      return String(value ?? "").trim();
+    }
+
+    function normalizeTeam(value) {
+      const team = clean(value).toLowerCase();
+      if (team === "layer 1") return "LAYER 1";
+      if (team === "layer 2") return "LAYER 2";
+      if (team === "prompter inbound") return "Prompter Inbound";
+      return clean(value);
+    }
+
+    function toNumber(value) {
+      const text = clean(value).replace(/[^0-9,-]/g, "").replace(",", ".");
+      return Number(text) || 0;
+    }
+
+    function escapeHtml(value) {
+      return clean(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[char]));
+    }
+
+    function sum(data, key) {
+      return data.reduce((total, row) => total + toNumber(row[key]), 0);
+    }
+
+    function groupSum(data, key, valueKey = fields.amount) {
+      const map = new Map();
+      data.forEach((row) => {
+        const name = clean(row[key]) || "Kosong";
+        map.set(name, (map.get(name) || 0) + toNumber(row[valueKey]));
+      });
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function setOptions(id, values, label) {
+      const select = document.getElementById(id);
+      const current = select.value;
+      const unique = [...new Set(values.map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      select.innerHTML = `<option value="">Semua ${label}</option>` + unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (unique.includes(current)) select.value = current;
+    }
+
+    function makeChart(id, config) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id), config);
+    }
+
+    function baseOptions({ money = true, horizontal = false } = {}) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: horizontal ? "y" : "x",
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label(context) {
+                const value = context.parsed.y ?? context.parsed.x ?? context.parsed ?? 0;
+                return `${context.dataset.label || context.label}: ${money ? rupiah.format(value) : number.format(value)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
+            }
+          }
+        }
+      };
+    }
+
+    function filteredRows() {
+      const month = document.getElementById("monthFilter").value;
+      const week = document.getElementById("weekFilter").value;
+      const product = document.getElementById("productFilter").value;
+      const status = document.getElementById("statusFilter").value;
+      const term = clean(document.getElementById("searchInput").value).toLowerCase();
+
+      return allRows.filter((row) => {
+        const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
+        return (selectedTeam === "ALL" || row._team === selectedTeam)
+          && (!month || clean(row[fields.month]) === month)
+          && (!week || clean(row[fields.week]) === week)
+          && (!product || clean(row[fields.product]) === product)
+          && (!status || clean(row[fields.status]) === status)
+          && (!term || text.includes(term));
+      });
+    }
+
+    function renderTabs() {
+      const tabs = ["ALL", ...TARGET_TEAMS];
+      document.getElementById("teamTabs").innerHTML = tabs.map((team) => {
+        const label = team === "ALL" ? "Semua Tim" : team;
+        return `<button type="button" class="${selectedTeam === team ? "active" : ""}" data-team="${team}">${label}</button>`;
+      }).join("");
+      document.querySelectorAll("#teamTabs button").forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedTeam = button.dataset.team;
+          renderTabs();
+          render();
+        });
+      });
+    }
+
+    function renderKpis(data) {
+      document.getElementById("totalAmount").textContent = rupiah.format(sum(data, fields.amount));
+      document.getElementById("totalTxn").textContent = number.format(sum(data, fields.txn) || data.length);
+      document.getElementById("totalNoa").textContent = number.format(sum(data, fields.noa));
+      document.getElementById("activeAgents").textContent = number.format(new Set(data.map((row) => clean(row[fields.agent])).filter(Boolean)).size);
+    }
+
+    function renderTeamCharts(data) {
+      const teamAmount = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.amount));
+      const teamTxn = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.txn) || data.filter((row) => row._team === team).length);
+      const teamNoa = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.noa));
+
+      makeChart("teamAmountChart", {
+        type: "bar",
+        data: {
+          labels: TARGET_TEAMS,
+          datasets: [{ label: "Amount", data: teamAmount, backgroundColor: TARGET_TEAMS.map((team) => COLORS[team]), borderRadius: 5 }]
+        },
+        options: baseOptions()
+      });
+
+      makeChart("teamTxnChart", {
+        type: "bar",
+        data: {
+          labels: TARGET_TEAMS,
+          datasets: [
+            { label: "Transaksi", data: teamTxn, backgroundColor: "#0b67c2", borderRadius: 5 },
+            { label: "NOA", data: teamNoa, backgroundColor: "#079b88", borderRadius: 5 }
+          ]
+        },
+        options: baseOptions({ money: false })
+      });
+    }
+
+    function renderWeeklyTrend(data) {
+      const weeks = [...new Set(data.map((row) => clean(row[fields.week])).filter(Boolean))]
+        .sort((a, b) => Number(a) - Number(b));
+      makeChart("weeklyTrendChart", {
+        type: "line",
+        data: {
+          labels: weeks.map((week) => `W${week}`),
+          datasets: TARGET_TEAMS.map((team) => ({
+            label: team,
+            data: weeks.map((week) => sum(data.filter((row) => row._team === team && clean(row[fields.week]) === week), fields.amount)),
+            borderColor: COLORS[team],
+            backgroundColor: COLORS[team],
+            tension: .32,
+            pointRadius: 3
+          }))
+        },
+        options: baseOptions()
+      });
+    }
+
+    function renderRankCharts(data) {
+      const products = groupSum(data, fields.product).slice(0, 8);
+      const agents = groupSum(data, fields.agent).slice(0, 10).reverse();
+      const campaigns = groupSum(data, fields.campaign).slice(0, 8).reverse();
+      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
+
+      makeChart("productChart", {
+        type: "doughnut",
+        data: {
+          labels: products.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: products.map((item) => item[1]), backgroundColor: palette, borderColor: "#fff", borderWidth: 2 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom" } } }
+      });
+
+      makeChart("agentChart", {
+        type: "bar",
+        data: {
+          labels: agents.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: agents.map((item) => item[1]), backgroundColor: "#0b67c2", borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+
+      makeChart("campaignChart", {
+        type: "bar",
+        data: {
+          labels: campaigns.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: campaigns.map((item) => item[1]), backgroundColor: "#079b88", borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+    }
+
+    function renderTable(data) {
+      const body = document.getElementById("tableBody");
+      document.getElementById("rowCount").textContent = `${number.format(data.length)} baris`;
+      const rows = data.slice(0, 120);
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="9" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+        return;
+      }
+      body.innerHTML = rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row[fields.date])}</td>
+          <td>${escapeHtml(row._team)}</td>
+          <td>${escapeHtml(row[fields.agent])}</td>
+          <td>${escapeHtml(row[fields.user])}</td>
+          <td>${escapeHtml(row[fields.invoice])}</td>
+          <td>${escapeHtml(row[fields.product])}</td>
+          <td>${escapeHtml(row[fields.campaign])}</td>
+          <td class="right">${rupiah.format(toNumber(row[fields.amount]))}</td>
+          <td>${escapeHtml(row[fields.status])}</td>
+        </tr>
+      `).join("");
+    }
+
+    function render() {
+      const data = filteredRows();
+      renderKpis(data);
+      renderTeamCharts(data);
+      renderWeeklyTrend(data);
+      renderRankCharts(data);
+      renderTable(data);
+    }
+
+    function initialize() {
+      setOptions("monthFilter", allRows.map((row) => row[fields.month]), "bulan");
+      setOptions("weekFilter", allRows.map((row) => row[fields.week]), "minggu");
+      setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
+      setOptions("statusFilter", allRows.map((row) => row[fields.status]), "status");
+      ["monthFilter", "weekFilter", "productFilter", "statusFilter", "searchInput"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", render);
+      });
+      renderTabs();
+      render();
+      document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;
+    }
+
+    function rowsFromGoogleTable(table) {
+      const matrix = table.rows.map((row) => row.c.map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
+      const headerIndex = matrix.findIndex((row) => row.includes("Date") && row.includes("Invoice"));
+      if (headerIndex < 0) throw new Error("Header Date dan Invoice tidak ditemukan.");
+      const headers = matrix[headerIndex].map(clean);
+      return matrix.slice(headerIndex + 1).map((line) => {
+        const row = {};
+        headers.forEach((header, index) => {
+          if (header) row[header] = line[index] ?? "";
+        });
+        row._team = normalizeTeam(row[fields.team]);
+        return row;
+      }).filter((row) => TARGET_TEAMS.includes(row._team));
+    }
+
+    window.handleSheetData = function(response) {
+      try {
+        allRows = rowsFromGoogleTable(response.table);
+        initialize();
+      } catch (error) {
+        showError(error.message);
+      }
+    };
+
+    function showError(message) {
+      document.getElementById("status").textContent = "Gagal memuat data";
+      const box = document.getElementById("errorBox");
+      box.style.display = "block";
+      box.textContent = `Data tidak bisa dibaca. Pastikan Google Sheet bisa diakses publik. Detail: ${message}`;
+    }
+
+    function loadSheet() {
+      const script = document.createElement("script");
+      script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID}&headers=0&tqx=out:json;responseHandler:handleSheetData`;
+      script.onerror = () => showError("Google Sheet tidak bisa diakses dari halaman ini.");
+      document.body.appendChild(script);
+    }
+
+    loadSheet();
+  </script>
+</body>
+</html>

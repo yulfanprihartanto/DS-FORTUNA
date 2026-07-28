@@ -84,7 +84,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      grid-template-columns: repeat(6, minmax(150px, 1fr));
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -279,6 +279,7 @@
       <label>Monthly<select id="monthFilter"></select></label>
       <label>Weekly<select id="weekFilter"></select></label>
       <label>Leader<select id="leaderFilter"></select></label>
+      <label>Agent<select id="agentFilter"></select></label>
       <label>Produk<select id="productFilter"></select></label>
       <label>Cari<input id="searchInput" type="search" placeholder="Invoice, agent, user..." /></label>
     </section>
@@ -289,7 +290,7 @@
       <div class="kpi"><span>Total Amount</span><strong id="totalAmount">Rp0</strong></div>
       <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
       <div class="kpi"><span>Agent Aktif</span><strong id="activeAgents">0</strong></div>
-      <div class="kpi"><span>Leader Terpilih</span><strong id="selectedLeader">Semua</strong></div>
+      <div class="kpi"><span>Agent Terpilih</span><strong id="selectedAgent">Semua</strong></div>
     </section>
 
     <section class="grid">
@@ -319,8 +320,8 @@
       </div>
       <div class="panel">
         <div class="panel-head">
-          <h2>Pencapaian Agent per Coach</h2>
-          <span class="note" id="agentNote">pilih leader/coach</span>
+          <h2>Performance Agent</h2>
+          <span class="note" id="agentNote">berdasarkan Agent Name</span>
         </div>
         <div class="chart-wrap"><canvas id="agentChart"></canvas></div>
       </div>
@@ -461,6 +462,7 @@
       const month = document.getElementById("monthFilter").value;
       const week = document.getElementById("weekFilter").value;
       const leader = document.getElementById("leaderFilter").value;
+      const agent = document.getElementById("agentFilter").value;
       const product = document.getElementById("productFilter").value;
       const term = clean(document.getElementById("searchInput").value).toLowerCase();
 
@@ -470,6 +472,7 @@
           && (!month || clean(row[fields.month]) === month)
           && (!week || clean(row[fields.week]) === week)
           && (!leader || clean(row[fields.leader]) === leader)
+          && (!agent || clean(row[fields.agent]) === agent)
           && (!product || clean(row[fields.product]) === product)
           && (!term || text.includes(term));
       });
@@ -494,7 +497,7 @@
       document.getElementById("totalAmount").textContent = rupiah.format(sum(data, fields.amount));
       document.getElementById("totalTxn").textContent = number.format(sum(data, fields.txn) || data.length);
       document.getElementById("activeAgents").textContent = number.format(new Set(data.map((row) => clean(row[fields.agent])).filter(Boolean)).size);
-      document.getElementById("selectedLeader").textContent = document.getElementById("leaderFilter").value || "Semua";
+      document.getElementById("selectedAgent").textContent = document.getElementById("agentFilter").value || "Semua";
     }
 
     function renderTeamCharts(data) {
@@ -544,7 +547,11 @@
         },
         options: baseOptions({ horizontal: true })
       });
-      document.getElementById("agentNote").textContent = document.getElementById("leaderFilter").value ? "agent dan pencapaiannya" : "pilih leader/coach";
+      const selectedAgent = document.getElementById("agentFilter").value;
+      const selectedLeader = document.getElementById("leaderFilter").value;
+      document.getElementById("agentNote").textContent = selectedAgent
+        ? "performance agent terpilih"
+        : selectedLeader ? "agent di bawah leader terpilih" : "berdasarkan Agent Name";
 
       makeChart("campaignChart", {
         type: "bar",
@@ -575,8 +582,9 @@
       setOptions("monthFilter", allRows.map((row) => row[fields.month]), "bulan");
       setOptions("weekFilter", allRows.map((row) => row[fields.week]), "minggu");
       setOptions("leaderFilter", allRows.map((row) => row[fields.leader]), "leader");
+      setOptions("agentFilter", allRows.map((row) => row[fields.agent]), "agent");
       setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
-      ["monthFilter", "weekFilter", "leaderFilter", "productFilter", "searchInput"].forEach((id) => {
+      ["monthFilter", "weekFilter", "leaderFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
       renderTabs();

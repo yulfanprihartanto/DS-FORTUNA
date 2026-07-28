@@ -548,15 +548,33 @@
           legend: { position: "bottom" },
           datalabels: {
             anchor: "end",
-            align: horizontal ? "left" : "bottom",
-            color: "#ffffff",
+            align(context) {
+              if (!horizontal) return "bottom";
+              const values = context.dataset.data || [];
+              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const current = Number(context.dataset.data[context.dataIndex]) || 0;
+              return current < max * 0.22 ? "right" : "left";
+            },
+            color(context) {
+              if (!horizontal) return "#ffffff";
+              const values = context.dataset.data || [];
+              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const current = Number(context.dataset.data[context.dataIndex]) || 0;
+              return current < max * 0.22 ? "#172033" : "#ffffff";
+            },
             font: { size: 11, weight: "700" },
             formatter(value) {
               if (!value) return "";
               return money ? rupiah.format(value).replace(",00", "") : number.format(value);
             },
             clamp: true,
-            textStrokeColor: "rgba(0, 0, 0, .28)",
+            textStrokeColor(context) {
+              if (!horizontal) return "rgba(0, 0, 0, .28)";
+              const values = context.dataset.data || [];
+              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const current = Number(context.dataset.data[context.dataIndex]) || 0;
+              return current < max * 0.22 ? "rgba(255, 255, 255, .85)" : "rgba(0, 0, 0, .28)";
+            },
             textStrokeWidth: 2
           },
           tooltip: {

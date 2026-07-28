@@ -347,7 +347,8 @@
             <span class="note">pilih leader pembanding</span>
           </div>
           <div class="compare-box">
-            <label>Leader Pembanding<select id="compareLeaderFilter"></select></label>
+            <label>Leader A<select id="compareLeaderAFilter"></select></label>
+            <label>Leader B<select id="compareLeaderBFilter"></select></label>
           </div>
           <div class="chart-wrap"><canvas id="leaderCompareChart"></canvas></div>
         </div>
@@ -460,14 +461,14 @@
     }
 
     function setCompareOptions() {
-      const selectedLeader = document.getElementById("leaderFilter").value;
-      const select = document.getElementById("compareLeaderFilter");
-      const current = select.value;
       const leaders = [...new Set(allRows.map((row) => clean(row[fields.leader])).filter(Boolean))]
-        .filter((leader) => leader !== selectedLeader)
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-      select.innerHTML = `<option value="">Pilih leader</option>` + leaders.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-      if (leaders.includes(current)) select.value = current;
+      ["compareLeaderAFilter", "compareLeaderBFilter"].forEach((id) => {
+        const select = document.getElementById(id);
+        const current = select.value;
+        select.innerHTML = `<option value="">Pilih leader</option>` + leaders.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+        if (leaders.includes(current)) select.value = current;
+      });
     }
 
     function makeChart(id, config) {
@@ -654,19 +655,17 @@
     }
 
     function renderLeaderCompare() {
-      const leaderA = document.getElementById("leaderFilter").value;
-      const leaderB = document.getElementById("compareLeaderFilter").value;
-      const labels = [leaderA || "Semua leader"];
-      const values = [sum(filteredRows(), fields.amount)];
-
-      if (leaderB) {
-        const compareRows = allRows.filter((row) =>
+      const leaderA = document.getElementById("compareLeaderAFilter").value;
+      const leaderB = document.getElementById("compareLeaderBFilter").value;
+      const selectedLeaders = [leaderA, leaderB].filter(Boolean);
+      const labels = selectedLeaders.length ? selectedLeaders : ["Pilih leader A/B"];
+      const values = selectedLeaders.length ? selectedLeaders.map((leader) => {
+        const rows = allRows.filter((row) =>
           (selectedTeam === "ALL" || row._group === selectedTeam)
-          && clean(row[fields.leader]) === leaderB
+          && clean(row[fields.leader]) === leader
         );
-        labels.push(leaderB);
-        values.push(sum(compareRows, fields.amount));
-      }
+        return sum(rows, fields.amount);
+      }) : [0];
 
       makeChart("leaderCompareChart", {
         type: "bar",
@@ -695,7 +694,8 @@
       ["monthFilter", "weekFilter", "leaderFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
-      document.getElementById("compareLeaderFilter").addEventListener("input", renderLeaderCompare);
+      document.getElementById("compareLeaderAFilter").addEventListener("input", renderLeaderCompare);
+      document.getElementById("compareLeaderBFilter").addEventListener("input", renderLeaderCompare);
       renderTabs();
       render();
       document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;

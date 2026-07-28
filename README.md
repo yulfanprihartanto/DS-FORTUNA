@@ -1,0 +1,567 @@
+[index.html](https://github.com/user-attachments/files/30455647/index.html)
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DS Fortuna Dashboard</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #182235;
+      --muted: #637083;
+      --line: #dbe3ee;
+      --brand: #0866c2;
+      --brand-2: #0aa38f;
+      --warn: #d8860b;
+      --danger: #c2410c;
+      --shadow: 0 12px 30px rgba(22, 34, 53, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+
+    header {
+      padding: 28px clamp(16px, 4vw, 44px) 18px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .status {
+      min-width: 190px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #f8fafc;
+      font-size: 13px;
+      text-align: right;
+    }
+
+    main {
+      width: min(1320px, calc(100% - 32px));
+      margin: 22px auto 36px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    select, input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 10px;
+      color: var(--ink);
+      background: #ffffff;
+      font: inherit;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(8, 102, 194, 0.14);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .kpi, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi {
+      padding: 18px;
+      min-height: 108px;
+    }
+
+    .kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .kpi strong {
+      display: block;
+      margin-top: 12px;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 310px;
+    }
+
+    .wide .chart-wrap { height: 360px; }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      font-size: 13px;
+      min-width: 820px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      z-index: 1;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .right { text-align: right; }
+
+    .empty {
+      padding: 40px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .error {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid #f4b4a1;
+      border-radius: 8px;
+      color: #7c2d12;
+      background: #fff7ed;
+    }
+
+    @media (max-width: 980px) {
+      .filters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+      .kpis { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .status { text-align: left; }
+      .title-row { flex-direction: column; }
+    }
+
+    @media (max-width: 560px) {
+      main { width: min(100% - 20px, 1320px); }
+      .filters, .kpis { grid-template-columns: 1fr; }
+      .panel { padding: 14px; }
+      .chart-wrap { height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-row">
+      <div>
+        <h1>DS Fortuna Dashboard</h1>
+        <p class="subtitle">Monitoring transaksi, amount, agent, campaign, dan produk dari Google Sheets.</p>
+      </div>
+      <div class="status" id="status">Memuat data...</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="error" id="errorBox"></div>
+
+    <section class="filters" aria-label="Filter dashboard">
+      <label>
+        Bulan
+        <select id="monthFilter"></select>
+      </label>
+      <label>
+        Minggu
+        <select id="weekFilter"></select>
+      </label>
+      <label>
+        Agent
+        <select id="agentFilter"></select>
+      </label>
+      <label>
+        Product Type
+        <select id="productFilter"></select>
+      </label>
+      <label>
+        Cari
+        <input id="searchInput" type="search" placeholder="Invoice, user, campaign..." />
+      </label>
+    </section>
+
+    <section class="kpis" aria-label="Ringkasan data">
+      <div class="kpi"><span>Total Amount</span><strong id="totalAmount">Rp0</strong></div>
+      <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
+      <div class="kpi"><span>Total NOA</span><strong id="totalNoa">0</strong></div>
+      <div class="kpi"><span>Agent Aktif</span><strong id="activeAgents">0</strong></div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Amount per Minggu</h2>
+          <span class="panel-note" id="weekCount">0 minggu</span>
+        </div>
+        <div class="chart-wrap"><canvas id="weeklyChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Komposisi Produk</h2>
+          <span class="panel-note">berdasarkan amount</span>
+        </div>
+        <div class="chart-wrap"><canvas id="productChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Top Agent</h2>
+          <span class="panel-note">10 tertinggi</span>
+        </div>
+        <div class="chart-wrap"><canvas id="agentChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Status</h2>
+          <span class="panel-note">jumlah transaksi</span>
+        </div>
+        <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel wide">
+      <div class="panel-head">
+        <h2>Detail Transaksi</h2>
+        <span class="panel-note" id="rowCount">0 baris</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Invoice</th>
+              <th>User</th>
+              <th>Agent</th>
+              <th>Product</th>
+              <th>Campaign</th>
+              <th class="right">Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8" class="empty">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1Z9zMCBlbnJy9V0CikwQ1emcFdv9xxp7j474qAXfuOf8/export?format=csv&gid=0";
+    const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
+    const number = new Intl.NumberFormat("id-ID");
+    const charts = {};
+    let rows = [];
+
+    const fields = {
+      date: "Date",
+      month: "Month",
+      week: "Week",
+      agent: "Agent Name",
+      user: "User Name",
+      invoice: "Invoice",
+      product: "Product Type",
+      campaign: "Campaign",
+      amount: "Amount",
+      txn: "Txn",
+      status: "Status",
+      noa: "NOA"
+    };
+
+    function clean(value) {
+      return String(value ?? "").trim();
+    }
+
+    function toNumber(value) {
+      const text = clean(value).replace(/[^0-9,-]/g, "").replace(",", ".");
+      return Number(text) || 0;
+    }
+
+    function bySum(data, key, valueKey = fields.amount) {
+      const map = new Map();
+      data.forEach((row) => {
+        const name = clean(row[key]) || "Kosong";
+        map.set(name, (map.get(name) || 0) + toNumber(row[valueKey]));
+      });
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function byCount(data, key) {
+      const map = new Map();
+      data.forEach((row) => {
+        const name = clean(row[key]) || "Kosong";
+        map.set(name, (map.get(name) || 0) + 1);
+      });
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function setOptions(selectId, values, label) {
+      const select = document.getElementById(selectId);
+      const current = select.value;
+      const unique = [...new Set(values.map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      select.innerHTML = `<option value="">Semua ${label}</option>` + unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      if (unique.includes(current)) select.value = current;
+    }
+
+    function escapeHtml(value) {
+      return clean(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function filteredRows() {
+      const month = document.getElementById("monthFilter").value;
+      const week = document.getElementById("weekFilter").value;
+      const agent = document.getElementById("agentFilter").value;
+      const product = document.getElementById("productFilter").value;
+      const term = clean(document.getElementById("searchInput").value).toLowerCase();
+
+      return rows.filter((row) => {
+        const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
+        return (!month || clean(row[fields.month]) === month)
+          && (!week || clean(row[fields.week]) === week)
+          && (!agent || clean(row[fields.agent]) === agent)
+          && (!product || clean(row[fields.product]) === product)
+          && (!term || text.includes(term));
+      });
+    }
+
+    function renderKpis(data) {
+      const totalAmount = data.reduce((sum, row) => sum + toNumber(row[fields.amount]), 0);
+      const totalTxn = data.reduce((sum, row) => sum + toNumber(row[fields.txn]), 0);
+      const totalNoa = data.reduce((sum, row) => sum + toNumber(row[fields.noa]), 0);
+      const activeAgents = new Set(data.map((row) => clean(row[fields.agent])).filter(Boolean)).size;
+
+      document.getElementById("totalAmount").textContent = rupiah.format(totalAmount);
+      document.getElementById("totalTxn").textContent = number.format(totalTxn || data.length);
+      document.getElementById("totalNoa").textContent = number.format(totalNoa);
+      document.getElementById("activeAgents").textContent = number.format(activeAgents);
+    }
+
+    function renderChart(id, type, labels, data, options = {}) {
+      if (charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id), {
+        type,
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: ["#0866c2", "#0aa38f", "#d8860b", "#7c3aed", "#dc2626", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"],
+            borderColor: "#ffffff",
+            borderWidth: type === "doughnut" ? 2 : 0,
+            borderRadius: type === "bar" ? 4 : 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: type === "doughnut", position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label(context) {
+                  const value = context.parsed.y ?? context.parsed ?? 0;
+                  return type === "doughnut" ? `${context.label}: ${rupiah.format(value)}` : rupiah.format(value);
+                }
+              }
+            }
+          },
+          scales: type === "doughnut" ? {} : {
+            x: { grid: { display: false } },
+            y: {
+              beginAtZero: true,
+              ticks: { callback: (value) => rupiah.format(value).replace(",00", "") }
+            }
+          },
+          ...options
+        }
+      });
+    }
+
+    function renderTable(data) {
+      const body = document.getElementById("tableBody");
+      const visible = data.slice(0, 100);
+      document.getElementById("rowCount").textContent = `${number.format(data.length)} baris`;
+
+      if (!visible.length) {
+        body.innerHTML = `<tr><td colspan="8" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = visible.map((row) => `
+        <tr>
+          <td>${escapeHtml(row[fields.date])}</td>
+          <td>${escapeHtml(row[fields.invoice])}</td>
+          <td>${escapeHtml(row[fields.user])}</td>
+          <td>${escapeHtml(row[fields.agent])}</td>
+          <td>${escapeHtml(row[fields.product])}</td>
+          <td>${escapeHtml(row[fields.campaign])}</td>
+          <td class="right">${rupiah.format(toNumber(row[fields.amount]))}</td>
+          <td>${escapeHtml(row[fields.status])}</td>
+        </tr>
+      `).join("");
+    }
+
+    function render() {
+      const data = filteredRows();
+      const weeks = bySum(data, fields.week).sort((a, b) => Number(a[0]) - Number(b[0]));
+      const products = bySum(data, fields.product).slice(0, 8);
+      const agents = bySum(data, fields.agent).slice(0, 10).reverse();
+      const statuses = byCount(data, fields.status).slice(0, 8);
+
+      renderKpis(data);
+      document.getElementById("weekCount").textContent = `${number.format(weeks.length)} minggu`;
+      renderChart("weeklyChart", "bar", weeks.map((item) => `W${item[0]}`), weeks.map((item) => item[1]));
+      renderChart("productChart", "doughnut", products.map((item) => item[0]), products.map((item) => item[1]));
+      renderChart("agentChart", "bar", agents.map((item) => item[0]), agents.map((item) => item[1]), { indexAxis: "y" });
+      renderChart("statusChart", "bar", statuses.map((item) => item[0]), statuses.map((item) => item[1]), {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      });
+      renderTable(data);
+    }
+
+    function initializeFilters() {
+      setOptions("monthFilter", rows.map((row) => row[fields.month]), "bulan");
+      setOptions("weekFilter", rows.map((row) => row[fields.week]), "minggu");
+      setOptions("agentFilter", rows.map((row) => row[fields.agent]), "agent");
+      setOptions("productFilter", rows.map((row) => row[fields.product]), "produk");
+
+      ["monthFilter", "weekFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", render);
+      });
+    }
+
+    Papa.parse(SHEET_CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete(result) {
+        rows = result.data.filter((row) => clean(row[fields.invoice]) || clean(row[fields.user]) || clean(row[fields.amount]));
+        initializeFilters();
+        render();
+        document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;
+      },
+      error(error) {
+        document.getElementById("status").textContent = "Gagal memuat data";
+        const box = document.getElementById("errorBox");
+        box.style.display = "block";
+        box.textContent = `Data tidak bisa dibaca. Pastikan Google Sheet bisa diakses publik. Detail: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

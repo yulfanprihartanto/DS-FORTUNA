@@ -471,8 +471,10 @@
     }
 
     function makeChart(id, config) {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
       if (charts[id]) charts[id].destroy();
-      charts[id] = new Chart(document.getElementById(id), config);
+      charts[id] = new Chart(canvas, config);
     }
 
     function baseOptions({ money = true, horizontal = false } = {}) {

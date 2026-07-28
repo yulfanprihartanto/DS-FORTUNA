@@ -84,7 +84,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(6, minmax(150px, 1fr));
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
       gap: 12px;
       margin-bottom: 16px;
     }
@@ -280,7 +280,6 @@
       <label>Weekly<select id="weekFilter"></select></label>
       <label>Leader<select id="leaderFilter"></select></label>
       <label>Produk<select id="productFilter"></select></label>
-      <label>Status<select id="statusFilter"></select></label>
       <label>Cari<input id="searchInput" type="search" placeholder="Invoice, agent, user..." /></label>
     </section>
 
@@ -289,8 +288,8 @@
     <section class="kpis">
       <div class="kpi"><span>Total Amount</span><strong id="totalAmount">Rp0</strong></div>
       <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
-      <div class="kpi"><span>Total NOA</span><strong id="totalNoa">0</strong></div>
       <div class="kpi"><span>Agent Aktif</span><strong id="activeAgents">0</strong></div>
+      <div class="kpi"><span>Leader Terpilih</span><strong id="selectedLeader">Semua</strong></div>
     </section>
 
     <section class="grid">
@@ -303,7 +302,7 @@
       </div>
       <div class="panel">
         <div class="panel-head">
-          <h2>Compare Transaksi & NOA</h2>
+          <h2>Compare Transaksi per Tim</h2>
           <span class="note">jumlah data</span>
         </div>
         <div class="chart-wrap"><canvas id="teamTxnChart"></canvas></div>
@@ -313,28 +312,21 @@
     <section class="grid">
       <div class="panel">
         <div class="panel-head">
-          <h2>Trend Amount per Minggu</h2>
-          <span class="note">Layer 1 vs Layer 2 vs Prompter</span>
-        </div>
-        <div class="chart-wrap"><canvas id="weeklyTrendChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="panel-head">
           <h2>Produk Terbesar</h2>
           <span class="note">berdasarkan amount</span>
         </div>
         <div class="chart-wrap"><canvas id="productChart"></canvas></div>
       </div>
-    </section>
-
-    <section class="grid">
       <div class="panel">
         <div class="panel-head">
-          <h2>Top Agent</h2>
-          <span class="note">10 tertinggi</span>
+          <h2>Pencapaian Agent per Coach</h2>
+          <span class="note" id="agentNote">pilih leader/coach</span>
         </div>
         <div class="chart-wrap"><canvas id="agentChart"></canvas></div>
       </div>
+    </section>
+
+    <section class="grid">
       <div class="panel">
         <div class="panel-head">
           <h2>Campaign Terbesar</h2>
@@ -342,32 +334,12 @@
         </div>
         <div class="chart-wrap"><canvas id="campaignChart"></canvas></div>
       </div>
-    </section>
-
-    <section class="panel wide">
-      <div class="panel-head">
-        <h2>Detail Transaksi</h2>
-        <span class="note" id="rowCount">0 baris</span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Team</th>
-              <th>Agent</th>
-              <th>User</th>
-              <th>Invoice</th>
-              <th>Product</th>
-              <th>Campaign</th>
-              <th class="right">Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr><td colspan="9" class="empty">Memuat data...</td></tr>
-          </tbody>
-        </table>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Ranking Leader</h2>
+          <span class="note">berdasarkan amount</span>
+        </div>
+        <div class="chart-wrap"><canvas id="leaderChart"></canvas></div>
       </div>
     </section>
   </main>
@@ -490,7 +462,6 @@
       const week = document.getElementById("weekFilter").value;
       const leader = document.getElementById("leaderFilter").value;
       const product = document.getElementById("productFilter").value;
-      const status = document.getElementById("statusFilter").value;
       const term = clean(document.getElementById("searchInput").value).toLowerCase();
 
       return allRows.filter((row) => {
@@ -500,7 +471,6 @@
           && (!week || clean(row[fields.week]) === week)
           && (!leader || clean(row[fields.leader]) === leader)
           && (!product || clean(row[fields.product]) === product)
-          && (!status || clean(row[fields.status]) === status)
           && (!term || text.includes(term));
       });
     }
@@ -523,14 +493,13 @@
     function renderKpis(data) {
       document.getElementById("totalAmount").textContent = rupiah.format(sum(data, fields.amount));
       document.getElementById("totalTxn").textContent = number.format(sum(data, fields.txn) || data.length);
-      document.getElementById("totalNoa").textContent = number.format(sum(data, fields.noa));
       document.getElementById("activeAgents").textContent = number.format(new Set(data.map((row) => clean(row[fields.agent])).filter(Boolean)).size);
+      document.getElementById("selectedLeader").textContent = document.getElementById("leaderFilter").value || "Semua";
     }
 
     function renderTeamCharts(data) {
       const teamAmount = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.amount));
       const teamTxn = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.txn) || data.filter((row) => row._team === team).length);
-      const teamNoa = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.noa));
 
       makeChart("teamAmountChart", {
         type: "bar",
@@ -545,32 +514,9 @@
         type: "bar",
         data: {
           labels: TARGET_TEAMS,
-          datasets: [
-            { label: "Transaksi", data: teamTxn, backgroundColor: "#0b67c2", borderRadius: 5 },
-            { label: "NOA", data: teamNoa, backgroundColor: "#079b88", borderRadius: 5 }
-          ]
+          datasets: [{ label: "Transaksi", data: teamTxn, backgroundColor: "#0b67c2", borderRadius: 5 }]
         },
         options: baseOptions({ money: false })
-      });
-    }
-
-    function renderWeeklyTrend(data) {
-      const weeks = [...new Set(data.map((row) => clean(row[fields.week])).filter(Boolean))]
-        .sort((a, b) => Number(a) - Number(b));
-      makeChart("weeklyTrendChart", {
-        type: "line",
-        data: {
-          labels: weeks.map((week) => `W${week}`),
-          datasets: TARGET_TEAMS.map((team) => ({
-            label: team,
-            data: weeks.map((week) => sum(data.filter((row) => row._team === team && clean(row[fields.week]) === week), fields.amount)),
-            borderColor: COLORS[team],
-            backgroundColor: COLORS[team],
-            tension: .32,
-            pointRadius: 3
-          }))
-        },
-        options: baseOptions()
       });
     }
 
@@ -578,6 +524,7 @@
       const products = groupSum(data, fields.product).slice(0, 8);
       const agents = groupSum(data, fields.agent).slice(0, 10).reverse();
       const campaigns = groupSum(data, fields.campaign).slice(0, 8).reverse();
+      const leaders = groupSum(data, fields.leader).slice(0, 10).reverse();
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
       makeChart("productChart", {
@@ -597,6 +544,7 @@
         },
         options: baseOptions({ horizontal: true })
       });
+      document.getElementById("agentNote").textContent = document.getElementById("leaderFilter").value ? "agent dan pencapaiannya" : "pilih leader/coach";
 
       makeChart("campaignChart", {
         type: "bar",
@@ -606,38 +554,21 @@
         },
         options: baseOptions({ horizontal: true })
       });
-    }
-
-    function renderTable(data) {
-      const body = document.getElementById("tableBody");
-      document.getElementById("rowCount").textContent = `${number.format(data.length)} baris`;
-      const rows = data.slice(0, 120);
-      if (!rows.length) {
-        body.innerHTML = `<tr><td colspan="9" class="empty">Tidak ada data sesuai filter.</td></tr>`;
-        return;
-      }
-      body.innerHTML = rows.map((row) => `
-        <tr>
-          <td>${escapeHtml(row[fields.date])}</td>
-          <td>${escapeHtml(row._team)}</td>
-          <td>${escapeHtml(row[fields.agent])}</td>
-          <td>${escapeHtml(row[fields.user])}</td>
-          <td>${escapeHtml(row[fields.invoice])}</td>
-          <td>${escapeHtml(row[fields.product])}</td>
-          <td>${escapeHtml(row[fields.campaign])}</td>
-          <td class="right">${rupiah.format(toNumber(row[fields.amount]))}</td>
-          <td>${escapeHtml(row[fields.status])}</td>
-        </tr>
-      `).join("");
+      makeChart("leaderChart", {
+        type: "bar",
+        data: {
+          labels: leaders.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: leaders.map((item) => item[1]), backgroundColor: "#c77700", borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
     }
 
     function render() {
       const data = filteredRows();
       renderKpis(data);
       renderTeamCharts(data);
-      renderWeeklyTrend(data);
       renderRankCharts(data);
-      renderTable(data);
     }
 
     function initialize() {
@@ -645,8 +576,7 @@
       setOptions("weekFilter", allRows.map((row) => row[fields.week]), "minggu");
       setOptions("leaderFilter", allRows.map((row) => row[fields.leader]), "leader");
       setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
-      setOptions("statusFilter", allRows.map((row) => row[fields.status]), "status");
-      ["monthFilter", "weekFilter", "leaderFilter", "productFilter", "statusFilter", "searchInput"].forEach((id) => {
+      ["monthFilter", "weekFilter", "leaderFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", render);
       });
       renderTabs();

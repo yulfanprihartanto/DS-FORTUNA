@@ -297,14 +297,14 @@
     <section class="grid">
       <div class="panel">
         <div class="panel-head">
-          <h2>Compare Amount per Tim</h2>
-          <span class="note">berdasarkan Kategori Team</span>
+          <h2>Compare Amount per Group</h2>
+          <span class="note">Outbound vs Inbound</span>
         </div>
         <div class="chart-wrap"><canvas id="teamAmountChart"></canvas></div>
       </div>
       <div class="panel">
         <div class="panel-head">
-          <h2>Compare Transaksi per Tim</h2>
+          <h2>Compare Transaksi per Group</h2>
           <span class="note">jumlah data</span>
         </div>
         <div class="chart-wrap"><canvas id="teamTxnChart"></canvas></div>
@@ -350,10 +350,14 @@
     const SHEET_ID = "1Z9zMCBlbnJy9V0CikwQ1emcFdv9xxp7j474qAXfuOf8";
     const GID = "0";
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
+    const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
+    const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
     const COLORS = {
       "LAYER 1": "#0b67c2",
       "LAYER 2": "#079b88",
-      "Prompter Inbound": "#c77700"
+      "Prompter Inbound": "#c77700",
+      "OUTBOUND": "#0b67c2",
+      "INBOUND": "#c77700"
     };
     const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
     const number = new Intl.NumberFormat("id-ID");
@@ -392,6 +396,18 @@
       if (team === "layer 2") return "LAYER 2";
       if (team === "prompter inbound") return "Prompter Inbound";
       return clean(value);
+    }
+
+    function normalizeName(value) {
+      return clean(value).toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function getGroup(row) {
+      const leader = normalizeName(row[fields.leader]);
+      const inboundCoach = INBOUND_COACHES.some((coach) => normalizeName(coach) === leader);
+      if (inboundCoach || row._team === "Prompter Inbound") return "INBOUND";
+      if (row._team === "LAYER 1" || row._team === "LAYER 2") return "OUTBOUND";
+      return "LAINNYA";
     }
 
     function toNumber(value) {
@@ -490,7 +506,7 @@
 
       return allRows.filter((row) => {
         const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.leader], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
-        return (selectedTeam === "ALL" || row._team === selectedTeam)
+        return (selectedTeam === "ALL" || row._group === selectedTeam)
           && (!month || clean(row[fields.month]) === month)
           && (!week || clean(row[fields.week]) === week)
           && (!leader || clean(row[fields.leader]) === leader)
@@ -501,9 +517,9 @@
     }
 
     function renderTabs() {
-      const tabs = ["ALL", ...TARGET_TEAMS];
+      const tabs = ["ALL", ...TEAM_GROUPS];
       document.getElementById("teamTabs").innerHTML = tabs.map((team) => {
-        const label = team === "ALL" ? "Semua Tim" : team;
+        const label = team === "ALL" ? "Semua" : team;
         return `<button type="button" class="${selectedTeam === team ? "active" : ""}" data-team="${team}">${label}</button>`;
       }).join("");
       document.querySelectorAll("#teamTabs button").forEach((button) => {
@@ -523,8 +539,8 @@
     }
 
     function renderTeamCharts(data) {
-      const teamRows = TARGET_TEAMS.map((team) => {
-        const teamData = data.filter((row) => row._team === team);
+      const teamRows = TEAM_GROUPS.map((team) => {
+        const teamData = data.filter((row) => row._group === team);
         return {
           team,
           amount: sum(teamData, fields.amount),
@@ -663,8 +679,9 @@
           if (header) row[header] = line[index] ?? "";
         });
         row._team = normalizeTeam(row[fields.team]);
+        row._group = getGroup(row);
         return row;
-      }).filter((row) => TARGET_TEAMS.includes(row._team));
+      }).filter((row) => TEAM_GROUPS.includes(row._group));
     }
 
     window.handleSheetData = function(response) {

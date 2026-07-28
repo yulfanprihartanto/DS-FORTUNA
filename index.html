@@ -523,14 +523,22 @@
     }
 
     function renderTeamCharts(data) {
-      const teamAmount = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.amount));
-      const teamTxn = TARGET_TEAMS.map((team) => sum(data.filter((row) => row._team === team), fields.txn) || data.filter((row) => row._team === team).length);
+      const teamRows = TARGET_TEAMS.map((team) => {
+        const teamData = data.filter((row) => row._team === team);
+        return {
+          team,
+          amount: sum(teamData, fields.amount),
+          txn: sum(teamData, fields.txn) || teamData.length
+        };
+      });
+      const teamByAmount = [...teamRows].sort((a, b) => b.amount - a.amount);
+      const teamByTxn = [...teamRows].sort((a, b) => b.txn - a.txn);
 
       makeChart("teamAmountChart", {
         type: "bar",
         data: {
-          labels: TARGET_TEAMS,
-          datasets: [{ label: "Amount", data: teamAmount, backgroundColor: TARGET_TEAMS.map((team) => COLORS[team]), borderRadius: 5 }]
+          labels: teamByAmount.map((item) => item.team),
+          datasets: [{ label: "Amount", data: teamByAmount.map((item) => item.amount), backgroundColor: teamByAmount.map((item) => COLORS[item.team]), borderRadius: 5 }]
         },
         options: baseOptions()
       });
@@ -538,8 +546,8 @@
       makeChart("teamTxnChart", {
         type: "bar",
         data: {
-          labels: TARGET_TEAMS,
-          datasets: [{ label: "Transaksi", data: teamTxn, backgroundColor: "#0b67c2", borderRadius: 5 }]
+          labels: teamByTxn.map((item) => item.team),
+          datasets: [{ label: "Transaksi", data: teamByTxn.map((item) => item.txn), backgroundColor: "#0b67c2", borderRadius: 5 }]
         },
         options: baseOptions({ money: false })
       });
@@ -547,9 +555,9 @@
 
     function renderRankCharts(data) {
       const products = groupSum(data, fields.product).slice(0, 8);
-      const agents = groupSum(data, fields.agent).slice(0, 10).reverse();
-      const campaigns = groupSum(data, fields.campaign).slice(0, 8).reverse();
-      const leaders = groupSum(data, fields.leader).slice(0, 10).reverse();
+      const agents = groupSum(data, fields.agent).slice(0, 10);
+      const campaigns = groupSum(data, fields.campaign).slice(0, 8);
+      const leaders = groupSum(data, fields.leader).slice(0, 10);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
 
       makeChart("productChart", {

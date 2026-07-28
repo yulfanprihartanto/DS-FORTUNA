@@ -407,6 +407,10 @@
       return String(value ?? "").trim();
     }
 
+    function normalizeHeader(value) {
+      return clean(value).toLowerCase().replace(/\s+/g, " ");
+    }
+
     function normalizeTeam(value) {
       const team = clean(value).toLowerCase();
       if (team === "layer 1") return "LAYER 1";
@@ -652,9 +656,25 @@
 
     function rowsFromGoogleTable(table) {
       const matrix = table.rows.map((row) => row.c.map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
-      const headerIndex = matrix.findIndex((row) => row.includes("Date") && row.includes("Invoice"));
-      if (headerIndex < 0) throw new Error("Header Date dan Invoice tidak ditemukan.");
-      const headers = matrix[headerIndex].map(clean);
+      let headerIndex = matrix.findIndex((row) => {
+        const normalized = row.map(normalizeHeader);
+        return normalized.includes("date") && normalized.includes("invoice");
+      });
+      let headers = headerIndex >= 0 ? matrix[headerIndex].map(clean) : [];
+
+      if (headerIndex < 0) {
+        headerIndex = 1;
+        headers = [
+          "Date", "Month", "Week", "Agent Name", "Leader Name", "User Name", "", "Invoice",
+          "Discount Code", "Package Serial", "Grade", "Package Name", "Product Type", "Campaign",
+          "Batch", "Amount", "Txn", "Status", "SPV", "Assigned Date", "Assigned Agent", "NOA",
+          "Assigned Coord", "Assigned SPV", "%Amount Adjustment", "Excluded/Approve",
+          "Package Duration", "Payment Option", "Email Agent", "Kategori Team", "Cicilan/New",
+          "Week Assign", "Is same week", "Category Campaign", "inbound/outbound", "Is same agent",
+          "Is same coach", "is OEC?", "tenure", "grade_adjust", "product_adjust", "DTP"
+        ];
+      }
+
       return matrix.slice(headerIndex + 1).map((line) => {
         const row = {};
         headers.forEach((header, index) => {

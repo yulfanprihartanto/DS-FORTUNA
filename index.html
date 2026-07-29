@@ -381,6 +381,7 @@
       <button type="button" class="active" data-page="pageLeader">Leader & Agent</button>
       <button type="button" data-page="pageUnit">Compare Unit</button>
       <button type="button" data-page="pageTenure">Tenure</button>
+      <button type="button" data-page="pageProductBreakdown">Breakdown Product</button>
     </div>
 
     <section class="kpis">
@@ -591,6 +592,39 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageProductBreakdown">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>Breakdown Product</h2>
+          <span class="note">campaign dan grade berdasarkan product type</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="breakdownMonthFilter"></select></label>
+          <label>Weekly<select id="breakdownWeekFilter"></select></label>
+          <label>SPV<select id="breakdownSpvFilter"></select></label>
+          <label>Coach<select id="breakdownCoachFilter"></select></label>
+          <label>Product Type<select id="breakdownProductFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="breakdownSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2>Top Campaign</h2>
+            <span class="note">20 campaign tertinggi</span>
+          </div>
+          <div class="coach-chart-title" id="breakdownCampaignTitle">Pilih product type</div>
+          <div class="chart-wrap"><canvas id="breakdownCampaignChart"></canvas></div>
+        </div>
+        <div>
+          <div class="panel-head">
+            <h2>Grade</h2>
+            <span class="note">berdasarkan grade_adjust</span>
+          </div>
+          <div class="coach-chart-title" id="breakdownGradeTitle">Pilih product type</div>
+          <div class="chart-wrap"><canvas id="breakdownGradeChart"></canvas></div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -625,6 +659,7 @@
       noa: "NOA",
       spv: "SPV",
       tenure: "tenure",
+      grade: "grade_adjust",
       team: "Kategori Team"
     };
     let allRows = [];
@@ -1132,6 +1167,75 @@
       `).join("") : `<tr><td colspan="6" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
+    function setBreakdownOptions() {
+      setOptions("breakdownMonthFilter", allRows.map((row) => row[fields.month]), "bulan");
+      setOptions("breakdownWeekFilter", allRows.map((row) => row[fields.week]), "minggu");
+      const currentSpv = document.getElementById("breakdownSpvFilter").value;
+      const currentCoach = document.getElementById("breakdownCoachFilter").value;
+      const currentProduct = document.getElementById("breakdownProductFilter").value;
+      const spvRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]));
+      setOptions("breakdownSpvFilter", spvRows.map((row) => row[fields.spv]), "SPV");
+      if (currentSpv) document.getElementById("breakdownSpvFilter").value = currentSpv;
+      const coachRows = spvRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      setOptions("breakdownCoachFilter", coachRows.map((row) => row[fields.leader]), "coach");
+      if (currentCoach) document.getElementById("breakdownCoachFilter").value = currentCoach;
+      const productRows = coachRows.filter((row) => !currentCoach || clean(row[fields.leader]) === currentCoach);
+      setOptions("breakdownProductFilter", productRows.map((row) => row[fields.product]), "produk");
+      if (currentProduct) document.getElementById("breakdownProductFilter").value = currentProduct;
+    }
+
+    function breakdownRows() {
+      const month = document.getElementById("breakdownMonthFilter").value;
+      const week = document.getElementById("breakdownWeekFilter").value;
+      const spv = document.getElementById("breakdownSpvFilter").value;
+      const coach = document.getElementById("breakdownCoachFilter").value;
+      const product = document.getElementById("breakdownProductFilter").value;
+      return allRows.filter((row) =>
+        !isExcludedSpv(row[fields.spv])
+        && (!month || clean(row[fields.month]) === month)
+        && (!week || clean(row[fields.week]) === week)
+        && (!spv || clean(row[fields.spv]) === spv)
+        && (!coach || clean(row[fields.leader]) === coach)
+        && (!product || clean(row[fields.product]) === product)
+      );
+    }
+
+    function renderBreakdownPage() {
+      const rows = breakdownRows();
+      const campaigns = groupCampaignSum(rows).slice(0, 20);
+      const grades = groupSum(rows, fields.grade);
+      const product = document.getElementById("breakdownProductFilter").value || "Semua product type";
+      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
+      document.getElementById("breakdownCampaignTitle").textContent = product;
+      document.getElementById("breakdownGradeTitle").textContent = product;
+      document.getElementById("breakdownSummary").innerHTML = `
+        <div class="coach-stat"><span>Product Type</span><strong>${escapeHtml(product)}</strong></div>
+        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Transaksi</span><strong>${number.format(sum(rows, fields.txn) || rows.length)}</strong></div>
+        <div class="coach-stat"><span>Campaign</span><strong>${number.format(campaigns.length)}</strong></div>
+      `;
+      const campaignCanvas = document.getElementById("breakdownCampaignChart");
+      if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(360, campaigns.length * 44 + 80)}px`;
+      const gradeCanvas = document.getElementById("breakdownGradeChart");
+      if (gradeCanvas) gradeCanvas.parentElement.style.height = `${Math.max(320, grades.length * 42 + 80)}px`;
+      makeChart("breakdownCampaignChart", {
+        type: "bar",
+        data: {
+          labels: campaigns.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: campaigns.map((item) => item[1]), backgroundColor: campaigns.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      makeChart("breakdownGradeChart", {
+        type: "bar",
+        data: {
+          labels: grades.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: grades.map((item) => item[1]), backgroundColor: grades.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -1142,6 +1246,8 @@
       renderUnitCompare();
       setTenureOptions();
       renderTenurePage();
+      setBreakdownOptions();
+      renderBreakdownPage();
     }
 
     function initialize() {
@@ -1168,6 +1274,12 @@
         document.getElementById(id).addEventListener("input", () => {
           setTenureOptions();
           renderTenurePage();
+        });
+      });
+      ["breakdownMonthFilter", "breakdownWeekFilter", "breakdownSpvFilter", "breakdownCoachFilter", "breakdownProductFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setBreakdownOptions();
+          renderBreakdownPage();
         });
       });
       setupPageTabs();

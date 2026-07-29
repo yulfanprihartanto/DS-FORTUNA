@@ -720,9 +720,11 @@
         (!week || clean(row[fields.week]) === week)
         && (!date || clean(row[fields.date]) === date)
       );
-      const agents = groupSum(rows, fields.agent).slice(0, 8);
+      const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
+      const agentCanvas = document.getElementById(`${prefix}AgentChart`);
+      if (agentCanvas) agentCanvas.parentElement.style.height = `${Math.max(285, agents.length * 34 + 70)}px`;
       document.getElementById(`${prefix}Summary`).innerHTML = `
         <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(leader || "Belum dipilih")}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>

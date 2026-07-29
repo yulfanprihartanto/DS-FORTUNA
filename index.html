@@ -402,6 +402,13 @@
             </div>
             <div class="chart-wrap mini-chart"><canvas id="leaderAProductChart"></canvas></div>
           </div>
+          <div>
+            <div class="panel-head">
+              <h2>Campaign</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="chart-wrap mini-chart"><canvas id="leaderACampaignChart"></canvas></div>
+          </div>
         </div>
         <div class="panel compare-panel">
           <div class="panel-head">
@@ -427,6 +434,13 @@
               <span class="note">berdasarkan amount</span>
             </div>
             <div class="chart-wrap mini-chart"><canvas id="leaderBProductChart"></canvas></div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Campaign</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="chart-wrap mini-chart"><canvas id="leaderBCampaignChart"></canvas></div>
           </div>
         </div>
       </section>
@@ -722,9 +736,12 @@
       );
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
+      const campaigns = groupSum(rows, fields.campaign).slice(0, 8);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
       const agentCanvas = document.getElementById(`${prefix}AgentChart`);
       if (agentCanvas) agentCanvas.parentElement.style.height = `${Math.max(285, agents.length * 34 + 70)}px`;
+      const campaignCanvas = document.getElementById(`${prefix}CampaignChart`);
+      if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(285, campaigns.length * 44 + 80)}px`;
       document.getElementById(`${prefix}Summary`).innerHTML = `
         <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(leader || "Belum dipilih")}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
@@ -747,6 +764,19 @@
             label: "Amount",
             data: products.map((item) => item[1]),
             backgroundColor: products.map((_, index) => palette[index % palette.length]),
+            borderRadius: 5
+          }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      makeChart(`${prefix}CampaignChart`, {
+        type: "bar",
+        data: {
+          labels: campaigns.map((item) => item[0]),
+          datasets: [{
+            label: "Amount",
+            data: campaigns.map((item) => item[1]),
+            backgroundColor: campaigns.map((_, index) => palette[index % palette.length]),
             borderRadius: 5
           }]
         },

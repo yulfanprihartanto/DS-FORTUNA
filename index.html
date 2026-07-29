@@ -382,6 +382,7 @@
       <button type="button" data-page="pageUnit">Compare Unit</button>
       <button type="button" data-page="pageTenure">Tenure</button>
       <button type="button" data-page="pageProductBreakdown">Breakdown Product</button>
+      <button type="button" data-page="pageAssignDate">Assigndate</button>
     </div>
 
     <section class="kpis">
@@ -625,6 +626,37 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageAssignDate">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>Assigndate</h2>
+          <span class="note">revenue dan invoice berdasarkan assigned date</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="assignMonthFilter"></select></label>
+          <label>Weekly<select id="assignWeekFilter"></select></label>
+          <label>SPV<select id="assignSpvFilter"></select></label>
+          <label>Leader<select id="assignLeaderFilter"></select></label>
+          <label>Campaign<select id="assignCampaignFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="assignSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2>Revenue by Assigned Date</h2>
+            <span class="note">urut dari penjualan tertinggi</span>
+          </div>
+          <div class="chart-wrap"><canvas id="assignRevenueChart"></canvas></div>
+        </div>
+        <div>
+          <div class="panel-head">
+            <h2>Invoice by Assigned Date</h2>
+            <span class="note">jumlah invoice unik</span>
+          </div>
+          <div class="chart-wrap"><canvas id="assignInvoiceChart"></canvas></div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -658,6 +690,7 @@
       status: "Status",
       noa: "NOA",
       spv: "SPV",
+      assignedDate: "Assigned Date",
       tenure: "tenure",
       grade: "grade_adjust",
       team: "Kategori Team"
@@ -1236,6 +1269,102 @@
       });
     }
 
+    function campaignShortName(value) {
+      const raw = clean(value);
+      const lower = raw.toLowerCase();
+      const separators = [raw.indexOf("-"), raw.indexOf(".")].filter((index) => index > 0);
+      const splitIndex = separators.length ? Math.min(...separators) : -1;
+      if (!raw || lower === "no campaign") return "No Campaign";
+      return clean(splitIndex > 0 ? raw.slice(0, splitIndex) : raw) || raw;
+    }
+
+    function setCampaignOptions(id, rows) {
+      const select = document.getElementById(id);
+      const current = select.value;
+      const campaigns = [...new Map(rows
+        .map((row) => clean(row[fields.campaign]))
+        .filter(Boolean)
+        .map((campaign) => [campaign, campaignShortName(campaign)])
+      ).entries()].sort((a, b) => a[1].localeCompare(b[1], "id", { numeric: true }));
+      select.innerHTML = `<option value="">Semua campaign</option>` + campaigns.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("");
+      if (campaigns.some(([value]) => value === current)) select.value = current;
+    }
+
+    function setAssignOptions() {
+      setOptions("assignMonthFilter", allRows.map((row) => row[fields.month]), "bulan");
+      setOptions("assignWeekFilter", allRows.map((row) => row[fields.week]), "minggu");
+      const currentSpv = document.getElementById("assignSpvFilter").value;
+      const currentLeader = document.getElementById("assignLeaderFilter").value;
+      const baseRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]));
+      setOptions("assignSpvFilter", baseRows.map((row) => row[fields.spv]), "SPV");
+      if (currentSpv) document.getElementById("assignSpvFilter").value = currentSpv;
+      const leaderRows = baseRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      setOptions("assignLeaderFilter", leaderRows.map((row) => row[fields.leader]), "leader");
+      if (currentLeader) document.getElementById("assignLeaderFilter").value = currentLeader;
+      const campaignRows = leaderRows.filter((row) => !currentLeader || clean(row[fields.leader]) === currentLeader);
+      setCampaignOptions("assignCampaignFilter", campaignRows);
+    }
+
+    function assignRows() {
+      const month = document.getElementById("assignMonthFilter").value;
+      const week = document.getElementById("assignWeekFilter").value;
+      const spv = document.getElementById("assignSpvFilter").value;
+      const leader = document.getElementById("assignLeaderFilter").value;
+      const campaign = document.getElementById("assignCampaignFilter").value;
+      return allRows.filter((row) =>
+        !isExcludedSpv(row[fields.spv])
+        && (!month || clean(row[fields.month]) === month)
+        && (!week || clean(row[fields.week]) === week)
+        && (!spv || clean(row[fields.spv]) === spv)
+        && (!leader || clean(row[fields.leader]) === leader)
+        && (!campaign || clean(row[fields.campaign]) === campaign)
+      );
+    }
+
+    function assignDateGroups(rows) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const date = clean(row[fields.assignedDate]) || "Kosong";
+        if (!map.has(date)) map.set(date, { date, amount: 0, invoices: new Set() });
+        const item = map.get(date);
+        item.amount += toNumber(row[fields.amount]);
+        if (clean(row[fields.invoice])) item.invoices.add(clean(row[fields.invoice]));
+      });
+      return [...map.values()].sort((a, b) => b.amount - a.amount);
+    }
+
+    function renderAssignDatePage() {
+      const rows = assignRows();
+      const groups = assignDateGroups(rows);
+      const totalInvoices = new Set(rows.map((row) => clean(row[fields.invoice])).filter(Boolean)).size;
+      document.getElementById("assignSummary").innerHTML = `
+        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Invoice</span><strong>${number.format(totalInvoices)}</strong></div>
+        <div class="coach-stat"><span>Assigned Date</span><strong>${number.format(groups.length)}</strong></div>
+        <div class="coach-stat"><span>Campaign</span><strong>${escapeHtml(campaignShortName(document.getElementById("assignCampaignFilter").value) || "Semua campaign")}</strong></div>
+      `;
+      ["assignRevenueChart", "assignInvoiceChart"].forEach((id) => {
+        const canvas = document.getElementById(id);
+        if (canvas) canvas.parentElement.style.height = `${Math.max(340, groups.length * 38 + 80)}px`;
+      });
+      makeChart("assignRevenueChart", {
+        type: "bar",
+        data: {
+          labels: groups.map((item) => item.date),
+          datasets: [{ label: "Amount", data: groups.map((item) => item.amount), backgroundColor: "#0b67c2", borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      makeChart("assignInvoiceChart", {
+        type: "bar",
+        data: {
+          labels: groups.map((item) => item.date),
+          datasets: [{ label: "Invoice", data: groups.map((item) => item.invoices.size), backgroundColor: "#c77700", borderRadius: 5 }]
+        },
+        options: baseOptions({ money: false, horizontal: true })
+      });
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -1248,6 +1377,8 @@
       renderTenurePage();
       setBreakdownOptions();
       renderBreakdownPage();
+      setAssignOptions();
+      renderAssignDatePage();
     }
 
     function initialize() {
@@ -1280,6 +1411,12 @@
         document.getElementById(id).addEventListener("input", () => {
           setBreakdownOptions();
           renderBreakdownPage();
+        });
+      });
+      ["assignMonthFilter", "assignWeekFilter", "assignSpvFilter", "assignLeaderFilter", "assignCampaignFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setAssignOptions();
+          renderAssignDatePage();
         });
       });
       setupPageTabs();

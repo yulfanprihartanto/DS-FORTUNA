@@ -1336,6 +1336,7 @@
     function renderAssignDatePage() {
       const rows = assignRows();
       const groups = assignDateGroups(rows);
+      const groupsByInvoice = [...groups].sort((a, b) => b.invoices.size - a.invoices.size);
       const totalInvoices = new Set(rows.map((row) => clean(row[fields.invoice])).filter(Boolean)).size;
       document.getElementById("assignSummary").innerHTML = `
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
@@ -1345,7 +1346,7 @@
       `;
       ["assignRevenueChart", "assignInvoiceChart"].forEach((id) => {
         const canvas = document.getElementById(id);
-        if (canvas) canvas.parentElement.style.height = `${Math.max(340, groups.length * 38 + 80)}px`;
+        if (canvas) canvas.parentElement.style.height = `${Math.max(340, (id === "assignInvoiceChart" ? groupsByInvoice.length : groups.length) * 38 + 80)}px`;
       });
       makeChart("assignRevenueChart", {
         type: "bar",
@@ -1358,8 +1359,8 @@
       makeChart("assignInvoiceChart", {
         type: "bar",
         data: {
-          labels: groups.map((item) => item.date),
-          datasets: [{ label: "Invoice", data: groups.map((item) => item.invoices.size), backgroundColor: "#c77700", borderRadius: 5 }]
+          labels: groupsByInvoice.map((item) => item.date),
+          datasets: [{ label: "Invoice", data: groupsByInvoice.map((item) => item.invoices.size), backgroundColor: "#c77700", borderRadius: 5 }]
         },
         options: baseOptions({ money: false, horizontal: true })
       });

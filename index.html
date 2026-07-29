@@ -375,6 +375,7 @@
 
     <div class="page-tabs" id="pageTabs">
       <button type="button" class="active" data-page="pageLeader">Leader & Agent</button>
+      <button type="button" data-page="pageUnit">Compare Unit</button>
     </div>
 
     <section class="kpis">
@@ -460,6 +461,85 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageUnit">
+      <section class="compare-grid">
+        <div class="panel compare-panel">
+          <div class="panel-head">
+            <h2>Unit A</h2>
+            <span class="note">layer, SPV, coach</span>
+          </div>
+          <div class="compare-box">
+            <label>Layer<select id="unitALayerFilter"></select></label>
+            <label>SPV<select id="unitASpvFilter"></select></label>
+            <label>Weekly<select id="unitAWeekFilter"></select></label>
+            <label>Daily<select id="unitADateFilter"></select></label>
+          </div>
+          <div class="coach-summary" id="unitASummary"></div>
+          <div>
+            <div class="panel-head">
+              <h2>Coach</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitACoachTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitACoachChart"></canvas></div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Product</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitAProductTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitAProductChart"></canvas></div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Campaign</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitACampaignTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitACampaignChart"></canvas></div>
+          </div>
+        </div>
+        <div class="panel compare-panel">
+          <div class="panel-head">
+            <h2>Unit B</h2>
+            <span class="note">layer, SPV, coach</span>
+          </div>
+          <div class="compare-box">
+            <label>Layer<select id="unitBLayerFilter"></select></label>
+            <label>SPV<select id="unitBSpvFilter"></select></label>
+            <label>Weekly<select id="unitBWeekFilter"></select></label>
+            <label>Daily<select id="unitBDateFilter"></select></label>
+          </div>
+          <div class="coach-summary" id="unitBSummary"></div>
+          <div>
+            <div class="panel-head">
+              <h2>Coach</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitBCoachTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitBCoachChart"></canvas></div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Product</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitBProductTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitBProductChart"></canvas></div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Campaign</h2>
+              <span class="note">berdasarkan amount</span>
+            </div>
+            <div class="coach-chart-title" id="unitBCampaignTitle">Belum dipilih</div>
+            <div class="chart-wrap mini-chart"><canvas id="unitBCampaignChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -491,6 +571,7 @@
       txn: "Txn",
       status: "Status",
       noa: "NOA",
+      spv: "SPV",
       team: "Kategori Team"
     };
     let allRows = [];
@@ -587,6 +668,7 @@
     function setSideDateOptions(prefix, rows) {
       const weekSelect = document.getElementById(`${prefix}WeekFilter`);
       const dateSelect = document.getElementById(`${prefix}DateFilter`);
+      if (!weekSelect || !dateSelect) return;
       const currentWeek = weekSelect.value;
       const currentDate = dateSelect.value;
       const weeks = [...new Set(rows.map((row) => clean(row[fields.week])).filter(Boolean))]
@@ -597,6 +679,17 @@
       dateSelect.innerHTML = `<option value="">Semua daily</option>` + dates.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
       if (weeks.includes(currentWeek)) weekSelect.value = currentWeek;
       if (dates.includes(currentDate)) dateSelect.value = currentDate;
+    }
+
+    function setupPageTabs() {
+      document.querySelectorAll("#pageTabs button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("#pageTabs button").forEach((item) => item.classList.remove("active"));
+          document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.page).classList.add("active");
+        });
+      });
     }
 
     function makeChart(id, config) {
@@ -826,12 +919,99 @@
       renderCoachSide("leaderB", leaderB, "#c77700");
     }
 
+    function setUnitOptions() {
+      ["unitA", "unitB"].forEach((prefix) => {
+        const layerSelect = document.getElementById(`${prefix}LayerFilter`);
+        const spvSelect = document.getElementById(`${prefix}SpvFilter`);
+        const currentLayer = layerSelect.value;
+        const currentSpv = spvSelect.value;
+        const layers = [...new Set(allRows.map((row) => clean(row[fields.team])).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+        const spvs = [...new Set(allRows
+          .filter((row) => !currentLayer || clean(row[fields.team]) === currentLayer)
+          .map((row) => clean(row[fields.spv]))
+          .filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+        layerSelect.innerHTML = `<option value="">Semua layer</option>` + layers.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+        if (layers.includes(currentLayer)) layerSelect.value = currentLayer;
+        spvSelect.innerHTML = `<option value="">Semua SPV</option>` + spvs.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+        if (spvs.includes(currentSpv)) spvSelect.value = currentSpv;
+      });
+    }
+
+    function renderUnitSide(prefix, color) {
+      const layer = document.getElementById(`${prefix}LayerFilter`).value;
+      const spv = document.getElementById(`${prefix}SpvFilter`).value;
+      const baseRows = allRows.filter((row) =>
+        (selectedTeam === "ALL" || row._group === selectedTeam)
+        && (!layer || clean(row[fields.team]) === layer)
+        && (!spv || clean(row[fields.spv]) === spv)
+      );
+      setSideDateOptions(prefix, baseRows);
+      const week = document.getElementById(`${prefix}WeekFilter`).value;
+      const date = document.getElementById(`${prefix}DateFilter`).value;
+      const rows = baseRows.filter((row) =>
+        (!week || clean(row[fields.week]) === week)
+        && (!date || clean(row[fields.date]) === date)
+      );
+      const coaches = groupSum(rows, fields.leader);
+      const products = groupSum(rows, fields.product).slice(0, 8);
+      const campaigns = groupCampaignSum(rows).slice(0, 15);
+      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
+      const title = [layer || "Semua layer", spv || "Semua SPV"].join(" | ");
+      ["Coach", "Product", "Campaign"].forEach((name) => {
+        const titleEl = document.getElementById(`${prefix}${name}Title`);
+        if (titleEl) titleEl.textContent = title;
+      });
+      const coachCanvas = document.getElementById(`${prefix}CoachChart`);
+      if (coachCanvas) coachCanvas.parentElement.style.height = `${Math.max(285, coaches.length * 34 + 70)}px`;
+      const campaignCanvas = document.getElementById(`${prefix}CampaignChart`);
+      if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(285, campaigns.length * 44 + 80)}px`;
+      document.getElementById(`${prefix}Summary`).innerHTML = `
+        <div class="coach-stat"><span>Layer</span><strong>${escapeHtml(layer || "Semua layer")}</strong></div>
+        <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(spv || "Semua SPV")}</strong></div>
+        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.leader])).filter(Boolean)).size)}</strong></div>
+      `;
+      makeChart(`${prefix}CoachChart`, {
+        type: "bar",
+        data: {
+          labels: coaches.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: coaches.map((item) => item[1]), backgroundColor: color, borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      makeChart(`${prefix}ProductChart`, {
+        type: "bar",
+        data: {
+          labels: products.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: products.map((item) => item[1]), backgroundColor: products.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      makeChart(`${prefix}CampaignChart`, {
+        type: "bar",
+        data: {
+          labels: campaigns.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: campaigns.map((item) => item[1]), backgroundColor: campaigns.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+    }
+
+    function renderUnitCompare() {
+      renderUnitSide("unitA", "#0b67c2");
+      renderUnitSide("unitB", "#c77700");
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
       renderTeamCharts(data);
       setCompareOptions();
       renderRankCharts(data);
+      setUnitOptions();
+      renderUnitCompare();
     }
 
     function initialize() {
@@ -848,6 +1028,13 @@
       ["leaderAWeekFilter", "leaderADateFilter", "leaderBWeekFilter", "leaderBDateFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", renderLeaderCompare);
       });
+      ["unitALayerFilter", "unitASpvFilter", "unitAWeekFilter", "unitADateFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBWeekFilter", "unitBDateFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setUnitOptions();
+          renderUnitCompare();
+        });
+      });
+      setupPageTabs();
       renderTabs();
       render();
       document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;

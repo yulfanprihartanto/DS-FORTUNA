@@ -539,9 +539,12 @@
       const map = new Map();
       data.forEach((row) => {
         const raw = clean(row[fields.campaign]);
-        const name = !raw || raw.toLowerCase() === "no campaign"
+        const lower = raw.toLowerCase();
+        const separators = [raw.indexOf("-"), raw.indexOf(".")].filter((index) => index > 0);
+        const splitIndex = separators.length ? Math.min(...separators) : -1;
+        const name = !raw || lower === "no campaign"
           ? "No Campaign"
-          : clean(raw.split("-")[0]) || raw;
+          : clean(splitIndex > 0 ? raw.slice(0, splitIndex) : raw) || raw;
         map.set(name, (map.get(name) || 0) + toNumber(row[fields.amount]));
       });
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
@@ -748,7 +751,7 @@
       );
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
-      const campaigns = groupCampaignSum(rows).slice(0, 8);
+      const campaigns = groupCampaignSum(rows).slice(0, 15);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
       const agentCanvas = document.getElementById(`${prefix}AgentChart`);
       if (agentCanvas) agentCanvas.parentElement.style.height = `${Math.max(285, agents.length * 34 + 70)}px`;

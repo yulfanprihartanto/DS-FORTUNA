@@ -535,6 +535,18 @@
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
     }
 
+    function groupCampaignSum(data) {
+      const map = new Map();
+      data.forEach((row) => {
+        const raw = clean(row[fields.campaign]);
+        const name = !raw || raw.toLowerCase() === "no campaign"
+          ? "No Campaign"
+          : clean(raw.split("-")[0]) || raw;
+        map.set(name, (map.get(name) || 0) + toNumber(row[fields.amount]));
+      });
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
     function setOptions(id, values, label) {
       const select = document.getElementById(id);
       const current = select.value;
@@ -736,7 +748,7 @@
       );
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
-      const campaigns = groupSum(rows, fields.campaign).slice(0, 8);
+      const campaigns = groupCampaignSum(rows).slice(0, 8);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
       const agentCanvas = document.getElementById(`${prefix}AgentChart`);
       if (agentCanvas) agentCanvas.parentElement.style.height = `${Math.max(285, agents.length * 34 + 70)}px`;

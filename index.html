@@ -212,6 +212,10 @@
       font-size: 18px;
     }
 
+    .table-wrap.compact table {
+      min-width: 680px;
+    }
+
     .mini-chart {
       height: 285px;
     }
@@ -376,6 +380,7 @@
     <div class="page-tabs" id="pageTabs">
       <button type="button" class="active" data-page="pageLeader">Leader & Agent</button>
       <button type="button" data-page="pageUnit">Compare Unit</button>
+      <button type="button" data-page="pageTenure">Tenure</button>
     </div>
 
     <section class="kpis">
@@ -540,6 +545,52 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageTenure">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>Tenure Performance</h2>
+          <span class="note">revenue dan transaksi berdasarkan tenure</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="tenureMonthFilter"></select></label>
+          <label>Weekly<select id="tenureWeekFilter"></select></label>
+          <label>SPV<select id="tenureSpvFilter"></select></label>
+          <label>Coach<select id="tenureCoachFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="tenureSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2>Performance Tenure</h2>
+            <span class="note">berdasarkan amount</span>
+          </div>
+          <div class="chart-wrap"><canvas id="tenureChart"></canvas></div>
+        </div>
+        <div>
+          <div class="panel-head">
+            <h2>Detail Agent Tenure</h2>
+            <span class="note">agent, coach, tenure, revenue, transaksi</span>
+          </div>
+          <div class="table-wrap compact">
+            <table>
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Coach</th>
+                  <th>SPV</th>
+                  <th>Tenure</th>
+                  <th class="right">Revenue</th>
+                  <th class="right">Transaksi</th>
+                </tr>
+              </thead>
+              <tbody id="tenureTableBody">
+                <tr><td colspan="6" class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -548,6 +599,7 @@
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
     const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
+    const EXCLUDED_SPVS = ["Fajar Cita Wibowo"];
     const COLORS = {
       "LAYER 1": "#0b67c2",
       "LAYER 2": "#079b88",
@@ -572,6 +624,7 @@
       status: "Status",
       noa: "NOA",
       spv: "SPV",
+      tenure: "tenure",
       team: "Kategori Team"
     };
     let allRows = [];
@@ -605,6 +658,11 @@
       if (inboundCoach || row._team === "Prompter Inbound") return "INBOUND";
       if (row._team === "LAYER 1" || row._team === "LAYER 2") return "OUTBOUND";
       return "LAINNYA";
+    }
+
+    function isExcludedSpv(value) {
+      const spv = normalizeName(value);
+      return EXCLUDED_SPVS.some((name) => normalizeName(name) === spv);
     }
 
     function toNumber(value) {
@@ -930,7 +988,7 @@
         const spvs = [...new Set(allRows
           .filter((row) => !currentLayer || clean(row[fields.team]) === currentLayer)
           .map((row) => clean(row[fields.spv]))
-          .filter(Boolean))]
+          .filter((spv) => spv && !isExcludedSpv(spv)))]
           .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
         layerSelect.innerHTML = `<option value="">Semua layer</option>` + layers.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
         if (layers.includes(currentLayer)) layerSelect.value = currentLayer;
@@ -944,6 +1002,7 @@
       const spv = document.getElementById(`${prefix}SpvFilter`).value;
       const baseRows = allRows.filter((row) =>
         (selectedTeam === "ALL" || row._group === selectedTeam)
+        && !isExcludedSpv(row[fields.spv])
         && (!layer || clean(row[fields.team]) === layer)
         && (!spv || clean(row[fields.spv]) === spv)
       );
@@ -1004,6 +1063,75 @@
       renderUnitSide("unitB", "#c77700");
     }
 
+    function setTenureOptions() {
+      setOptions("tenureMonthFilter", allRows.map((row) => row[fields.month]), "bulan");
+      setOptions("tenureWeekFilter", allRows.map((row) => row[fields.week]), "minggu");
+      const currentSpv = document.getElementById("tenureSpvFilter").value;
+      const currentCoach = document.getElementById("tenureCoachFilter").value;
+      const spvRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]));
+      setOptions("tenureSpvFilter", spvRows.map((row) => row[fields.spv]), "SPV");
+      if (currentSpv) document.getElementById("tenureSpvFilter").value = currentSpv;
+      const coachRows = spvRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      setOptions("tenureCoachFilter", coachRows.map((row) => row[fields.leader]), "coach");
+      if (currentCoach) document.getElementById("tenureCoachFilter").value = currentCoach;
+    }
+
+    function tenureRows() {
+      const month = document.getElementById("tenureMonthFilter").value;
+      const week = document.getElementById("tenureWeekFilter").value;
+      const spv = document.getElementById("tenureSpvFilter").value;
+      const coach = document.getElementById("tenureCoachFilter").value;
+      return allRows.filter((row) =>
+        !isExcludedSpv(row[fields.spv])
+        && (!month || clean(row[fields.month]) === month)
+        && (!week || clean(row[fields.week]) === week)
+        && (!spv || clean(row[fields.spv]) === spv)
+        && (!coach || clean(row[fields.leader]) === coach)
+      );
+    }
+
+    function renderTenurePage() {
+      const rows = tenureRows();
+      const tenure = groupSum(rows, fields.tenure);
+      const agents = groupSum(rows, fields.agent).map(([agent, revenue]) => {
+        const agentRows = rows.filter((row) => clean(row[fields.agent]) === agent);
+        return {
+          agent,
+          coach: clean(agentRows[0]?.[fields.leader]) || "Kosong",
+          spv: clean(agentRows[0]?.[fields.spv]) || "Kosong",
+          tenure: clean(agentRows[0]?.[fields.tenure]) || "Kosong",
+          revenue,
+          txn: sum(agentRows, fields.txn) || agentRows.length
+        };
+      }).sort((a, b) => b.revenue - a.revenue);
+      document.getElementById("tenureSummary").innerHTML = `
+        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Transaksi</span><strong>${number.format(sum(rows, fields.txn) || rows.length)}</strong></div>
+        <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.leader])).filter(Boolean)).size)}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean)).size)}</strong></div>
+      `;
+      const canvas = document.getElementById("tenureChart");
+      if (canvas) canvas.parentElement.style.height = `${Math.max(320, tenure.length * 42 + 80)}px`;
+      makeChart("tenureChart", {
+        type: "bar",
+        data: {
+          labels: tenure.map((item) => item[0]),
+          datasets: [{ label: "Amount", data: tenure.map((item) => item[1]), backgroundColor: "#0b67c2", borderRadius: 5 }]
+        },
+        options: baseOptions({ horizontal: true })
+      });
+      document.getElementById("tenureTableBody").innerHTML = agents.length ? agents.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.agent)}</td>
+          <td>${escapeHtml(item.coach)}</td>
+          <td>${escapeHtml(item.spv)}</td>
+          <td>${escapeHtml(item.tenure)}</td>
+          <td class="right">${rupiah.format(item.revenue)}</td>
+          <td class="right">${number.format(item.txn)}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="6" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -1012,6 +1140,8 @@
       renderRankCharts(data);
       setUnitOptions();
       renderUnitCompare();
+      setTenureOptions();
+      renderTenurePage();
     }
 
     function initialize() {
@@ -1032,6 +1162,12 @@
         document.getElementById(id).addEventListener("input", () => {
           setUnitOptions();
           renderUnitCompare();
+        });
+      });
+      ["tenureMonthFilter", "tenureWeekFilter", "tenureSpvFilter", "tenureCoachFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setTenureOptions();
+          renderTenurePage();
         });
       });
       setupPageTabs();

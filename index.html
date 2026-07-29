@@ -216,6 +216,15 @@
       height: 285px;
     }
 
+    .coach-chart-title {
+      margin: -4px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
     .kpis {
       display: grid;
       grid-template-columns: repeat(4, minmax(170px, 1fr));
@@ -393,6 +402,7 @@
               <h2>Agent</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderAAgentTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderAAgentChart"></canvas></div>
           </div>
           <div>
@@ -400,6 +410,7 @@
               <h2>Product</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderAProductTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderAProductChart"></canvas></div>
           </div>
           <div>
@@ -407,6 +418,7 @@
               <h2>Campaign</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderACampaignTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderACampaignChart"></canvas></div>
           </div>
         </div>
@@ -426,6 +438,7 @@
               <h2>Agent</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderBAgentTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderBAgentChart"></canvas></div>
           </div>
           <div>
@@ -433,6 +446,7 @@
               <h2>Product</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderBProductTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderBProductChart"></canvas></div>
           </div>
           <div>
@@ -440,6 +454,7 @@
               <h2>Campaign</h2>
               <span class="note">berdasarkan amount</span>
             </div>
+            <div class="coach-chart-title" id="leaderBCampaignTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="leaderBCampaignChart"></canvas></div>
           </div>
         </div>
@@ -753,6 +768,11 @@
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
       const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
+      const title = leader || "Belum dipilih";
+      ["Agent", "Product", "Campaign"].forEach((name) => {
+        const titleEl = document.getElementById(`${prefix}${name}Title`);
+        if (titleEl) titleEl.textContent = title;
+      });
       const agentCanvas = document.getElementById(`${prefix}AgentChart`);
       if (agentCanvas) agentCanvas.parentElement.style.height = `${Math.max(285, agents.length * 34 + 70)}px`;
       const campaignCanvas = document.getElementById(`${prefix}CampaignChart`);

@@ -872,7 +872,7 @@
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
     const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
-    const EXCLUDED_SPVS = ["Fajar Cita Wibowo"];
+    const EXCLUDED_SPVS = [];
     const COLORS = {
       "LAYER 1": "#28c8ff",
       "LAYER 2": "#10d6a3",
@@ -1823,7 +1823,7 @@
         row._team = normalizeTeam(row[fields.team]);
         row._group = getGroup(row);
         return row;
-      }).filter((row) => TEAM_GROUPS.includes(row._group) && !isExcludedSpv(row[fields.spv]));
+      }).filter((row) => TEAM_GROUPS.includes(row._group));
     }
 
     function rowsFromCallTable(table) {

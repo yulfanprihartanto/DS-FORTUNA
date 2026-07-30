@@ -433,6 +433,69 @@
     th { background: #121d3b; color: var(--muted); }
     .error { background: rgba(255, 71, 126, .11); border-color: rgba(255, 71, 126, .42); color: #ffd4df; }
   </style>
+  <style>
+    :root {
+      --bg: #d0d7e1;
+      --panel: #f7fbfd;
+      --text: #072d44;
+      --muted: #5790ab;
+      --line: rgba(7, 45, 68, .16);
+      --shadow: 0 18px 44px rgba(7, 45, 68, .16);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 10% 0%, rgba(156, 205, 216, .68), transparent 28%),
+        radial-gradient(circle at 88% 8%, rgba(87, 144, 171, .34), transparent 30%),
+        linear-gradient(180deg, #d0d7e1 0%, #eef6f8 44%, #d0d7e1 100%);
+    }
+
+    header {
+      background: linear-gradient(90deg, #072d44, #064469 42%, #5790ab 76%, #9ccdd8);
+      border-bottom: 1px solid rgba(255, 255, 255, .38);
+      box-shadow: 0 18px 44px rgba(7, 45, 68, .22);
+    }
+
+    .status {
+      background: rgba(255, 255, 255, .22);
+      border-color: rgba(255, 255, 255, .46);
+      color: #ffffff;
+    }
+
+    select, input, .team-tabs button, .page-tabs button {
+      background: rgba(255, 255, 255, .88);
+      border-color: rgba(7, 45, 68, .18);
+      color: #072d44;
+    }
+
+    .team-tabs button.active {
+      background: linear-gradient(90deg, #072d44, #064469);
+      border-color: transparent;
+      color: #ffffff;
+    }
+
+    .page-tabs button.active {
+      background: linear-gradient(90deg, #064469, #5790ab);
+      border-color: transparent;
+      color: #ffffff;
+    }
+
+    .kpi, .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .95), rgba(247, 251, 253, .92));
+      border-color: rgba(7, 45, 68, .14);
+      box-shadow: var(--shadow);
+    }
+
+    .coach-stat {
+      background: rgba(208, 215, 225, .42);
+      border-color: rgba(7, 45, 68, .12);
+    }
+
+    .table-wrap, th, td { border-color: rgba(7, 45, 68, .14); }
+    table { background: #f7fbfd; }
+    th { background: #e8f2f5; color: #064469; }
+    .error { background: rgba(255, 245, 245, .9); border-color: rgba(196, 59, 28, .36); color: #84240e; }
+  </style>
 </head>
 <body>
   <header>

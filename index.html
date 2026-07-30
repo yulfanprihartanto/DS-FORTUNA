@@ -968,7 +968,24 @@
       const canvas = document.getElementById(id);
       if (!canvas) return;
       if (charts[id]) charts[id].destroy();
+      (config.data?.datasets || []).forEach((dataset) => {
+        if (dataset.backgroundColor === "#28c8ff") {
+          dataset.backgroundColor = blueBarGradient;
+        }
+      });
       charts[id] = new Chart(canvas, config);
+    }
+
+    function blueBarGradient(context) {
+      const chart = context.chart;
+      const area = chart.chartArea;
+      if (!area) return "#28c8ff";
+      const gradient = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
+      gradient.addColorStop(0, "#072d44");
+      gradient.addColorStop(.42, "#064469");
+      gradient.addColorStop(.72, "#5790ab");
+      gradient.addColorStop(1, "#9ccdd8");
+      return gradient;
     }
 
     function baseOptions({ money = true, horizontal = false } = {}) {

@@ -1798,12 +1798,12 @@
       const matrix = table.rows.map((row) => row.c.map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
       let headerIndex = matrix.findIndex((row) => {
         const normalized = row.map(normalizeHeader);
-        return normalized.includes("date") && normalized.includes("invoice");
+        return normalized.includes("agent name") && normalized.includes("invoice");
       });
       let headers = headerIndex >= 0 ? matrix[headerIndex].map(clean) : [];
 
       if (headerIndex < 0) {
-        headerIndex = 1;
+        headerIndex = 0;
         headers = [
           "Date", "Month", "Week", "Agent Name", "Leader Name", "User Name", "", "Invoice",
           "Discount Code", "Package Serial", "Grade", "Package Name", "Product Type", "Campaign",
@@ -1823,7 +1823,7 @@
         row._team = normalizeTeam(row[fields.team]);
         row._group = getGroup(row);
         return row;
-      }).filter((row) => TEAM_GROUPS.includes(row._group));
+      }).filter((row) => TEAM_GROUPS.includes(row._group) && !isExcludedSpv(row[fields.spv]));
     }
 
     function rowsFromCallTable(table) {

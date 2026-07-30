@@ -1749,6 +1749,11 @@
     }
 
     function renderCallAttemptTable(rows) {
+      const sortedRows = [...rows].sort((a, b) => {
+        const aPercent = a.uniqueNumbers.size ? a.totalCalls / a.uniqueNumbers.size : 0;
+        const bPercent = b.uniqueNumbers.size ? b.totalCalls / b.uniqueNumbers.size : 0;
+        return bPercent - aPercent;
+      });
       document.getElementById("callAttemptHead").innerHTML = `
         <tr>
           <th>Agent</th>
@@ -1757,7 +1762,7 @@
           <th class="right">Call Attempt %</th>
         </tr>
       `;
-      document.getElementById("callAttemptBody").innerHTML = rows.length ? rows.map((row) => {
+      document.getElementById("callAttemptBody").innerHTML = sortedRows.length ? sortedRows.map((row) => {
         const unique = row.uniqueNumbers.size;
         const percent = unique ? (row.totalCalls / unique) * 100 : 0;
         return `
@@ -1781,7 +1786,7 @@
         <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row.COACH)).filter(Boolean)).size)}</strong></div>
       `;
       renderCallTable("callCountHead", "callCountBody", matrix, "count");
-      renderCallTable("callDurationHead", "callDurationBody", matrix, "duration");
+      renderCallTable("callDurationHead", "callDurationBody", [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
       renderCallDurationBucketTable(matrix);
       renderCallAttemptTable(matrix);
     }

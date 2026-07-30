@@ -860,6 +860,20 @@
             </table>
           </div>
         </div>
+        <div>
+          <div class="panel-head">
+            <h2>Call Attempt</h2>
+            <span class="note">unique number, total call, dan persentase attempt</span>
+          </div>
+          <div class="table-wrap">
+            <table id="callAttemptTable">
+              <thead id="callAttemptHead"></thead>
+              <tbody id="callAttemptBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </section>
   </main>
@@ -1682,7 +1696,7 @@
       rows.forEach((row) => {
         const agent = clean(row["Agent Name"]) || "Kosong";
         if (!map.has(agent)) {
-          map.set(agent, { agent, totalCalls: 0, totalDuration: 0, calls: {}, duration: {}, durationBuckets: { under1: 0, oneToThree: 0, threeToFive: 0, aboveFive: 0, aboveTen: 0 } });
+          map.set(agent, { agent, totalCalls: 0, totalDuration: 0, uniqueNumbers: new Set(), calls: {}, duration: {}, durationBuckets: { under1: 0, oneToThree: 0, threeToFive: 0, aboveFive: 0, aboveTen: 0 } });
           CALL_BUCKETS.forEach((bucket) => {
             map.get(agent).calls[bucket.label] = 0;
             map.get(agent).duration[bucket.label] = 0;
@@ -1695,6 +1709,7 @@
         }
         item.totalCalls += 1;
         item.totalDuration += row._duration;
+        if (clean(row.Destination)) item.uniqueNumbers.add(clean(row.Destination));
         if (row._duration < 60) item.durationBuckets.under1 += 1;
         if (row._duration >= 60 && row._duration < 180) item.durationBuckets.oneToThree += 1;
         if (row._duration >= 180 && row._duration < 300) item.durationBuckets.threeToFive += 1;
@@ -1733,6 +1748,29 @@
       `).join("") : `<tr><td colspan="${columns.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
+    function renderCallAttemptTable(rows) {
+      document.getElementById("callAttemptHead").innerHTML = `
+        <tr>
+          <th>Agent</th>
+          <th class="right">Unique Number</th>
+          <th class="right">Total Call</th>
+          <th class="right">Call Attempt %</th>
+        </tr>
+      `;
+      document.getElementById("callAttemptBody").innerHTML = rows.length ? rows.map((row) => {
+        const unique = row.uniqueNumbers.size;
+        const percent = unique ? (row.totalCalls / unique) * 100 : 0;
+        return `
+          <tr>
+            <td>${escapeHtml(row.agent)}</td>
+            <td class="right">${number.format(unique)}</td>
+            <td class="right">${number.format(row.totalCalls)}</td>
+            <td class="right">${percent.toFixed(1)}%</td>
+          </tr>
+        `;
+      }).join("") : `<tr><td colspan="4" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
     function renderCallTrackingPage() {
       const rows = filteredCallRows();
       const matrix = callMatrix(rows);
@@ -1745,6 +1783,7 @@
       renderCallTable("callCountHead", "callCountBody", matrix, "count");
       renderCallTable("callDurationHead", "callDurationBody", matrix, "duration");
       renderCallDurationBucketTable(matrix);
+      renderCallAttemptTable(matrix);
     }
 
     function initialize() {

@@ -846,6 +846,20 @@
             </table>
           </div>
         </div>
+        <div>
+          <div class="panel-head">
+            <h2>Bucket Durasi Call</h2>
+            <span class="note">jumlah call berdasarkan rentang durasi</span>
+          </div>
+          <div class="table-wrap">
+            <table id="callDurationBucketTable">
+              <thead id="callDurationBucketHead"></thead>
+              <tbody id="callDurationBucketBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </section>
   </main>
@@ -1668,7 +1682,7 @@
       rows.forEach((row) => {
         const agent = clean(row["Agent Name"]) || "Kosong";
         if (!map.has(agent)) {
-          map.set(agent, { agent, totalCalls: 0, totalDuration: 0, calls: {}, duration: {} });
+          map.set(agent, { agent, totalCalls: 0, totalDuration: 0, calls: {}, duration: {}, durationBuckets: { under1: 0, oneToThree: 0, threeToFive: 0, aboveFive: 0, aboveTen: 0 } });
           CALL_BUCKETS.forEach((bucket) => {
             map.get(agent).calls[bucket.label] = 0;
             map.get(agent).duration[bucket.label] = 0;
@@ -1681,6 +1695,11 @@
         }
         item.totalCalls += 1;
         item.totalDuration += row._duration;
+        if (row._duration < 60) item.durationBuckets.under1 += 1;
+        if (row._duration >= 60 && row._duration < 180) item.durationBuckets.oneToThree += 1;
+        if (row._duration >= 180 && row._duration < 300) item.durationBuckets.threeToFive += 1;
+        if (row._duration >= 300) item.durationBuckets.aboveFive += 1;
+        if (row._duration >= 600) item.durationBuckets.aboveTen += 1;
       });
       return [...map.values()].sort((a, b) => b.totalCalls - a.totalCalls);
     }
@@ -1696,6 +1715,24 @@
       `).join("") : `<tr><td colspan="${CALL_BUCKETS.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
+    function renderCallDurationBucketTable(rows) {
+      const columns = [
+        ["under1", "< 1 menit"],
+        ["oneToThree", "1-3 menit"],
+        ["threeToFive", "3-5 menit"],
+        ["aboveFive", "> 5 menit"],
+        ["aboveTen", "> 10 menit"]
+      ];
+      document.getElementById("callDurationBucketHead").innerHTML = `<tr><th>Agent</th>${columns.map(([, label]) => `<th class="right">${label}</th>`).join("")}<th class="right">Total Call</th></tr>`;
+      document.getElementById("callDurationBucketBody").innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.agent)}</td>
+          ${columns.map(([key]) => `<td class="right">${number.format(row.durationBuckets[key])}</td>`).join("")}
+          <td class="right">${number.format(row.totalCalls)}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="${columns.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
     function renderCallTrackingPage() {
       const rows = filteredCallRows();
       const matrix = callMatrix(rows);
@@ -1707,6 +1744,7 @@
       `;
       renderCallTable("callCountHead", "callCountBody", matrix, "count");
       renderCallTable("callDurationHead", "callDurationBody", matrix, "duration");
+      renderCallDurationBucketTable(matrix);
     }
 
     function initialize() {

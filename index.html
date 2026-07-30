@@ -528,6 +528,7 @@
       <button type="button" data-page="pageTenure">Tenure</button>
       <button type="button" data-page="pageProductBreakdown">Breakdown Product</button>
       <button type="button" data-page="pageAssignDate">Assigndate</button>
+      <button type="button" data-page="pageCallTracking">Call Tracking</button>
     </div>
 
     <section class="kpis">
@@ -802,11 +803,58 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageCallTracking">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>CALL TRACKING</h2>
+          <span class="note">jumlah call dan durasi call per agent berdasarkan jam</span>
+        </div>
+        <section class="filters">
+          <label>Daily<select id="callDateFilter"></select></label>
+          <label>Status<select id="callStatusFilter"></select></label>
+          <label>Coach<select id="callCoachFilter"></select></label>
+          <label>Agent<select id="callAgentFilter"></select></label>
+          <label>Waktu<select id="callTimeFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="callSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2>Jumlah Call</h2>
+            <span class="note">agent sebagai baris, bucket jam sebagai kolom</span>
+          </div>
+          <div class="table-wrap">
+            <table id="callCountTable">
+              <thead id="callCountHead"></thead>
+              <tbody id="callCountBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="panel-head">
+            <h2>Durasi Call</h2>
+            <span class="note">total durasi call per agent</span>
+          </div>
+          <div class="table-wrap">
+            <table id="callDurationTable">
+              <thead id="callDurationHead"></thead>
+              <tbody id="callDurationBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
     const SHEET_ID = "1Z9zMCBlbnJy9V0CikwQ1emcFdv9xxp7j474qAXfuOf8";
     const GID = "0";
+    const CALL_SHEET_ID = "1wt5Vv5lu3shvy-bYyNjIeLs6iMWcPD78ZuGMMLdfrpU";
+    const CALL_GID = "0";
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
     const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
@@ -842,6 +890,7 @@
       team: "Kategori Team"
     };
     let allRows = [];
+    let callRows = [];
     let selectedTeam = "ALL";
     const charts = {};
     Chart.register(ChartDataLabels);
@@ -1547,6 +1596,117 @@
       renderBreakdownPage();
       setAssignOptions();
       renderAssignDatePage();
+      setCallOptions();
+      renderCallTrackingPage();
+    }
+
+    function callDate(value) {
+      const text = clean(value);
+      const match = text.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s+(\d{1,2})\.(\d{2})\.(\d{2})/);
+      if (!match) return { date: text, hour: -1 };
+      const months = { Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12" };
+      const day = match[1].padStart(2, "0");
+      const month = months[match[2]] || "01";
+      return { date: `${match[3]}-${month}-${day}`, hour: Number(match[4]) };
+    }
+
+    function durationSeconds(value) {
+      const parts = clean(value).split(":").map((part) => Number(part) || 0);
+      if (parts.length !== 3) return 0;
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+
+    function formatDuration(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    const CALL_BUCKETS = [
+      { label: "03.00-06.00", start: 3, end: 6 },
+      { label: "06.00-09.00", start: 6, end: 9 },
+      { label: "09.00-12.00", start: 9, end: 12 },
+      { label: "12.00-15.00", start: 12, end: 15 },
+      { label: "15.00-18.00", start: 15, end: 18 },
+      { label: "18.00-21.00", start: 18, end: 21 },
+      { label: "21.00-23.59", start: 21, end: 24 }
+    ];
+
+    function callBucket(hour) {
+      return CALL_BUCKETS.find((bucket) => hour >= bucket.start && hour < bucket.end)?.label || "Di luar bucket";
+    }
+
+    function setCallOptions() {
+      setOptions("callDateFilter", callRows.map((row) => row._date), "daily");
+      setOptions("callStatusFilter", callRows.map((row) => row.Status), "status");
+      setOptions("callCoachFilter", callRows.map((row) => row.COACH), "coach");
+      setOptions("callAgentFilter", callRows.map((row) => row["Agent Name"]), "agent");
+      const select = document.getElementById("callTimeFilter");
+      const current = select.value;
+      select.innerHTML = `<option value="">Semua waktu</option>` + CALL_BUCKETS.map((bucket) => `<option value="${bucket.label}">${bucket.label}</option>`).join("");
+      if (CALL_BUCKETS.some((bucket) => bucket.label === current)) select.value = current;
+    }
+
+    function filteredCallRows() {
+      const date = document.getElementById("callDateFilter").value;
+      const status = document.getElementById("callStatusFilter").value;
+      const coach = document.getElementById("callCoachFilter").value;
+      const agent = document.getElementById("callAgentFilter").value;
+      const bucket = document.getElementById("callTimeFilter").value;
+      return callRows.filter((row) =>
+        (!date || row._date === date)
+        && (!status || clean(row.Status) === status)
+        && (!coach || clean(row.COACH) === coach)
+        && (!agent || clean(row["Agent Name"]) === agent)
+        && (!bucket || row._bucket === bucket)
+      );
+    }
+
+    function callMatrix(rows) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const agent = clean(row["Agent Name"]) || "Kosong";
+        if (!map.has(agent)) {
+          map.set(agent, { agent, totalCalls: 0, totalDuration: 0, calls: {}, duration: {} });
+          CALL_BUCKETS.forEach((bucket) => {
+            map.get(agent).calls[bucket.label] = 0;
+            map.get(agent).duration[bucket.label] = 0;
+          });
+        }
+        const item = map.get(agent);
+        if (item.calls[row._bucket] !== undefined) {
+          item.calls[row._bucket] += 1;
+          item.duration[row._bucket] += row._duration;
+        }
+        item.totalCalls += 1;
+        item.totalDuration += row._duration;
+      });
+      return [...map.values()].sort((a, b) => b.totalCalls - a.totalCalls);
+    }
+
+    function renderCallTable(headId, bodyId, rows, mode) {
+      document.getElementById(headId).innerHTML = `<tr><th>Agent</th>${CALL_BUCKETS.map((bucket) => `<th class="right">${bucket.label}</th>`).join("")}<th class="right">Total</th></tr>`;
+      document.getElementById(bodyId).innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.agent)}</td>
+          ${CALL_BUCKETS.map((bucket) => `<td class="right">${mode === "duration" ? formatDuration(row.duration[bucket.label]) : number.format(row.calls[bucket.label])}</td>`).join("")}
+          <td class="right">${mode === "duration" ? formatDuration(row.totalDuration) : number.format(row.totalCalls)}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="${CALL_BUCKETS.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
+    function renderCallTrackingPage() {
+      const rows = filteredCallRows();
+      const matrix = callMatrix(rows);
+      document.getElementById("callSummary").innerHTML = `
+        <div class="coach-stat"><span>Total Call</span><strong>${number.format(rows.length)}</strong></div>
+        <div class="coach-stat"><span>Total Durasi</span><strong>${formatDuration(rows.reduce((sum, row) => sum + row._duration, 0))}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(rows.map((row) => clean(row["Agent Name"])).filter(Boolean)).size)}</strong></div>
+        <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row.COACH)).filter(Boolean)).size)}</strong></div>
+      `;
+      renderCallTable("callCountHead", "callCountBody", matrix, "count");
+      renderCallTable("callDurationHead", "callDurationBody", matrix, "duration");
     }
 
     function initialize() {
@@ -1587,6 +1747,9 @@
           renderAssignDatePage();
         });
       });
+      ["callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", renderCallTrackingPage);
+      });
       setupPageTabs();
       renderTabs();
       render();
@@ -1625,12 +1788,45 @@
       }).filter((row) => TEAM_GROUPS.includes(row._group));
     }
 
+    function rowsFromCallTable(table) {
+      const matrix = table.rows.map((row) => row.c.map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
+      let headers = table.cols.map((col) => clean(col.label));
+      let startIndex = 0;
+      if (!headers.includes("Agent Name")) {
+        startIndex = matrix.findIndex((row) => row.map(clean).includes("Agent Name"));
+        headers = startIndex >= 0 ? matrix[startIndex].map(clean) : ["Agent Name", "Destination", "Status", "Note", "Start At", "Duration", "COACH"];
+        startIndex = Math.max(startIndex + 1, 0);
+      }
+      return matrix.slice(startIndex).map((line) => {
+        const row = {};
+        headers.forEach((header, index) => {
+          if (header) row[header] = line[index] ?? "";
+        });
+        const parsed = callDate(row["Start At"]);
+        row._date = parsed.date;
+        row._hour = parsed.hour;
+        row._bucket = callBucket(parsed.hour);
+        row._duration = durationSeconds(row.Duration);
+        return row;
+      }).filter((row) => clean(row["Agent Name"]));
+    }
+
     window.handleSheetData = function(response) {
       try {
         allRows = rowsFromGoogleTable(response.table);
         initialize();
       } catch (error) {
         showError(error.message);
+      }
+    };
+
+    window.handleCallData = function(response) {
+      try {
+        callRows = rowsFromCallTable(response.table);
+        setCallOptions();
+        renderCallTrackingPage();
+      } catch (error) {
+        showError(`Data call tracking tidak bisa dibaca. Detail: ${error.message}`);
       }
     };
 
@@ -1648,7 +1844,15 @@
       document.body.appendChild(script);
     }
 
+    function loadCallSheet() {
+      const script = document.createElement("script");
+      script.src = `https://docs.google.com/spreadsheets/d/${CALL_SHEET_ID}/gviz/tq?gid=${CALL_GID}&headers=1&tqx=out:json;responseHandler:handleCallData`;
+      script.onerror = () => showError("Google Sheet call tracking tidak bisa diakses dari halaman ini.");
+      document.body.appendChild(script);
+    }
+
     loadSheet();
+    loadCallSheet();
   </script>
 </body>
 </html>

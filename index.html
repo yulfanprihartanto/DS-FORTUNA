@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DS Compare All Team</title>
+  <title>FORTUNA CENTER</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
@@ -13,10 +13,10 @@
       --text: #172033;
       --muted: #657287;
       --line: #dbe3ef;
-      --blue: #0b67c2;
-      --green: #079b88;
-      --amber: #c77700;
-      --red: #c43b1c;
+      --blue: #28c8ff;
+      --green: #10d6a3;
+      --amber: #ffc247;
+      --red: #ff477e;
       --shadow: 0 10px 26px rgba(18, 31, 52, .08);
     }
 
@@ -351,13 +351,95 @@
       .chart-wrap { height: 285px; }
     }
   </style>
+  <style>
+    :root {
+      --bg: #070d22;
+      --panel: #0f1832;
+      --text: #f7f8ff;
+      --muted: #a9b5d8;
+      --line: rgba(160, 177, 235, .18);
+      --blue: #28c8ff;
+      --green: #10d6a3;
+      --amber: #ffc247;
+      --red: #ff477e;
+      --violet: #9d4edd;
+      --magenta: #ff2dac;
+      --shadow: 0 18px 46px rgba(0, 0, 0, .35);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(255, 45, 172, .22), transparent 26%),
+        radial-gradient(circle at 90% 8%, rgba(40, 200, 255, .18), transparent 28%),
+        linear-gradient(180deg, #070d22 0%, #0a1028 48%, #070d22 100%);
+    }
+
+    header {
+      background: linear-gradient(90deg, rgba(214, 0, 82, .96), rgba(98, 20, 174, .94), rgba(8, 17, 46, .98));
+      border-bottom: 1px solid rgba(255, 255, 255, .14);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+      padding-top: 36px;
+      padding-bottom: 34px;
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: clamp(42px, 6vw, 76px);
+      font-weight: 900;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, .32);
+    }
+
+    .subtitle { color: rgba(255, 255, 255, .82); font-size: 16px; }
+    .status {
+      background: rgba(255, 255, 255, .08);
+      border-color: rgba(255, 255, 255, .22);
+      color: rgba(255, 255, 255, .86);
+    }
+
+    select, input, .team-tabs button, .page-tabs button {
+      background: #121d3b;
+      border-color: rgba(160, 177, 235, .22);
+      color: #f7f8ff;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(40, 200, 255, .18);
+    }
+
+    .team-tabs button.active {
+      background: linear-gradient(90deg, var(--blue), var(--violet));
+      border-color: transparent;
+    }
+
+    .page-tabs button.active {
+      background: linear-gradient(90deg, var(--green), var(--magenta));
+      border-color: transparent;
+    }
+
+    .kpi, .panel {
+      background: linear-gradient(180deg, rgba(18, 29, 59, .98), rgba(12, 19, 42, .98));
+      border-color: rgba(160, 177, 235, .18);
+      box-shadow: var(--shadow);
+    }
+
+    .coach-stat {
+      background: rgba(255, 255, 255, .045);
+      border-color: rgba(160, 177, 235, .18);
+    }
+
+    .table-wrap, th, td { border-color: rgba(160, 177, 235, .16); }
+    table { background: #0f1832; }
+    th { background: #121d3b; color: var(--muted); }
+    .error { background: rgba(255, 71, 126, .11); border-color: rgba(255, 71, 126, .42); color: #ffd4df; }
+  </style>
 </head>
 <body>
   <header>
     <div class="header-inner">
       <div>
-        <h1>DS Compare All Team</h1>
-        <p class="subtitle">Perbandingan Layer 1, Layer 2, dan Prompter Inbound dari Google Sheets.</p>
+        <h1>FORTUNA CENTER</h1>
+        <p class="subtitle">Dashboard performance Fortuna untuk analisis revenue, transaksi, coach, campaign, product, tenure, dan assigned date.</p>
       </div>
       <div class="status" id="status">Memuat data...</div>
     </div>
@@ -667,12 +749,13 @@
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
     const EXCLUDED_SPVS = ["Fajar Cita Wibowo"];
     const COLORS = {
-      "LAYER 1": "#0b67c2",
-      "LAYER 2": "#079b88",
-      "Prompter Inbound": "#c77700",
-      "OUTBOUND": "#0b67c2",
-      "INBOUND": "#c77700"
+      "LAYER 1": "#28c8ff",
+      "LAYER 2": "#10d6a3",
+      "Prompter Inbound": "#ff2dac",
+      "OUTBOUND": "#28c8ff",
+      "INBOUND": "#ff2dac"
     };
+    const CHART_PALETTE = ["#28c8ff", "#ff2dac", "#10d6a3", "#ffc247", "#9d4edd", "#ff477e", "#3b82f6", "#22c55e", "#f97316", "#06b6d4", "#e879f9", "#facc15"];
     const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
     const number = new Intl.NumberFormat("id-ID");
     const fields = {
@@ -846,7 +929,7 @@
               const values = context.dataset.data || [];
               const max = Math.max(...values.map((value) => Number(value) || 0));
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
-              return current < max * 0.22 ? "#172033" : "#ffffff";
+              return current < max * 0.22 ? "#f7f8ff" : "#ffffff";
             },
             font: { size: 11, weight: "700" },
             formatter(value) {
@@ -874,18 +957,22 @@
         },
         scales: horizontal ? {
           x: {
+            grid: { color: "rgba(160, 177, 235, .12)" },
             beginAtZero: true,
             ticks: {
+              color: "#a9b5d8",
               precision: 0,
               callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
             }
           },
-          y: { grid: { display: false } }
+          y: { grid: { display: false }, ticks: { color: "#a9b5d8" } }
         } : {
-          x: { grid: { display: false } },
+          x: { grid: { display: false }, ticks: { color: "#a9b5d8" } },
           y: {
+            grid: { color: "rgba(160, 177, 235, .12)" },
             beginAtZero: true,
             ticks: {
+              color: "#a9b5d8",
               precision: 0,
               callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
             }
@@ -961,7 +1048,7 @@
         type: "bar",
         data: {
           labels: teamByTxn.map((item) => item.team),
-          datasets: [{ label: "Transaksi", data: teamByTxn.map((item) => item.txn), backgroundColor: "#0b67c2", borderRadius: 5 }]
+          datasets: [{ label: "Transaksi", data: teamByTxn.map((item) => item.txn), backgroundColor: "#28c8ff", borderRadius: 5 }]
         },
         options: baseOptions({ money: false })
       });
@@ -986,7 +1073,7 @@
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
+      const palette = CHART_PALETTE;
       const title = leader || "Belum dipilih";
       ["Agent", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
@@ -1041,8 +1128,8 @@
     function renderLeaderCompare() {
       const leaderA = document.getElementById("compareLeaderAFilter").value;
       const leaderB = document.getElementById("compareLeaderBFilter").value;
-      renderCoachSide("leaderA", leaderA, "#0b67c2");
-      renderCoachSide("leaderB", leaderB, "#c77700");
+      renderCoachSide("leaderA", leaderA, "#28c8ff");
+      renderCoachSide("leaderB", leaderB, "#ff2dac");
     }
 
     function setUnitOptions() {
@@ -1084,7 +1171,7 @@
       const coaches = groupSum(rows, fields.leader);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea"];
+      const palette = CHART_PALETTE;
       const title = [layer || "Semua layer", spv || "Semua SPV"].join(" | ");
       ["Coach", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
@@ -1127,8 +1214,8 @@
     }
 
     function renderUnitCompare() {
-      renderUnitSide("unitA", "#0b67c2");
-      renderUnitSide("unitB", "#c77700");
+      renderUnitSide("unitA", "#28c8ff");
+      renderUnitSide("unitB", "#ff2dac");
     }
 
     function setTenureOptions() {
@@ -1184,7 +1271,7 @@
         type: "bar",
         data: {
           labels: tenure.map((item) => item[0]),
-          datasets: [{ label: "Amount", data: tenure.map((item) => item[1]), backgroundColor: "#0b67c2", borderRadius: 5 }]
+          datasets: [{ label: "Amount", data: tenure.map((item) => item[1]), backgroundColor: "#28c8ff", borderRadius: 5 }]
         },
         options: baseOptions({ horizontal: true })
       });
@@ -1238,7 +1325,7 @@
       const campaigns = groupCampaignSum(rows).slice(0, 20);
       const grades = groupSum(rows, fields.grade);
       const product = document.getElementById("breakdownProductFilter").value || "Semua product type";
-      const palette = ["#0b67c2", "#079b88", "#c77700", "#7c3aed", "#c43b1c", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2"];
+      const palette = CHART_PALETTE;
       document.getElementById("breakdownCampaignTitle").textContent = product;
       document.getElementById("breakdownGradeTitle").textContent = product;
       document.getElementById("breakdownSummary").innerHTML = `
@@ -1352,7 +1439,7 @@
         type: "bar",
         data: {
           labels: groups.map((item) => item.date),
-          datasets: [{ label: "Amount", data: groups.map((item) => item.amount), backgroundColor: "#0b67c2", borderRadius: 5 }]
+          datasets: [{ label: "Amount", data: groups.map((item) => item.amount), backgroundColor: "#28c8ff", borderRadius: 5 }]
         },
         options: baseOptions({ horizontal: true })
       });
@@ -1360,7 +1447,7 @@
         type: "bar",
         data: {
           labels: groupsByInvoice.map((item) => item.date),
-          datasets: [{ label: "Invoice", data: groupsByInvoice.map((item) => item.invoices.size), backgroundColor: "#c77700", borderRadius: 5 }]
+          datasets: [{ label: "Invoice", data: groupsByInvoice.map((item) => item.invoices.size), backgroundColor: "#ff2dac", borderRadius: 5 }]
         },
         options: baseOptions({ money: false, horizontal: true })
       });

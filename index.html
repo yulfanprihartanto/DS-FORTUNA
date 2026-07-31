@@ -308,7 +308,7 @@
     }
 
     .table-wrap.fit table {
-      width: auto;
+      width: max-content;
       min-width: 0;
       max-width: 100%;
       table-layout: auto;
@@ -316,15 +316,22 @@
 
     .table-wrap.fit th,
     .table-wrap.fit td {
-      padding: 8px 10px;
+      padding: 7px 8px;
       white-space: nowrap;
     }
 
     .table-wrap.fit th:first-child,
     .table-wrap.fit td:first-child {
       white-space: normal;
-      min-width: 170px;
-      max-width: 220px;
+      min-width: 155px;
+      max-width: 190px;
+    }
+
+    .table-wrap.fit th:not(:first-child),
+    .table-wrap.fit td:not(:first-child) {
+      width: 1%;
+      min-width: 58px;
+      text-align: left;
     }
 
     table {

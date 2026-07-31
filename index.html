@@ -875,6 +875,132 @@
           </div>
         </div>
       </section>
+
+      <section class="compare-grid">
+        <div class="panel compare-panel">
+          <div class="panel-head">
+            <h2>Call Compare A</h2>
+            <span class="note">coach, agent, daily, status</span>
+          </div>
+          <section class="filters">
+            <label>Coach<select id="callCompareACoachFilter"></select></label>
+            <label>Agent<select id="callCompareAAgentFilter"></select></label>
+            <label>Daily<select id="callCompareADateFilter"></select></label>
+            <label>Status<select id="callCompareAStatusFilter"></select></label>
+          </section>
+          <div class="coach-summary" id="callCompareASummary"></div>
+          <div>
+            <div class="panel-head">
+              <h2>Jumlah Call</h2>
+              <span class="note">total call per bucket jam</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareACountHead"></thead>
+                <tbody id="callCompareACountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Durasi Call</h2>
+              <span class="note">durasi tertinggi ke terendah</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareADurationHead"></thead>
+                <tbody id="callCompareADurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Bucket Durasi</h2>
+              <span class="note">jumlah call berdasarkan durasi</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareABucketHead"></thead>
+                <tbody id="callCompareABucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Call Attempt</h2>
+              <span class="note">unique number dibanding total call</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareAAttemptHead"></thead>
+                <tbody id="callCompareAAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel compare-panel">
+          <div class="panel-head">
+            <h2>Call Compare B</h2>
+            <span class="note">coach, agent, daily, status</span>
+          </div>
+          <section class="filters">
+            <label>Coach<select id="callCompareBCoachFilter"></select></label>
+            <label>Agent<select id="callCompareBAgentFilter"></select></label>
+            <label>Daily<select id="callCompareBDateFilter"></select></label>
+            <label>Status<select id="callCompareBStatusFilter"></select></label>
+          </section>
+          <div class="coach-summary" id="callCompareBSummary"></div>
+          <div>
+            <div class="panel-head">
+              <h2>Jumlah Call</h2>
+              <span class="note">total call per bucket jam</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareBCountHead"></thead>
+                <tbody id="callCompareBCountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Durasi Call</h2>
+              <span class="note">durasi tertinggi ke terendah</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareBDurationHead"></thead>
+                <tbody id="callCompareBDurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Bucket Durasi</h2>
+              <span class="note">jumlah call berdasarkan durasi</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareBBucketHead"></thead>
+                <tbody id="callCompareBBucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="panel-head">
+              <h2>Call Attempt</h2>
+              <span class="note">unique number dibanding total call</span>
+            </div>
+            <div class="table-wrap compact">
+              <table>
+                <thead id="callCompareBAttemptHead"></thead>
+                <tbody id="callCompareBAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -1730,7 +1856,7 @@
       `).join("") : `<tr><td colspan="${CALL_BUCKETS.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
-    function renderCallDurationBucketTable(rows) {
+    function renderCallDurationBucketTable(headId, bodyId, rows) {
       const columns = [
         ["under1", "< 1 menit"],
         ["oneToThree", "1-3 menit"],
@@ -1738,8 +1864,8 @@
         ["aboveFive", "> 5 menit"],
         ["aboveTen", "> 10 menit"]
       ];
-      document.getElementById("callDurationBucketHead").innerHTML = `<tr><th>Agent</th>${columns.map(([, label]) => `<th class="right">${label}</th>`).join("")}<th class="right">Total Call</th></tr>`;
-      document.getElementById("callDurationBucketBody").innerHTML = rows.length ? rows.map((row) => `
+      document.getElementById(headId).innerHTML = `<tr><th>Agent</th>${columns.map(([, label]) => `<th class="right">${label}</th>`).join("")}<th class="right">Total Call</th></tr>`;
+      document.getElementById(bodyId).innerHTML = rows.length ? rows.map((row) => `
         <tr>
           <td>${escapeHtml(row.agent)}</td>
           ${columns.map(([key]) => `<td class="right">${number.format(row.durationBuckets[key])}</td>`).join("")}
@@ -1748,13 +1874,13 @@
       `).join("") : `<tr><td colspan="${columns.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
-    function renderCallAttemptTable(rows) {
+    function renderCallAttemptTable(headId, bodyId, rows) {
       const sortedRows = [...rows].sort((a, b) => {
         const aPercent = a.uniqueNumbers.size ? a.totalCalls / a.uniqueNumbers.size : 0;
         const bPercent = b.uniqueNumbers.size ? b.totalCalls / b.uniqueNumbers.size : 0;
         return bPercent - aPercent;
       });
-      document.getElementById("callAttemptHead").innerHTML = `
+      document.getElementById(headId).innerHTML = `
         <tr>
           <th>Agent</th>
           <th class="right">Unique Number</th>
@@ -1762,7 +1888,7 @@
           <th class="right">Call Attempt %</th>
         </tr>
       `;
-      document.getElementById("callAttemptBody").innerHTML = sortedRows.length ? sortedRows.map((row) => {
+      document.getElementById(bodyId).innerHTML = sortedRows.length ? sortedRows.map((row) => {
         const unique = row.uniqueNumbers.size;
         const percent = unique ? (row.totalCalls / unique) * 100 : 0;
         return `
@@ -1776,6 +1902,66 @@
       }).join("") : `<tr><td colspan="4" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
+    function setCallCompareOptions(prefix) {
+      const coachSelect = document.getElementById(`${prefix}CoachFilter`);
+      const agentSelect = document.getElementById(`${prefix}AgentFilter`);
+      const dateSelect = document.getElementById(`${prefix}DateFilter`);
+      const statusSelect = document.getElementById(`${prefix}StatusFilter`);
+      if (!coachSelect || !agentSelect || !dateSelect || !statusSelect) return;
+      const currentCoach = coachSelect.value;
+      const currentAgent = agentSelect.value;
+      const currentDate = dateSelect.value;
+      const currentStatus = statusSelect.value;
+      setOptions(`${prefix}CoachFilter`, callRows.map((row) => row.COACH), "coach");
+      if (currentCoach) coachSelect.value = currentCoach;
+      const coachRows = callRows.filter((row) => !coachSelect.value || clean(row.COACH) === coachSelect.value);
+      setOptions(`${prefix}AgentFilter`, coachRows.map((row) => row["Agent Name"]), "agent");
+      if (currentAgent) agentSelect.value = currentAgent;
+      const agentRows = coachRows.filter((row) => !agentSelect.value || clean(row["Agent Name"]) === agentSelect.value);
+      setOptions(`${prefix}DateFilter`, agentRows.map((row) => row._date), "daily");
+      if (currentDate) dateSelect.value = currentDate;
+      const dateRows = agentRows.filter((row) => !dateSelect.value || row._date === dateSelect.value);
+      setOptions(`${prefix}StatusFilter`, dateRows.map((row) => row.Status), "status");
+      if (currentStatus) statusSelect.value = currentStatus;
+    }
+
+    function filteredCallCompareRows(prefix) {
+      const coach = document.getElementById(`${prefix}CoachFilter`).value;
+      const agent = document.getElementById(`${prefix}AgentFilter`).value;
+      const date = document.getElementById(`${prefix}DateFilter`).value;
+      const status = document.getElementById(`${prefix}StatusFilter`).value;
+      return callRows.filter((row) =>
+        (!coach || clean(row.COACH) === coach)
+        && (!agent || clean(row["Agent Name"]) === agent)
+        && (!date || row._date === date)
+        && (!status || clean(row.Status) === status)
+      );
+    }
+
+    function renderCallCompareSide(prefix) {
+      setCallCompareOptions(prefix);
+      const rows = filteredCallCompareRows(prefix);
+      const matrix = callMatrix(rows);
+      const uniqueNumbers = new Set(rows.map((row) => clean(row.Destination)).filter(Boolean)).size;
+      const attempt = uniqueNumbers ? (rows.length / uniqueNumbers) * 100 : 0;
+      document.getElementById(`${prefix}Summary`).innerHTML = `
+        <div class="coach-stat"><span>Total Call</span><strong>${number.format(rows.length)}</strong></div>
+        <div class="coach-stat"><span>Total Durasi</span><strong>${formatDuration(rows.reduce((sum, row) => sum + row._duration, 0))}</strong></div>
+        <div class="coach-stat"><span>Unique Number</span><strong>${number.format(uniqueNumbers)}</strong></div>
+        <div class="coach-stat"><span>Attempt</span><strong>${attempt.toFixed(1)}%</strong></div>
+      `;
+      renderCallTable(`${prefix}CountHead`, `${prefix}CountBody`, matrix, "count");
+      renderCallTable(`${prefix}DurationHead`, `${prefix}DurationBody`, [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
+      renderCallDurationBucketTable(`${prefix}BucketHead`, `${prefix}BucketBody`, matrix);
+      renderCallAttemptTable(`${prefix}AttemptHead`, `${prefix}AttemptBody`, matrix);
+    }
+
+    function renderCallCompare() {
+      renderCallCompareSide("callCompareA");
+      renderCallCompareSide("callCompareB");
+    }
+
+
     function renderCallTrackingPage() {
       const rows = filteredCallRows();
       const matrix = callMatrix(rows);
@@ -1787,8 +1973,9 @@
       `;
       renderCallTable("callCountHead", "callCountBody", matrix, "count");
       renderCallTable("callDurationHead", "callDurationBody", [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
-      renderCallDurationBucketTable(matrix);
-      renderCallAttemptTable(matrix);
+      renderCallDurationBucketTable("callDurationBucketHead", "callDurationBucketBody", matrix);
+      renderCallAttemptTable("callAttemptHead", "callAttemptBody", matrix);
+      renderCallCompare();
     }
 
     function initialize() {
@@ -1831,6 +2018,9 @@
       });
       ["callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", renderCallTrackingPage);
+      });
+      ["callCompareACoachFilter", "callCompareAAgentFilter", "callCompareADateFilter", "callCompareAStatusFilter", "callCompareBCoachFilter", "callCompareBAgentFilter", "callCompareBDateFilter", "callCompareBStatusFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", renderCallCompare);
       });
       setupPageTabs();
       renderTabs();

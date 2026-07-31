@@ -1162,6 +1162,16 @@
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
     }
 
+    function campaignColor(name) {
+      const label = clean(name).toLowerCase();
+      let hash = 0;
+      for (let i = 0; i < label.length; i += 1) {
+        hash = ((hash << 5) - hash) + label.charCodeAt(i);
+        hash |= 0;
+      }
+      return CHART_PALETTE[Math.abs(hash) % CHART_PALETTE.length];
+    }
+
     function setOptions(id, values, label) {
       const select = document.getElementById(id);
       const current = select.value;
@@ -1441,7 +1451,7 @@
           datasets: [{
             label: "Amount",
             data: campaigns.map((item) => item[1]),
-            backgroundColor: campaigns.map((_, index) => palette[index % palette.length]),
+            backgroundColor: campaigns.map((item) => campaignColor(item[0])),
             borderRadius: 5
           }]
         },
@@ -1531,7 +1541,7 @@
         type: "bar",
         data: {
           labels: campaigns.map((item) => item[0]),
-          datasets: [{ label: "Amount", data: campaigns.map((item) => item[1]), backgroundColor: campaigns.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+          datasets: [{ label: "Amount", data: campaigns.map((item) => item[1]), backgroundColor: campaigns.map((item) => campaignColor(item[0])), borderRadius: 5 }]
         },
         options: baseOptions({ horizontal: true })
       });

@@ -307,6 +307,22 @@
       border-radius: 8px;
     }
 
+    .table-wrap.fit table {
+      min-width: 0;
+    }
+
+    .table-wrap.fit th,
+    .table-wrap.fit td {
+      padding: 8px 9px;
+      white-space: nowrap;
+    }
+
+    .table-wrap.fit th:first-child,
+    .table-wrap.fit td:first-child {
+      white-space: normal;
+      min-width: 150px;
+    }
+
     table {
       width: 100%;
       min-width: 920px;
@@ -892,9 +908,9 @@
           <div>
             <div class="panel-head">
               <h2>Jumlah Call</h2>
-              <span class="note">total call per bucket jam</span>
+              <span class="note">ringkas biar mudah dibandingkan</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareACountHead"></thead>
                 <tbody id="callCompareACountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -904,9 +920,9 @@
           <div>
             <div class="panel-head">
               <h2>Durasi Call</h2>
-              <span class="note">durasi tertinggi ke terendah</span>
+              <span class="note">ringkas biar mudah dibandingkan</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareADurationHead"></thead>
                 <tbody id="callCompareADurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -916,9 +932,9 @@
           <div>
             <div class="panel-head">
               <h2>Bucket Durasi</h2>
-              <span class="note">jumlah call berdasarkan durasi</span>
+              <span class="note">di bawah dan di atas 3 menit</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareABucketHead"></thead>
                 <tbody id="callCompareABucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -930,7 +946,7 @@
               <h2>Call Attempt</h2>
               <span class="note">unique number dibanding total call</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareAAttemptHead"></thead>
                 <tbody id="callCompareAAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -954,9 +970,9 @@
           <div>
             <div class="panel-head">
               <h2>Jumlah Call</h2>
-              <span class="note">total call per bucket jam</span>
+              <span class="note">ringkas biar mudah dibandingkan</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareBCountHead"></thead>
                 <tbody id="callCompareBCountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -966,9 +982,9 @@
           <div>
             <div class="panel-head">
               <h2>Durasi Call</h2>
-              <span class="note">durasi tertinggi ke terendah</span>
+              <span class="note">ringkas biar mudah dibandingkan</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareBDurationHead"></thead>
                 <tbody id="callCompareBDurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -978,9 +994,9 @@
           <div>
             <div class="panel-head">
               <h2>Bucket Durasi</h2>
-              <span class="note">jumlah call berdasarkan durasi</span>
+              <span class="note">di bawah dan di atas 3 menit</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareBBucketHead"></thead>
                 <tbody id="callCompareBBucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -992,7 +1008,7 @@
               <h2>Call Attempt</h2>
               <span class="note">unique number dibanding total call</span>
             </div>
-            <div class="table-wrap compact">
+            <div class="table-wrap fit">
               <table>
                 <thead id="callCompareBAttemptHead"></thead>
                 <tbody id="callCompareBAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
@@ -1856,6 +1872,16 @@
       `).join("") : `<tr><td colspan="${CALL_BUCKETS.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
+    function renderCallCompareTotalTable(headId, bodyId, rows, mode) {
+      document.getElementById(headId).innerHTML = `<tr><th>Agent</th><th class="right">Total</th></tr>`;
+      document.getElementById(bodyId).innerHTML = rows.length ? rows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.agent)}</td>
+          <td class="right">${mode === "duration" ? formatDuration(row.totalDuration) : number.format(row.totalCalls)}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="2" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
     function renderCallDurationBucketTable(headId, bodyId, rows) {
       const columns = [
         ["under1", "< 1 menit"],
@@ -1872,6 +1898,30 @@
           <td class="right">${number.format(row.totalCalls)}</td>
         </tr>
       `).join("") : `<tr><td colspan="${columns.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
+    function renderCallCompareDurationBucketTable(headId, bodyId, rows) {
+      const sortedRows = [...rows].sort((a, b) => b.totalCalls - a.totalCalls);
+      document.getElementById(headId).innerHTML = `
+        <tr>
+          <th>Agent</th>
+          <th class="right">< 3 menit</th>
+          <th class="right">> 3 menit</th>
+          <th class="right">Total</th>
+        </tr>
+      `;
+      document.getElementById(bodyId).innerHTML = sortedRows.length ? sortedRows.map((row) => {
+        const under3 = row.durationBuckets.under1 + row.durationBuckets.oneToThree;
+        const above3 = row.durationBuckets.threeToFive + row.durationBuckets.aboveFive;
+        return `
+          <tr>
+            <td>${escapeHtml(row.agent)}</td>
+            <td class="right">${number.format(under3)}</td>
+            <td class="right">${number.format(above3)}</td>
+            <td class="right">${number.format(row.totalCalls)}</td>
+          </tr>
+        `;
+      }).join("") : `<tr><td colspan="4" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
 
     function renderCallAttemptTable(headId, bodyId, rows) {
@@ -1950,9 +2000,9 @@
         <div class="coach-stat"><span>Unique Number</span><strong>${number.format(uniqueNumbers)}</strong></div>
         <div class="coach-stat"><span>Attempt</span><strong>${attempt.toFixed(1)}%</strong></div>
       `;
-      renderCallTable(`${prefix}CountHead`, `${prefix}CountBody`, matrix, "count");
-      renderCallTable(`${prefix}DurationHead`, `${prefix}DurationBody`, [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
-      renderCallDurationBucketTable(`${prefix}BucketHead`, `${prefix}BucketBody`, matrix);
+      renderCallCompareTotalTable(`${prefix}CountHead`, `${prefix}CountBody`, matrix, "count");
+      renderCallCompareTotalTable(`${prefix}DurationHead`, `${prefix}DurationBody`, [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
+      renderCallCompareDurationBucketTable(`${prefix}BucketHead`, `${prefix}BucketBody`, matrix);
       renderCallAttemptTable(`${prefix}AttemptHead`, `${prefix}AttemptBody`, matrix);
     }
 

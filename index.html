@@ -308,19 +308,23 @@
     }
 
     .table-wrap.fit table {
+      width: auto;
       min-width: 0;
+      max-width: 100%;
+      table-layout: auto;
     }
 
     .table-wrap.fit th,
     .table-wrap.fit td {
-      padding: 8px 9px;
+      padding: 8px 10px;
       white-space: nowrap;
     }
 
     .table-wrap.fit th:first-child,
     .table-wrap.fit td:first-child {
       white-space: normal;
-      min-width: 150px;
+      min-width: 170px;
+      max-width: 220px;
     }
 
     table {
@@ -1873,11 +1877,11 @@
     }
 
     function renderCallCompareTotalTable(headId, bodyId, rows, mode) {
-      document.getElementById(headId).innerHTML = `<tr><th>Agent</th><th class="right">Total</th></tr>`;
+      document.getElementById(headId).innerHTML = `<tr><th>Agent</th><th>Total</th></tr>`;
       document.getElementById(bodyId).innerHTML = rows.length ? rows.map((row) => `
         <tr>
           <td>${escapeHtml(row.agent)}</td>
-          <td class="right">${mode === "duration" ? formatDuration(row.totalDuration) : number.format(row.totalCalls)}</td>
+          <td>${mode === "duration" ? formatDuration(row.totalDuration) : number.format(row.totalCalls)}</td>
         </tr>
       `).join("") : `<tr><td colspan="2" class="empty">Tidak ada data sesuai filter.</td></tr>`;
     }
@@ -1905,9 +1909,9 @@
       document.getElementById(headId).innerHTML = `
         <tr>
           <th>Agent</th>
-          <th class="right">< 3 menit</th>
-          <th class="right">> 3 menit</th>
-          <th class="right">Total</th>
+          <th>< 3 menit</th>
+          <th>> 3 menit</th>
+          <th>Total</th>
         </tr>
       `;
       document.getElementById(bodyId).innerHTML = sortedRows.length ? sortedRows.map((row) => {
@@ -1916,9 +1920,9 @@
         return `
           <tr>
             <td>${escapeHtml(row.agent)}</td>
-            <td class="right">${number.format(under3)}</td>
-            <td class="right">${number.format(above3)}</td>
-            <td class="right">${number.format(row.totalCalls)}</td>
+            <td>${number.format(under3)}</td>
+            <td>${number.format(above3)}</td>
+            <td>${number.format(row.totalCalls)}</td>
           </tr>
         `;
       }).join("") : `<tr><td colspan="4" class="empty">Tidak ada data sesuai filter.</td></tr>`;
@@ -1930,12 +1934,14 @@
         const bPercent = b.uniqueNumbers.size ? b.totalCalls / b.uniqueNumbers.size : 0;
         return bPercent - aPercent;
       });
+      const fit = document.getElementById(headId).closest(".table-wrap")?.classList.contains("fit");
+      const align = fit ? "" : ` class="right"`;
       document.getElementById(headId).innerHTML = `
         <tr>
           <th>Agent</th>
-          <th class="right">Unique Number</th>
-          <th class="right">Total Call</th>
-          <th class="right">Call Attempt %</th>
+          <th${align}>Unique Number</th>
+          <th${align}>Total Call</th>
+          <th${align}>Call Attempt %</th>
         </tr>
       `;
       document.getElementById(bodyId).innerHTML = sortedRows.length ? sortedRows.map((row) => {
@@ -1944,9 +1950,9 @@
         return `
           <tr>
             <td>${escapeHtml(row.agent)}</td>
-            <td class="right">${number.format(unique)}</td>
-            <td class="right">${number.format(row.totalCalls)}</td>
-            <td class="right">${percent.toFixed(1)}%</td>
+            <td${align}>${number.format(unique)}</td>
+            <td${align}>${number.format(row.totalCalls)}</td>
+            <td${align}>${percent.toFixed(1)}%</td>
           </tr>
         `;
       }).join("") : `<tr><td colspan="4" class="empty">Tidak ada data sesuai filter.</td></tr>`;

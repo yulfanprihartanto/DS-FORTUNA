@@ -185,6 +185,21 @@
       gap: 14px;
     }
 
+    .call-compare-panel {
+      align-content: start;
+      grid-template-rows: 44px 82px auto repeat(4, auto);
+    }
+
+    .call-compare-panel > .panel-head {
+      margin-bottom: 0;
+    }
+
+    .call-compare-panel > .filters {
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      align-items: end;
+      margin-bottom: 0;
+    }
+
     .coach-summary {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -216,7 +231,9 @@
     #callCompareBSummary {
       display: flex;
       flex-wrap: wrap;
+      align-content: flex-start;
       gap: 8px;
+      min-height: 76px;
     }
 
     #callCompareASummary .coach-stat,
@@ -380,6 +397,8 @@
       .header-inner { flex-direction: column; }
       .status { text-align: left; }
       .filters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+      .call-compare-panel { grid-template-rows: none; }
+      .call-compare-panel > .filters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
       .kpis { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
       .grid { grid-template-columns: 1fr; }
       .compare-grid { grid-template-columns: 1fr; }
@@ -918,7 +937,7 @@
       </section>
 
       <section class="compare-grid">
-        <div class="panel compare-panel">
+        <div class="panel compare-panel call-compare-panel">
           <div class="panel-head">
             <h2>Call Compare A</h2>
             <span class="note">coach, agent, daily, status</span>
@@ -980,7 +999,7 @@
           </div>
         </div>
 
-        <div class="panel compare-panel">
+        <div class="panel compare-panel call-compare-panel">
           <div class="panel-head">
             <h2>Call Compare B</h2>
             <span class="note">coach, agent, daily, status</span>

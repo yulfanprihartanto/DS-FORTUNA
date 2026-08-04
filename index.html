@@ -405,6 +405,15 @@
       text-transform: uppercase;
     }
 
+    th.off-hour,
+    td.off-hour {
+      background: rgba(7, 45, 68, .16);
+    }
+
+    th.off-hour {
+      color: #064469;
+    }
+
     .right { text-align: right; }
     .empty { padding: 36px 12px; color: var(--muted); text-align: center; }
 
@@ -1841,11 +1850,24 @@
 
     function callDate(value) {
       const text = clean(value);
-      const match = text.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})\s+(\d{1,2})\.(\d{2})\.(\d{2})/);
+      const match = text.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2})\.(\d{2})\.(\d{2})/);
       if (!match) return { date: text, hour: -1 };
-      const months = { Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12" };
+      const months = {
+        jan: "01", january: "01", januari: "01",
+        feb: "02", february: "02", februari: "02",
+        mar: "03", march: "03", maret: "03",
+        apr: "04", april: "04",
+        may: "05", mei: "05",
+        jun: "06", june: "06", juni: "06",
+        jul: "07", july: "07", juli: "07",
+        aug: "08", august: "08", agu: "08", agustus: "08",
+        sep: "09", september: "09",
+        oct: "10", october: "10", okt: "10", oktober: "10",
+        nov: "11", november: "11",
+        dec: "12", december: "12", des: "12", desember: "12"
+      };
       const day = match[1].padStart(2, "0");
-      const month = months[match[2]] || "01";
+      const month = months[match[2].toLowerCase()] || "01";
       return { date: `${match[3]}-${month}-${day}`, hour: Number(match[4]) };
     }
 
@@ -1874,6 +1896,10 @@
 
     function callBucket(hour) {
       return CALL_BUCKETS.find((bucket) => hour >= bucket.start && hour < bucket.end)?.label || "Di luar bucket";
+    }
+
+    function callBucketClass(bucket) {
+      return bucket.end <= 9 || bucket.start >= 18 ? " off-hour" : "";
     }
 
     function setCallOptions() {
@@ -1931,11 +1957,11 @@
     }
 
     function renderCallTable(headId, bodyId, rows, mode) {
-      document.getElementById(headId).innerHTML = `<tr><th>Agent</th>${CALL_BUCKETS.map((bucket) => `<th class="right">${bucket.label}</th>`).join("")}<th class="right">Total</th></tr>`;
+      document.getElementById(headId).innerHTML = `<tr><th>Agent</th>${CALL_BUCKETS.map((bucket) => `<th class="right${callBucketClass(bucket)}">${bucket.label}</th>`).join("")}<th class="right">Total</th></tr>`;
       document.getElementById(bodyId).innerHTML = rows.length ? rows.map((row) => `
         <tr>
           <td>${escapeHtml(row.agent)}</td>
-          ${CALL_BUCKETS.map((bucket) => `<td class="right">${mode === "duration" ? formatDuration(row.duration[bucket.label]) : number.format(row.calls[bucket.label])}</td>`).join("")}
+          ${CALL_BUCKETS.map((bucket) => `<td class="right${callBucketClass(bucket)}">${mode === "duration" ? formatDuration(row.duration[bucket.label]) : number.format(row.calls[bucket.label])}</td>`).join("")}
           <td class="right">${mode === "duration" ? formatDuration(row.totalDuration) : number.format(row.totalCalls)}</td>
         </tr>
       `).join("") : `<tr><td colspan="${CALL_BUCKETS.length + 2}" class="empty">Tidak ada data sesuai filter.</td></tr>`;

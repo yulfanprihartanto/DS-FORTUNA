@@ -1142,6 +1142,13 @@
             </table>
           </div>
         </div>
+        <div>
+          <div class="panel-head">
+            <h2>Trend Growth</h2>
+            <span class="note">grafik garis revenue week by week</span>
+          </div>
+          <div class="chart-wrap"><canvas id="growthTrendChart"></canvas></div>
+        </div>
       </section>
     </section>
   </main>
@@ -2005,31 +2012,35 @@
     function renderGrowthAgentPage() {
       const rows = growthRows();
       const selectedMonth = document.getElementById("growthMonthFilter").value;
+      const hasDetailFilter = ["growthWeekFilter", "growthDateFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"]
+        .some((id) => document.getElementById(id).value);
       const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && (!selectedMonth || row._weekMonth === selectedMonth));
       const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
+      const rowLabel = hasDetailFilter ? "Agent" : "Coach";
+      const groupKey = hasDetailFilter ? fields.agent : fields.leader;
       const agentMap = new Map();
       rows.forEach((row) => {
-        const agent = clean(row[fields.agent]) || "Kosong";
-        if (!agentMap.has(agent)) agentMap.set(agent, { agent, coach: clean(row[fields.leader]), spv: clean(row[fields.spv]), weeks: {} });
-        const item = agentMap.get(agent);
+        const name = clean(row[groupKey]) || "Kosong";
+        if (!agentMap.has(name)) agentMap.set(name, { name, coach: clean(row[fields.leader]), spv: clean(row[fields.spv]), weeks: {} });
+        const item = agentMap.get(name);
         const week = clean(row[fields.week]);
         item.weeks[week] = (item.weeks[week] || 0) + toNumber(row[fields.amount]);
       });
-      const agents = [...agentMap.values()].sort((a, b) =>
+      const items = [...agentMap.values()].sort((a, b) =>
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
       );
       document.getElementById("growthSummary").innerHTML = `
         <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(selectedMonth ? monthLabel(selectedMonth) : "Semua bulan")}</strong></div>
         <div class="coach-stat"><span>Total Revenue</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
-        <div class="coach-stat"><span>Agent</span><strong>${number.format(agents.length)}</strong></div>
+        <div class="coach-stat"><span>${rowLabel}</span><strong>${number.format(items.length)}</strong></div>
         <div class="coach-stat"><span>Week Range</span><strong>${weeks.length ? `${weeks[0]}-${weeks[weeks.length - 1]}` : "-"}</strong></div>
       `;
-      document.getElementById("growthAgentHead").innerHTML = `<tr><th>Agent</th><th>Coach</th><th>SPV</th>${weeks.map((week, index) => `<th class="right">Week ${escapeHtml(week)}</th>${index ? `<th class="right">Growth ${escapeHtml(weeks[index - 1])}-${escapeHtml(week)}</th>` : ""}`).join("")}<th class="right">Total</th></tr>`;
-      document.getElementById("growthAgentBody").innerHTML = agents.length ? agents.map((agent) => {
+      document.getElementById("growthAgentHead").innerHTML = `<tr><th>${rowLabel}</th>${hasDetailFilter ? "<th>Coach</th><th>SPV</th>" : ""}${weeks.map((week, index) => `<th class="right">Week ${escapeHtml(week)}</th>${index ? `<th class="right">Growth ${escapeHtml(weeks[index - 1])}-${escapeHtml(week)}</th>` : ""}`).join("")}<th class="right">Total</th></tr>`;
+      document.getElementById("growthAgentBody").innerHTML = items.length ? items.map((item) => {
         let previous = null;
         let total = 0;
         const cells = weeks.map((week, index) => {
-          const value = agent.weeks[week] || 0;
+          const value = item.weeks[week] || 0;
           total += value;
           let growthCell = "";
           if (index) {
@@ -2040,8 +2051,25 @@
           previous = value;
           return `<td class="right">${rupiah.format(value)}</td>${growthCell}`;
         }).join("");
-        return `<tr><td>${escapeHtml(agent.agent)}</td><td>${escapeHtml(agent.coach)}</td><td>${escapeHtml(agent.spv)}</td>${cells}<td class="right">${rupiah.format(total)}</td></tr>`;
-      }).join("") : `<tr><td colspan="${weeks.length * 2 + 3}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+        return `<tr><td>${escapeHtml(item.name)}</td>${hasDetailFilter ? `<td>${escapeHtml(item.coach)}</td><td>${escapeHtml(item.spv)}</td>` : ""}${cells}<td class="right">${rupiah.format(total)}</td></tr>`;
+      }).join("") : `<tr><td colspan="${weeks.length * 2 + (hasDetailFilter ? 3 : 1)}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+      const trendItems = items.slice(0, 8);
+      makeChart("growthTrendChart", {
+        type: "line",
+        data: {
+          labels: weeks.map((week) => `Week ${week}`),
+          datasets: trendItems.map((item, index) => ({
+            label: item.name,
+            data: weeks.map((week) => item.weeks[week] || 0),
+            borderColor: CHART_PALETTE[index % CHART_PALETTE.length],
+            backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length],
+            tension: .28,
+            pointRadius: 3,
+            pointHoverRadius: 5
+          }))
+        },
+        options: baseOptions()
+      });
     }
 
     function render() {

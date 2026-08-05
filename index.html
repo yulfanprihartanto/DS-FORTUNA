@@ -414,6 +414,24 @@
       color: #064469;
     }
 
+    .growth-up {
+      color: #047857;
+      background: rgba(16, 214, 163, .16);
+      font-weight: 700;
+    }
+
+    .growth-down {
+      color: #be123c;
+      background: rgba(255, 71, 126, .14);
+      font-weight: 700;
+    }
+
+    .growth-flat {
+      color: #064469;
+      background: rgba(87, 144, 171, .12);
+      font-weight: 700;
+    }
+
     .right { text-align: right; }
     .empty { padding: 36px 12px; color: var(--muted); text-align: center; }
 
@@ -613,6 +631,7 @@
       <button type="button" data-page="pageProductBreakdown">Breakdown Product</button>
       <button type="button" data-page="pageAssignDate">Assigndate</button>
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
+      <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
     </div>
 
     <section class="kpis">
@@ -1093,6 +1112,38 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageGrowthAgent">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>Growth Agent</h2>
+          <span class="note">revenue week by week dan growth dari minggu sebelumnya</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="growthMonthFilter"></select></label>
+          <label>Weekly<select id="growthWeekFilter"></select></label>
+          <label>Daily<select id="growthDateFilter"></select></label>
+          <label>SPV<select id="growthSpvFilter"></select></label>
+          <label>Coach<select id="growthCoachFilter"></select></label>
+          <label>Agent<select id="growthAgentFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="growthSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2>Revenue Growth Agent</h2>
+            <span class="note">growth hijau naik, merah turun</span>
+          </div>
+          <div class="table-wrap">
+            <table id="growthAgentTable">
+              <thead id="growthAgentHead"></thead>
+              <tbody id="growthAgentBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -1510,19 +1561,19 @@
     }
 
     function renderCoachSide(prefix, leader, color) {
-      const baseRows = leader ? allRows.filter((row) =>
+      const baseRows = allRows.filter((row) =>
         (selectedTeam === "ALL" || row._group === selectedTeam)
-        && clean(row[fields.leader]) === leader
-      ) : [];
+        && (!leader || clean(row[fields.leader]) === leader)
+      );
       setSideDateOptions(prefix, baseRows);
       const month = document.getElementById(`${prefix}MonthFilter`).value;
       const week = document.getElementById(`${prefix}WeekFilter`).value;
       const date = document.getElementById(`${prefix}DateFilter`).value;
-      const rows = baseRows.filter((row) =>
+      const rows = leader ? baseRows.filter((row) =>
         (!month || row._weekMonth === month)
         && (!week || clean(row[fields.week]) === week)
         && (!date || clean(row[fields.date]) === date)
-      );
+      ) : [];
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
@@ -1914,6 +1965,85 @@
       });
     }
 
+    function setGrowthOptions() {
+      setMonthOptions("growthMonthFilter", allRows);
+      const month = document.getElementById("growthMonthFilter").value;
+      const monthRows = allRows.filter((row) => !month || row._weekMonth === month);
+      setOptions("growthWeekFilter", monthRows.map((row) => row[fields.week]), "minggu");
+      const week = document.getElementById("growthWeekFilter").value;
+      const weekRows = monthRows.filter((row) => !week || clean(row[fields.week]) === week);
+      setOptions("growthDateFilter", weekRows.map((row) => row[fields.date]), "daily");
+      const date = document.getElementById("growthDateFilter").value;
+      const dateRows = weekRows.filter((row) => !date || clean(row[fields.date]) === date);
+      setOptions("growthSpvFilter", dateRows.map((row) => row[fields.spv]), "SPV");
+      const spv = document.getElementById("growthSpvFilter").value;
+      const spvRows = dateRows.filter((row) => !spv || clean(row[fields.spv]) === spv);
+      setOptions("growthCoachFilter", spvRows.map((row) => row[fields.leader]), "coach");
+      const coach = document.getElementById("growthCoachFilter").value;
+      const coachRows = spvRows.filter((row) => !coach || clean(row[fields.leader]) === coach);
+      setOptions("growthAgentFilter", coachRows.map((row) => row[fields.agent]), "agent");
+    }
+
+    function growthRows() {
+      const month = document.getElementById("growthMonthFilter").value;
+      const week = document.getElementById("growthWeekFilter").value;
+      const date = document.getElementById("growthDateFilter").value;
+      const spv = document.getElementById("growthSpvFilter").value;
+      const coach = document.getElementById("growthCoachFilter").value;
+      const agent = document.getElementById("growthAgentFilter").value;
+      return allRows.filter((row) =>
+        !isExcludedSpv(row[fields.spv])
+        && (!month || row._weekMonth === month)
+        && (!week || clean(row[fields.week]) === week)
+        && (!date || clean(row[fields.date]) === date)
+        && (!spv || clean(row[fields.spv]) === spv)
+        && (!coach || clean(row[fields.leader]) === coach)
+        && (!agent || clean(row[fields.agent]) === agent)
+      );
+    }
+
+    function renderGrowthAgentPage() {
+      const rows = growthRows();
+      const selectedMonth = document.getElementById("growthMonthFilter").value;
+      const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && (!selectedMonth || row._weekMonth === selectedMonth));
+      const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
+      const agentMap = new Map();
+      rows.forEach((row) => {
+        const agent = clean(row[fields.agent]) || "Kosong";
+        if (!agentMap.has(agent)) agentMap.set(agent, { agent, coach: clean(row[fields.leader]), spv: clean(row[fields.spv]), weeks: {} });
+        const item = agentMap.get(agent);
+        const week = clean(row[fields.week]);
+        item.weeks[week] = (item.weeks[week] || 0) + toNumber(row[fields.amount]);
+      });
+      const agents = [...agentMap.values()].sort((a, b) =>
+        weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
+      );
+      document.getElementById("growthSummary").innerHTML = `
+        <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(selectedMonth ? monthLabel(selectedMonth) : "Semua bulan")}</strong></div>
+        <div class="coach-stat"><span>Total Revenue</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${number.format(agents.length)}</strong></div>
+        <div class="coach-stat"><span>Week Range</span><strong>${weeks.length ? `${weeks[0]}-${weeks[weeks.length - 1]}` : "-"}</strong></div>
+      `;
+      document.getElementById("growthAgentHead").innerHTML = `<tr><th>Agent</th><th>Coach</th><th>SPV</th>${weeks.map((week, index) => `<th class="right">Week ${escapeHtml(week)}</th>${index ? `<th class="right">Growth ${escapeHtml(weeks[index - 1])}-${escapeHtml(week)}</th>` : ""}`).join("")}<th class="right">Total</th></tr>`;
+      document.getElementById("growthAgentBody").innerHTML = agents.length ? agents.map((agent) => {
+        let previous = null;
+        let total = 0;
+        const cells = weeks.map((week, index) => {
+          const value = agent.weeks[week] || 0;
+          total += value;
+          let growthCell = "";
+          if (index) {
+            const growth = previous ? ((value - previous) / previous) * 100 : (value ? 100 : 0);
+            const growthClass = growth > 0 ? "growth-up" : growth < 0 ? "growth-down" : "growth-flat";
+            growthCell = `<td class="right ${growthClass}">${growth > 0 ? "+" : ""}${growth.toFixed(1)}%</td>`;
+          }
+          previous = value;
+          return `<td class="right">${rupiah.format(value)}</td>${growthCell}`;
+        }).join("");
+        return `<tr><td>${escapeHtml(agent.agent)}</td><td>${escapeHtml(agent.coach)}</td><td>${escapeHtml(agent.spv)}</td>${cells}<td class="right">${rupiah.format(total)}</td></tr>`;
+      }).join("") : `<tr><td colspan="${weeks.length * 2 + 3}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -1928,6 +2058,8 @@
       renderBreakdownPage();
       setAssignOptions();
       renderAssignDatePage();
+      setGrowthOptions();
+      renderGrowthAgentPage();
       setCallOptions();
       renderCallTrackingPage();
     }
@@ -2265,6 +2397,12 @@
         document.getElementById(id).addEventListener("input", () => {
           setAssignOptions();
           renderAssignDatePage();
+        });
+      });
+      ["growthMonthFilter", "growthWeekFilter", "growthDateFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setGrowthOptions();
+          renderGrowthAgentPage();
         });
       });
       ["callMonthFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {

@@ -242,6 +242,7 @@
       font-size: 18px;
     }
 
+
     #callCompareASummary,
     #callCompareBSummary {
       display: flex;
@@ -805,6 +806,8 @@
       </section>
     </section>
 
+    </section>
+
     <section class="page" id="pageTenure">
       <section class="panel compare-panel">
         <div class="panel-head">
@@ -851,6 +854,8 @@
       </section>
     </section>
 
+    </section>
+
     <section class="page" id="pageProductBreakdown">
       <section class="panel compare-panel">
         <div class="panel-head">
@@ -882,6 +887,8 @@
           <div class="chart-wrap"><canvas id="breakdownGradeChart"></canvas></div>
         </div>
       </section>
+    </section>
+
     </section>
 
     <section class="page" id="pageAssignDate">
@@ -1638,8 +1645,8 @@
         },
         options: baseOptions({ horizontal: true })
       });
+      return rows;
     }
-
     function renderLeaderCompare() {
       const leaderA = document.getElementById("compareLeaderAFilter").value;
       const leaderB = document.getElementById("compareLeaderBFilter").value;
@@ -1728,8 +1735,8 @@
         },
         options: baseOptions({ horizontal: true })
       });
+      return rows;
     }
-
     function renderUnitCompare() {
       renderUnitSide("unitA", "#28c8ff");
       renderUnitSide("unitB", "#ff2dac");

@@ -1281,14 +1281,22 @@
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
     }
 
-    function campaignColor(name) {
-      const label = clean(name).toLowerCase();
+    function namedChartColor(name) {
+      const label = normalizeName(name);
       let hash = 0;
       for (let i = 0; i < label.length; i += 1) {
         hash = ((hash << 5) - hash) + label.charCodeAt(i);
         hash |= 0;
       }
       return CHART_PALETTE[Math.abs(hash) % CHART_PALETTE.length];
+    }
+
+    function campaignColor(name) {
+      return namedChartColor(name);
+    }
+
+    function productColor(name) {
+      return namedChartColor(name);
     }
 
     const MONTH_LABELS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -1595,7 +1603,6 @@
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const palette = CHART_PALETTE;
       const title = leader || "Belum dipilih";
       ["Agent", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
@@ -1626,7 +1633,7 @@
           datasets: [{
             label: "Amount",
             data: products.map((item) => item[1]),
-            backgroundColor: products.map((_, index) => palette[index % palette.length]),
+            backgroundColor: products.map((item) => productColor(item[0])),
             borderRadius: 5
           }]
         },
@@ -1695,7 +1702,6 @@
       const coaches = groupSum(rows, fields.leader);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const palette = CHART_PALETTE;
       const title = [layer || "Semua layer", spv || "Semua SPV"].join(" | ");
       ["Coach", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
@@ -1723,7 +1729,7 @@
         type: "bar",
         data: {
           labels: products.map((item) => item[0]),
-          datasets: [{ label: "Amount", data: products.map((item) => item[1]), backgroundColor: products.map((_, index) => palette[index % palette.length]), borderRadius: 5 }]
+          datasets: [{ label: "Amount", data: products.map((item) => item[1]), backgroundColor: products.map((item) => productColor(item[0])), borderRadius: 5 }]
         },
         options: baseOptions({ horizontal: true })
       });

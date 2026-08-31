@@ -1221,6 +1221,12 @@
       min-width: 560px;
     }
 
+    #presentationTable th,
+    #presentationTable td {
+      padding: 8px 8px;
+      white-space: nowrap;
+    }
+
     #presentationTable td.metric {
       color: #176b79;
       font-weight: 850;
@@ -2347,6 +2353,13 @@
         query: "select A,B,F,K,count(A) where A is not null group by A,B,F,K label count(A) 'Hold'"
       }
     ];
+    const PRESENTATION_TRANSACTION_LEADERS = {
+      pambudi: "Arif Pambudi",
+      chintya: "Chintya Ayu Jayawijayanti",
+      yosua: "Yosua Adhi Surya Wijaya",
+      yuliani: "Yuliani Musfikoh",
+      faizal: "Faizal Fahmi Arridai"
+    };
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
     const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
@@ -3512,6 +3525,56 @@
       );
     }
 
+    function presentationTransactionValue(row) {
+      if (toNumber(row[fields.amount]) <= 0) return 0;
+      const transaction = toNumber(row[fields.txn]);
+      return transaction > 0 ? transaction : 1;
+    }
+
+    function presentationTransactionProductMatches(row, product) {
+      if (!product) return true;
+      const selected = normalizeName(product);
+      const rawProduct = normalizeName(row[fields.product]);
+      if (!selected || !rawProduct) return false;
+      if (selected === rawProduct) return true;
+      if (selected === "brain academy center") return rawProduct === "brain academy";
+      if (selected === "brain academy online") return rawProduct.startsWith("brain academy online");
+      return false;
+    }
+
+    function presentationTransactionRows(source, month, week, date, agent, product, allMonthKeys, restrictToMonthKeys, presentationRowsForScope) {
+      const selectedLeader = PRESENTATION_TRANSACTION_LEADERS[source];
+      const leaders = selectedLeader
+        ? [normalizeName(selectedLeader)]
+        : Object.values(PRESENTATION_TRANSACTION_LEADERS).map(normalizeName);
+      const agentKey = normalizeName(agent);
+      const presentationAgentKeys = new Set(presentationRowsForScope
+        .map((row) => normalizeName(row[presentationFields.agent]))
+        .filter(Boolean));
+      return allRows.filter((row) => {
+        const rowAgent = normalizeName(row[fields.agent]);
+        const rowLeader = normalizeName(row[fields.leader]);
+        const rowWeek = weekNumberFromDate(row[fields.date]) || clean(row[fields.week]);
+        return presentationTransactionValue(row) > 0
+          && leaders.includes(rowLeader)
+          && presentationAgentKeys.has(rowAgent)
+          && (!month || row._weekMonth === month)
+          && (!week || rowWeek === week)
+          && (!date || dateKeyFromValue(row[fields.date]) === date)
+          && (!agentKey || rowAgent === agentKey)
+          && presentationTransactionProductMatches(row, product)
+          && (!restrictToMonthKeys || allMonthKeys.includes(row._weekMonth));
+      });
+    }
+
+    function presentationTransactionCount(rows) {
+      return rows.reduce((total, row) => total + presentationTransactionValue(row), 0);
+    }
+
+    function presentationCR(transaction, hold) {
+      return hold > 0 ? `${((transaction / hold) * 100).toFixed(1)}%` : "—";
+    }
+
     function presentationPeriodForRow(row, mode, hasMonth) {
       if (mode === "daily") {
         const key = row._dateKey || "unknown-date";
@@ -3768,10 +3831,27 @@
       const rows = allMonthsView
         ? filteredRows.filter((row) => allMonthKeys.includes(row._weekMonth))
         : filteredRows;
+      const transactionRows = presentationTransactionRows(
+        source,
+        month,
+        week,
+        date,
+        agent,
+        product,
+        allMonthKeys,
+        allMonthsView,
+        rows
+      );
+      const transactionsByAgent = new Map();
+      transactionRows.forEach((row) => {
+        const agentKey = normalizeName(row[fields.agent]);
+        transactionsByAgent.set(agentKey, (transactionsByAgent.get(agentKey) || 0) + presentationTransactionValue(row));
+      });
       const metricSourceRows = allMonthsView
         ? sourceRows.filter((row) => allMonthKeys.includes(row._weekMonth))
         : sourceRows;
       const totalHold = rows.reduce((total, row) => total + (row._hold || 1), 0);
+      const totalTransactions = presentationTransactionCount(transactionRows);
       const metricDenominators = presentationMetricDenominators(metricSourceRows, month, week, date);
       const periodsByKey = new Map();
       rows.forEach((row) => {
@@ -3782,7 +3862,14 @@
       const agentMap = new Map();
       rows.forEach((row) => {
         const name = clean(row[presentationFields.agent]) || "Kosong";
-        if (!agentMap.has(name)) agentMap.set(name, { name, periods: {}, total: 0 });
+        if (!agentMap.has(name)) {
+          agentMap.set(name, {
+            name,
+            periods: {},
+            total: 0,
+            transactions: transactionsByAgent.get(normalizeName(name)) || 0
+          });
+        }
         const item = agentMap.get(name);
         const period = presentationPeriodForRow(row, mode, Boolean(month));
         item.periods[period.key] = (item.periods[period.key] || 0) + (row._hold || 1);
@@ -3807,6 +3894,8 @@
       if (summary) {
         summary.innerHTML = `
           <div class="coach-stat"><span>Total Hold</span><strong>${number.format(totalHold)}</strong></div>
+          <div class="coach-stat"><span>Transaksi</span><strong>${number.format(totalTransactions)}</strong></div>
+          <div class="coach-stat"><span>CR</span><strong>${presentationCR(totalTransactions, totalHold)}</strong></div>
           <div class="coach-stat"><span>Periode</span><strong>${escapeHtml(periodLabel)}</strong></div>
           <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(sourceLabel)}</strong></div>
           <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(agentLabel)}</strong></div>
@@ -3817,21 +3906,21 @@
       const title = document.getElementById("presentationTableTitle");
       const tableNote = document.getElementById("presentationTableNote");
       if (title) title.textContent = periodTitle;
-      if (tableNote) tableNote.textContent = sourceRows.length ? `${note} · ${metricNote}` : "Menunggu data dari spreadsheet DAILY PRESENTASI";
+      if (tableNote) tableNote.textContent = sourceRows.length ? `${note} · ${metricNote} · CR = transaksi revenue ÷ hold · Sub Status hanya memfilter Hold` : "Menunggu data dari spreadsheet DAILY PRESENTASI";
       const head = document.getElementById("presentationHead");
       const body = document.getElementById("presentationBody");
       const foot = document.getElementById("presentationFoot");
-      const columnCount = periods.length + 4;
-      if (head) head.innerHTML = `<tr><th>Agent</th>${periods.map((period) => `<th class="right">${escapeHtml(period.label)}</th>`).join("")}<th class="right">Total Hold</th><th class="right">Hold / Agent / Day</th><th class="right">Hold / Agent / Week</th></tr>`;
+      const columnCount = periods.length + 6;
+      if (head) head.innerHTML = `<tr><th>Agent</th>${periods.map((period) => `<th class="right">${escapeHtml(period.label)}</th>`).join("")}<th class="right">Total Hold</th><th class="right">Hold / Agent / Day</th><th class="right">Hold / Agent / Week</th><th class="right">Transaksi</th><th class="right">CR</th></tr>`;
       if (body) {
         body.innerHTML = items.length ? items.map((item) => {
           const cells = periods.map((period) => `<td class="right">${number.format(item.periods[period.key] || 0)}</td>`).join("");
-          return `<tr><td>${escapeHtml(item.name)}</td>${cells}<td class="right"><strong>${number.format(item.total)}</strong></td><td class="right metric">${presentationAverage(item.total, metricDenominators.days)}</td><td class="right metric">${presentationAverage(item.total, metricDenominators.weeks)}</td></tr>`;
+          return `<tr><td>${escapeHtml(item.name)}</td>${cells}<td class="right"><strong>${number.format(item.total)}</strong></td><td class="right metric">${presentationAverage(item.total, metricDenominators.days)}</td><td class="right metric">${presentationAverage(item.total, metricDenominators.weeks)}</td><td class="right metric">${number.format(item.transactions)}</td><td class="right metric">${presentationCR(item.transactions, item.total)}</td></tr>`;
         }).join("") : `<tr><td colspan="${columnCount}" class="empty">${sourceRows.length ? "Tidak ada data sesuai filter." : "Memuat data DAILY PRESENTASI..."}</td></tr>`;
       }
       if (foot) {
         const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, Boolean(month)).key === period.key ? (row._hold || 1) : 0), 0));
-        foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td></tr>`;
+        foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td><td class="right metric">${number.format(totalTransactions)}</td><td class="right metric">${presentationCR(totalTransactions, totalHold)}</td></tr>`;
       }
       renderPresentationTrend(rows, month, week, date, source);
     }

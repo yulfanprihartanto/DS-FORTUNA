@@ -3665,19 +3665,26 @@
       return denominator > 0 ? decimal.format(total / denominator) : "—";
     }
 
-    function renderPresentationTrend(rows, periods, mode, source) {
+    function renderPresentationTrend(rows, month, week, date, source) {
       const title = document.getElementById("presentationTrendTitle");
       const note = document.getElementById("presentationTrendNote");
       if (!document.getElementById("presentationTrendChart")) return;
+      const mode = week || date ? "daily" : "weekly";
+      const periodsByKey = new Map();
+      rows.forEach((row) => {
+        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        if (!periodsByKey.has(period.key)) periodsByKey.set(period.key, period);
+      });
+      const periods = [...periodsByKey.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey, "id", { numeric: true }));
       const totals = periods.map((period) => rows.reduce((total, row) => {
-        const rowPeriod = presentationPeriodForRow(row, mode, Boolean(document.getElementById("presentationMonthFilter")?.value));
+        const rowPeriod = presentationPeriodForRow(row, mode, Boolean(month));
         return total + (rowPeriod.key === period.key ? (row._hold || 1) : 0);
       }, 0));
       const agentCount = new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size;
       const coachLabel = source ? presentationSourceLabel(source) : `${DAILY_PRESENTATION_SOURCES.length} coach`;
       const periodName = mode === "monthly" ? "bulan" : mode === "weekly" ? "minggu" : "hari";
       if (title) title.textContent = `Pergerakan Total Hold · ${coachLabel}`;
-      if (note) note.textContent = `${number.format(agentCount)} agent · total per ${periodName} · X = periode · Y = total Hold`;
+      if (note) note.textContent = `${number.format(agentCount)} agent · total per ${periodName} · X = ${mode === "daily" ? "tanggal" : "week"} · Y = total Hold`;
 
       const colors = chartTheme();
       const lineColor = isDarkMode() ? "#5fe1e2" : "#0b6975";
@@ -3701,7 +3708,7 @@
           ...chartOptions.scales.x,
           title: {
             display: true,
-            text: mode === "monthly" ? "Bulan" : mode === "weekly" ? "Minggu" : "Tanggal",
+            text: mode === "daily" ? "Tanggal" : "Week",
             color: colors.axis,
             font: { size: 11, weight: "700" }
           },
@@ -3825,7 +3832,7 @@
         const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, Boolean(month)).key === period.key ? (row._hold || 1) : 0), 0));
         foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td></tr>`;
       }
-      renderPresentationTrend(rows, periods, mode, source);
+      renderPresentationTrend(rows, month, week, date, source);
     }
 
     function render() {

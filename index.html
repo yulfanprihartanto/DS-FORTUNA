@@ -2357,7 +2357,7 @@
       "2025-12-25",
       "2026-01-01", "2026-01-16", "2026-02-17", "2026-03-19", "2026-03-20", "2026-03-21",
       "2026-04-03", "2026-05-01", "2026-05-14", "2026-05-27", "2026-05-31", "2026-06-01",
-      "2026-06-16", "2026-08-17", "2026-08-25", "2026-12-25"
+      "2026-06-16", "2026-08-17", "2026-08-24", "2026-12-25"
     ]);
     const fields = {
       date: "Date",
@@ -3584,6 +3584,29 @@
       return workdays;
     }
 
+    function presentationActiveWeekStarts(rows) {
+      const starts = new Map();
+      rows.forEach((row) => {
+        const monday = mondayOfWeek(parseDateValue(row[presentationFields.date]));
+        if (!monday) return;
+        starts.set(presentationDateKey(monday), monday);
+      });
+      return [...starts.values()];
+    }
+
+    function presentationMonthWorkdaysFromRows(month, rows) {
+      const activeWeekStarts = presentationActiveWeekStarts(rows);
+      if (!activeWeekStarts.length) return presentationMonthWorkdays(month);
+      return activeWeekStarts.reduce((total, monday) => {
+        let workdays = 0;
+        for (let offset = 0; offset < 5; offset += 1) {
+          const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+          if (presentationIsWorkingDate(date)) workdays += 1;
+        }
+        return total + workdays;
+      }, 0);
+    }
+
     function presentationMetricDenominators(sourceRows, month, week, date) {
       const scopeRows = presentationTimeScopeRows(sourceRows, month, week, date);
       if (date) {
@@ -3600,7 +3623,7 @@
       }
       if (month) {
         return {
-          days: presentationMonthWorkdays(month),
+          days: presentationMonthWorkdaysFromRows(month, scopeRows),
           weeks: presentationActiveWeekCount(scopeRows) || 1
         };
       }

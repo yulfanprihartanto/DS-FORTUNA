@@ -2027,6 +2027,7 @@
         </div>
         <section class="filters">
           <label>Monthly<select id="callMonthFilter"></select></label>
+          <label>Weekly<select id="callWeekFilter"></select></label>
           <label>Daily<select id="callDateFilter"></select></label>
           <label>Status<select id="callStatusFilter"></select></label>
           <label>Coach<select id="callCoachFilter"></select></label>
@@ -3912,13 +3913,26 @@
     }
 
     function setCallOptions() {
+      const monthSelect = document.getElementById("callMonthFilter");
+      const weekSelect = document.getElementById("callWeekFilter");
+      const dateSelect = document.getElementById("callDateFilter");
+      if (!monthSelect || !weekSelect || !dateSelect) return;
+      const currentWeek = weekSelect.value;
       setMonthOptions("callMonthFilter", callRows);
-      const month = document.getElementById("callMonthFilter").value;
+      const month = monthSelect.value;
       const monthRows = callRows.filter((row) => !month || row._weekMonth === month);
-      setOptions("callDateFilter", monthRows.map((row) => row._date), "daily");
-      setOptions("callStatusFilter", monthRows.map((row) => row.Status), "status");
-      setOptions("callCoachFilter", monthRows.map((row) => row.COACH), "coach");
-      setOptions("callAgentFilter", monthRows.map((row) => row["Agent Name"]), "agent");
+      const weeks = [...new Set(monthRows.map((row) => row._week).filter(Boolean))]
+        .sort((a, b) => Number(a) - Number(b));
+      weekSelect.innerHTML = `<option value="">Semua weekly</option>` + weeks
+        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
+        .join("");
+      if (weeks.includes(currentWeek)) weekSelect.value = currentWeek;
+      const week = weekSelect.value;
+      const weekRows = monthRows.filter((row) => !week || row._week === week);
+      setOptions("callDateFilter", weekRows.map((row) => row._date), "daily");
+      setOptions("callStatusFilter", weekRows.map((row) => row.Status), "status");
+      setOptions("callCoachFilter", weekRows.map((row) => row.COACH), "coach");
+      setOptions("callAgentFilter", weekRows.map((row) => row["Agent Name"]), "agent");
       const select = document.getElementById("callTimeFilter");
       const current = select.value;
       select.innerHTML = `<option value="">Semua waktu</option>` + CALL_BUCKETS.map((bucket) => `<option value="${bucket.label}">${bucket.label}</option>`).join("");
@@ -3927,6 +3941,7 @@
 
     function filteredCallRows() {
       const month = document.getElementById("callMonthFilter").value;
+      const week = document.getElementById("callWeekFilter").value;
       const date = document.getElementById("callDateFilter").value;
       const status = document.getElementById("callStatusFilter").value;
       const coach = document.getElementById("callCoachFilter").value;
@@ -3934,6 +3949,7 @@
       const bucket = document.getElementById("callTimeFilter").value;
       return callRows.filter((row) =>
         (!month || row._weekMonth === month)
+        && (!week || row._week === week)
         && (!date || row._date === date)
         && (!status || clean(row.Status) === status)
         && (!coach || clean(row.COACH) === coach)
@@ -4204,9 +4220,9 @@
           renderPresentationPage();
         });
       });
-      ["callMonthFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
+      ["callMonthFilter", "callWeekFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          if (id === "callMonthFilter") setCallOptions();
+          if (id === "callMonthFilter" || id === "callWeekFilter") setCallOptions();
           renderCallTrackingPage();
         });
       });
@@ -4281,6 +4297,7 @@
         row._hour = parsed.hour;
         row._bucket = callBucket(parsed.hour);
         row._duration = durationSeconds(row.Duration);
+        row._week = weekNumberFromDate(row._date);
         row._weekMonth = weekMonthFromDate(row._date);
         return row;
       }).filter((row) => clean(row["Agent Name"]));

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -1213,6 +1213,23 @@
     .wide .chart-wrap { height: 360px; }
     .growth-trend-wrap { height: 250px; }
 
+    .presentation-table-wrap { max-height: 820px; }
+
+    #presentationTable {
+      min-width: 560px;
+    }
+
+    #presentationTable td.metric {
+      color: #176b79;
+      font-weight: 850;
+    }
+
+    #presentationTable tfoot td {
+      background: #f3f7fa;
+      color: #163e59;
+      font-weight: 850;
+    }
+
     .table-wrap {
       overflow: auto;
       border: 1px solid #dce8ef;
@@ -1336,6 +1353,342 @@
       .kpi strong { margin-top: 13px; }
     }
   </style>
+  <style>
+    .header-tools {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      height: 42px;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, .25);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .12);
+      color: #fff;
+      padding: 0 14px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 8px 20px rgba(4, 35, 56, .1);
+      backdrop-filter: blur(12px);
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+
+    .theme-toggle:hover {
+      border-color: rgba(255, 255, 255, .46);
+      background: rgba(255, 255, 255, .2);
+      transform: translateY(-1px);
+    }
+
+    .theme-icon {
+      display: inline-grid;
+      width: 19px;
+      height: 19px;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .16);
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(38, 117, 223, .25);
+      outline-offset: 2px;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #081522;
+      --panel: rgba(14, 29, 45, .96);
+      --panel-soft: #10273a;
+      --text: #edf7fb;
+      --muted: #9bb3c4;
+      --line: rgba(155, 196, 215, .2);
+      --blue: #5aa9ff;
+      --cyan: #5fe1e2;
+      --green: #43d2ad;
+      --amber: #f5c45e;
+      --red: #f17a94;
+      --violet: #a890ff;
+      --shadow: 0 20px 48px rgba(0, 0, 0, .3);
+      --shadow-soft: 0 10px 26px rgba(0, 0, 0, .2);
+    }
+
+    html[data-theme="dark"] body {
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(35, 116, 156, .3), transparent 31%),
+        radial-gradient(circle at 100% 5%, rgba(108, 72, 190, .22), transparent 29%),
+        linear-gradient(180deg, #07121e 0%, #0a1928 48%, #07131f 100%);
+    }
+
+    html[data-theme="dark"] body::before {
+      opacity: .22;
+      background-image:
+        linear-gradient(rgba(149, 205, 224, .06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(149, 205, 224, .06) 1px, transparent 1px);
+    }
+
+    html[data-theme="dark"] header {
+      background: linear-gradient(116deg, #06121f 0%, #0b304b 53%, #0b6975 100%);
+      box-shadow: 0 22px 48px rgba(0, 0, 0, .34);
+    }
+
+    html[data-theme="dark"] header::before {
+      background: rgba(68, 219, 220, .18);
+    }
+
+    html[data-theme="dark"] header::after {
+      background: rgba(154, 133, 255, .1);
+    }
+
+    html[data-theme="dark"] .theme-toggle {
+      border-color: rgba(160, 220, 235, .25);
+      background: rgba(3, 17, 29, .26);
+      color: #eafcff;
+    }
+
+    html[data-theme="dark"] .theme-toggle:hover {
+      border-color: rgba(160, 220, 235, .5);
+      background: rgba(8, 42, 59, .52);
+    }
+
+    html[data-theme="dark"] .status {
+      border-color: rgba(160, 220, 235, .25);
+      background: rgba(3, 17, 29, .26);
+    }
+
+    html[data-theme="dark"] main > .filters,
+    html[data-theme="dark"] .team-tabs,
+    html[data-theme="dark"] .page-tabs {
+      border-color: var(--line);
+      background: rgba(11, 29, 45, .84);
+      box-shadow: var(--shadow-soft);
+    }
+
+    html[data-theme="dark"] main > .filters::before,
+    html[data-theme="dark"] .team-tabs::before {
+      color: #87a8ba;
+    }
+
+    html[data-theme="dark"] label {
+      color: #94adbd;
+    }
+
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] input {
+      border-color: rgba(155, 196, 215, .22);
+      background-color: #10283b;
+      color: #edf7fb;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, .16);
+    }
+
+    html[data-theme="dark"] select {
+      background-image:
+        linear-gradient(45deg, transparent 50%, #a8c2d0 50%),
+        linear-gradient(135deg, #a8c2d0 50%, transparent 50%);
+    }
+
+    html[data-theme="dark"] input::placeholder {
+      color: #829cac;
+    }
+
+    html[data-theme="dark"] select:hover,
+    html[data-theme="dark"] input:hover {
+      border-color: #4d829e;
+    }
+
+    html[data-theme="dark"] select:focus,
+    html[data-theme="dark"] input:focus {
+      border-color: #5fe1e2;
+      box-shadow: 0 0 0 4px rgba(95, 225, 226, .14), 0 5px 16px rgba(0, 0, 0, .18);
+    }
+
+    html[data-theme="dark"] .team-tabs button,
+    html[data-theme="dark"] .page-tabs button {
+      color: #aec4d1;
+    }
+
+    html[data-theme="dark"] .team-tabs button:hover,
+    html[data-theme="dark"] .page-tabs button:hover {
+      background: #15364c;
+      color: #e8faff;
+    }
+
+    html[data-theme="dark"] .team-tabs button.active,
+    html[data-theme="dark"] .page-tabs button.active {
+      background: linear-gradient(135deg, #164c68, #149aa1);
+      color: #f5ffff;
+      box-shadow: 0 8px 18px rgba(1, 13, 24, .35);
+    }
+
+    html[data-theme="dark"] .kpi,
+    html[data-theme="dark"] .panel {
+      border-color: var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    html[data-theme="dark"] .kpi span {
+      color: #9bb5c4;
+    }
+
+    html[data-theme="dark"] .kpi strong,
+    html[data-theme="dark"] .panel-head h2,
+    html[data-theme="dark"] .coach-stat strong {
+      color: #edf7fb;
+    }
+
+    html[data-theme="dark"] .panel::before {
+      background: linear-gradient(90deg, rgba(95, 225, 226, .9), rgba(90, 169, 255, .18));
+    }
+
+    html[data-theme="dark"] .compare-grid > .panel:nth-child(2)::before {
+      background: linear-gradient(90deg, rgba(168, 144, 255, .92), rgba(241, 122, 148, .28));
+    }
+
+    html[data-theme="dark"] .note {
+      color: #88a3b3;
+    }
+
+    html[data-theme="dark"] .compare-panel > label,
+    html[data-theme="dark"] .panel > .filters,
+    html[data-theme="dark"] .compare-box {
+      border-color: rgba(155, 196, 215, .16);
+      background: #0f2437;
+    }
+
+    html[data-theme="dark"] .coach-stat {
+      border-color: rgba(155, 196, 215, .17);
+      background: linear-gradient(145deg, #132d41, #0e2133);
+    }
+
+    html[data-theme="dark"] .coach-stat::after {
+      border-color: rgba(95, 225, 226, .12);
+    }
+
+    html[data-theme="dark"] .coach-stat span {
+      color: #91acbb;
+    }
+
+    html[data-theme="dark"] .coach-chart-title {
+      border-color: rgba(95, 225, 226, .18);
+      background: #122d40;
+      color: #9dc1ce;
+    }
+
+    html[data-theme="dark"] .panel > div:has(.chart-wrap),
+    html[data-theme="dark"] .panel > div:has(.table-wrap) {
+      border-color: rgba(155, 196, 215, .15);
+      background: rgba(8, 22, 35, .62);
+    }
+
+    html[data-theme="dark"] .table-wrap {
+      border-color: rgba(155, 196, 215, .18);
+      background: #0d2031;
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, .18);
+    }
+
+    html[data-theme="dark"] .table-wrap::-webkit-scrollbar-track {
+      background: #10283b;
+    }
+
+    html[data-theme="dark"] .table-wrap::-webkit-scrollbar-thumb {
+      border-color: #0d2031;
+      background: #3b6277;
+    }
+
+    html[data-theme="dark"] table {
+      background: transparent;
+      color: #edf7fb;
+    }
+
+    html[data-theme="dark"] th,
+    html[data-theme="dark"] td {
+      border-bottom-color: rgba(155, 196, 215, .15);
+    }
+
+    html[data-theme="dark"] th {
+      background: #112a3e;
+      color: #9bb6c6;
+    }
+
+    html[data-theme="dark"] td {
+      color: #c0d3dd;
+    }
+
+    html[data-theme="dark"] td:first-child {
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] tbody tr:hover {
+      background: #112d42;
+    }
+
+    html[data-theme="dark"] th.off-hour,
+    html[data-theme="dark"] td.off-hour {
+      background: #172a37;
+      color: #8ca4b0;
+    }
+
+    html[data-theme="dark"] .growth-up {
+      background: rgba(67, 210, 173, .16);
+      color: #77e5c5;
+    }
+
+    html[data-theme="dark"] .growth-down {
+      background: rgba(241, 122, 148, .16);
+      color: #ff9db2;
+    }
+
+    html[data-theme="dark"] .growth-flat {
+      background: rgba(130, 164, 182, .16);
+      color: #b4cbd6;
+    }
+
+    html[data-theme="dark"] .empty {
+      color: #8fa8b7;
+    }
+
+    html[data-theme="dark"] #presentationTable tfoot td {
+      background: #122d40;
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #presentationTable td.metric {
+      color: #78dfd9;
+    }
+
+    html[data-theme="dark"] .error {
+      border-color: rgba(241, 122, 148, .34);
+      background: rgba(93, 28, 48, .36);
+      color: #ffc0cd;
+    }
+
+    @media (max-width: 980px) {
+      .header-tools {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .header-tools {
+        width: 100%;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .theme-toggle { width: fit-content; }
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -1344,7 +1697,13 @@
         <h1>FORTUNA CENTER</h1>
         <p class="subtitle">Dashboard performance Fortuna untuk analisis revenue, transaksi, coach, campaign, product, tenure, dan assigned date.</p>
       </div>
-      <div class="status" id="status">Memuat data...</div>
+      <div class="header-tools">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false" title="Ganti tema">
+          <span class="theme-icon" id="themeToggleIcon" aria-hidden="true">☾</span>
+          <span id="themeToggleText">Dark mode</span>
+        </button>
+        <div class="status" id="status">Memuat data...</div>
+      </div>
     </div>
   </header>
 
@@ -1370,6 +1729,7 @@
       <button type="button" data-page="pageAssignDate">Assigndate</button>
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
       <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
+      <button type="button" data-page="pageDailyPresentation">DAILY PRESENTASI</button>
     </div>
 
     <section class="kpis">
@@ -1463,7 +1823,7 @@
         <div class="panel compare-panel">
           <div class="panel-head">
             <h2>Unit A</h2>
-            <span class="note">layer, SPV, coach</span>
+            <span class="note">layer, SPV, agent, coach</span>
           </div>
           <div class="compare-box">
             <label>Layer<select id="unitALayerFilter"></select></label>
@@ -1471,6 +1831,7 @@
             <label>Monthly<select id="unitAMonthFilter"></select></label>
             <label>Weekly<select id="unitAWeekFilter"></select></label>
             <label>Daily<select id="unitADateFilter"></select></label>
+            <label>Agent<select id="unitAAgentFilter"></select></label>
           </div>
           <div class="coach-summary" id="unitASummary"></div>
           <div>
@@ -1501,7 +1862,7 @@
         <div class="panel compare-panel">
           <div class="panel-head">
             <h2>Unit B</h2>
-            <span class="note">layer, SPV, coach</span>
+            <span class="note">layer, SPV, agent, coach</span>
           </div>
           <div class="compare-box">
             <label>Layer<select id="unitBLayerFilter"></select></label>
@@ -1509,6 +1870,7 @@
             <label>Monthly<select id="unitBMonthFilter"></select></label>
             <label>Weekly<select id="unitBWeekFilter"></select></label>
             <label>Daily<select id="unitBDateFilter"></select></label>
+            <label>Agent<select id="unitBAgentFilter"></select></label>
           </div>
           <div class="coach-summary" id="unitBSummary"></div>
           <div>
@@ -1895,6 +2257,41 @@
         </div>
       </section>
     </section>
+
+    <section class="page" id="pageDailyPresentation">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>DAILY PRESENTASI</h2>
+          <span class="note">hold / follow up coach Pambudi, Chintya, Yosua, Yuliani &amp; Faizal</span>
+        </div>
+        <div class="error" id="presentationError"></div>
+        <section class="filters">
+          <label>Coach<select id="presentationSourceFilter"></select></label>
+          <label>Monthly<select id="presentationMonthFilter"></select></label>
+          <label>Weekly<select id="presentationWeekFilter"></select></label>
+          <label>Daily<select id="presentationDateFilter"></select></label>
+          <label>Agent<select id="presentationAgentFilter"></select></label>
+          <label>Sub Status<select id="presentationSubStatusFilter"></select></label>
+          <label>Product<select id="presentationProductFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="presentationSummary"></div>
+          <div>
+            <div class="panel-head">
+            <h2 id="presentationTableTitle">Hold per Agent</h2>
+            <span class="note" id="presentationTableNote">Hold / Day dan Hold / Week akan dihitung otomatis</span>
+          </div>
+          <div class="table-wrap presentation-table-wrap">
+            <table id="presentationTable">
+              <thead id="presentationHead"></thead>
+              <tbody id="presentationBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+              <tfoot id="presentationFoot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script>
@@ -1902,6 +2299,44 @@
     const GID = "0";
     const CALL_SHEET_ID = "1wt5Vv5lu3shvy-bYyNjIeLs6iMWcPD78ZuGMMLdfrpU";
     const CALL_GID = "0";
+    const DAILY_PRESENTATION_SHEET_ID = "1ijuubVUb6Hz49NerKKMI-8q3edCnkjOIeS3f50MSwdo";
+    const DAILY_PRESENTATION_SOURCES = [
+      {
+        key: "pambudi",
+        label: "Pambudi",
+        gid: "0",
+        callback: "handleDailyPresentationPambudiData",
+        query: "select A,B,F,K,R,count(A) where A is not null group by A,B,F,K,R label count(A) 'Hold'"
+      },
+      {
+        key: "chintya",
+        label: "Chintya",
+        gid: "1575973222",
+        callback: "handleDailyPresentationChintyaData",
+        query: "select A,B,F,K,R,count(A) where A is not null group by A,B,F,K,R label count(A) 'Hold'"
+      },
+      {
+        key: "yosua",
+        label: "Yosua",
+        gid: "807916896",
+        callback: "handleDailyPresentationYosuaData",
+        query: "select A,B,F,J,count(A) where A is not null group by A,B,F,J label count(A) 'Hold'"
+      },
+      {
+        key: "yuliani",
+        label: "Yuliani",
+        gid: "797375250",
+        callback: "handleDailyPresentationYulianiData",
+        query: "select A,B,F,J,count(A) where A is not null group by A,B,F,J label count(A) 'Hold'"
+      },
+      {
+        key: "faizal",
+        label: "Faizal",
+        gid: "1968196749",
+        callback: "handleDailyPresentationFaizalData",
+        query: "select A,B,F,K,count(A) where A is not null group by A,B,F,K label count(A) 'Hold'"
+      }
+    ];
     const TARGET_TEAMS = ["LAYER 1", "LAYER 2", "Prompter Inbound"];
     const TEAM_GROUPS = ["OUTBOUND", "INBOUND"];
     const INBOUND_COACHES = ["Satyadi Ambia", "Erna Erviana Purnamasari", "Imam Nugroho"];
@@ -1916,6 +2351,14 @@
     const CHART_PALETTE = ["#28c8ff", "#ff2dac", "#10d6a3", "#ffc247", "#9d4edd", "#ff477e", "#3b82f6", "#22c55e", "#f97316", "#06b6d4", "#e879f9", "#facc15"];
     const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
     const number = new Intl.NumberFormat("id-ID");
+    const decimal = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const PRESENTATION_MONTH_WORKDAYS = 25;
+    const PRESENTATION_HOLIDAYS = new Set([
+      "2025-12-25",
+      "2026-01-01", "2026-01-16", "2026-02-17", "2026-03-19", "2026-03-20", "2026-03-21",
+      "2026-04-03", "2026-05-01", "2026-05-14", "2026-05-27", "2026-05-31", "2026-06-01",
+      "2026-06-16", "2026-08-17", "2026-08-25", "2026-12-25"
+    ]);
     const fields = {
       date: "Date",
       month: "Month",
@@ -1936,10 +2379,21 @@
       grade: "grade_adjust",
       team: "Kategori Team"
     };
+    const presentationFields = {
+      agent: "Nama OEC",
+      date: "Tanggal",
+      week: "WEEK",
+      subStatus: "Sub Status",
+      product: "Paket yang ditawarkan",
+      holdCount: "Hold"
+    };
     let allRows = [];
     let callRows = [];
+    let presentationRows = [];
+    const presentationSourceStatus = {};
     let selectedTeam = "ALL";
     const charts = {};
+    const THEME_STORAGE_KEY = "fortuna-theme";
     Chart.register(ChartDataLabels);
 
     function clean(value) {
@@ -1960,6 +2414,60 @@
 
     function normalizeName(value) {
       return clean(value).toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function isDarkMode() {
+      return document.documentElement.dataset.theme === "dark";
+    }
+
+    function chartTheme() {
+      const dark = isDarkMode();
+      return {
+        legend: dark ? "#a8c1d0" : "#6f8798",
+        axis: dark ? "#9fb9c8" : "#678395",
+        axisValue: dark ? "#a8c2d0" : "#7890a0",
+        grid: dark ? "rgba(149, 205, 224, .16)" : "rgba(44, 105, 145, .12)",
+        datalabelOutside: dark ? "#e8f7fb" : "#102d43",
+        tooltipBackground: dark ? "#061522" : "#0b304c",
+        tooltipBorder: dark ? "rgba(95, 225, 226, .34)" : "rgba(143, 227, 255, .28)"
+      };
+    }
+
+    function applyTheme(theme, rerender = true) {
+      const nextTheme = theme === "dark" ? "dark" : "light";
+      const dark = nextTheme === "dark";
+      document.documentElement.dataset.theme = nextTheme;
+      const button = document.getElementById("themeToggle");
+      const icon = document.getElementById("themeToggleIcon");
+      const text = document.getElementById("themeToggleText");
+      if (button) {
+        button.setAttribute("aria-pressed", String(dark));
+        button.title = dark ? "Ganti ke normal mode" : "Ganti ke dark mode";
+      }
+      if (icon) icon.textContent = dark ? "☀" : "☾";
+      if (text) text.textContent = dark ? "Normal mode" : "Dark mode";
+      if (rerender && allRows.length) render();
+    }
+
+    function setupThemeToggle() {
+      const button = document.getElementById("themeToggle");
+      if (!button) return;
+      let savedTheme = "dark";
+      try {
+        savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "dark";
+      } catch (error) {
+        savedTheme = "dark";
+      }
+      applyTheme(savedTheme, false);
+      button.addEventListener("click", () => {
+        const nextTheme = isDarkMode() ? "light" : "dark";
+        applyTheme(nextTheme);
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        } catch (error) {
+          // Tema tetap berjalan meski penyimpanan browser tidak tersedia.
+        }
+      });
     }
 
     function getGroup(row) {
@@ -2037,6 +2545,8 @@
     function parseDateValue(value) {
       const text = clean(value);
       if (!text) return null;
+      const googleDate = text.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+      if (googleDate) return new Date(Number(googleDate[1]), Number(googleDate[2]), Number(googleDate[3]));
       const iso = text.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
       if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
       const dmy = text.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
@@ -2061,6 +2571,29 @@
         if (month !== undefined) return new Date(Number(named[3]), month, Number(named[1]));
       }
       return null;
+    }
+
+    function dateKeyFromValue(value) {
+      const date = parseDateValue(value);
+      if (!date) return clean(value);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function dateLabelFromKey(value) {
+      const match = clean(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return clean(value);
+      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      return `${Number(match[3])} ${shortMonths[Number(match[2]) - 1] || match[2]} ${match[1]}`;
+    }
+
+    function weekNumberFromDate(value) {
+      const parsed = parseDateValue(value);
+      if (!parsed) return "";
+      const date = new Date(Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
+      const day = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      return String(Math.ceil((((date - yearStart) / 86400000) + 1) / 7));
     }
 
     function mondayOfWeek(date) {
@@ -2134,6 +2667,18 @@
       if (dates.includes(currentDate)) dateSelect.value = currentDate;
     }
 
+    function setUnitAgentOptions(prefix, rows) {
+      const select = document.getElementById(`${prefix}AgentFilter`);
+      if (!select) return;
+      const current = select.value;
+      const agents = [...new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      select.innerHTML = `<option value="">Semua agent</option>` + agents
+        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
+        .join("");
+      if (agents.includes(current)) select.value = current;
+    }
+
     function setupPageTabs() {
       document.querySelectorAll("#pageTabs button").forEach((button) => {
         button.addEventListener("click", () => {
@@ -2161,15 +2706,19 @@
       const chart = context.chart;
       const area = chart.chartArea;
       if (!area) return "#28c8ff";
+      const stops = isDarkMode()
+        ? ["#164d6b", "#1d7895", "#35b5b7", "#8adfe0"]
+        : ["#072d44", "#064469", "#5790ab", "#9ccdd8"];
       const gradient = chart.ctx.createLinearGradient(area.left, 0, area.right, 0);
-      gradient.addColorStop(0, "#072d44");
-      gradient.addColorStop(.42, "#064469");
-      gradient.addColorStop(.72, "#5790ab");
-      gradient.addColorStop(1, "#9ccdd8");
+      gradient.addColorStop(0, stops[0]);
+      gradient.addColorStop(.42, stops[1]);
+      gradient.addColorStop(.72, stops[2]);
+      gradient.addColorStop(1, stops[3]);
       return gradient;
     }
 
     function baseOptions({ money = true, horizontal = false } = {}) {
+      const colors = chartTheme();
       return {
         responsive: true,
         maintainAspectRatio: false,
@@ -2179,7 +2728,7 @@
           legend: {
             position: "bottom",
             labels: {
-              color: "#6f8798",
+              color: colors.legend,
               usePointStyle: true,
               pointStyle: "circle",
               boxWidth: 8,
@@ -2202,7 +2751,7 @@
               const values = context.dataset.data || [];
               const max = Math.max(...values.map((value) => Number(value) || 0));
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
-              return current < max * 0.22 ? "#072d44" : "#ffffff";
+              return current < max * 0.22 ? colors.datalabelOutside : "#ffffff";
             },
             font: { size: 11, weight: "500" },
             formatter(value) {
@@ -2215,15 +2764,17 @@
               const values = context.dataset.data || [];
               const max = Math.max(...values.map((value) => Number(value) || 0));
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
-              return current < max * 0.22 ? "rgba(255, 255, 255, .9)" : "rgba(0, 0, 0, .28)";
+              return current < max * 0.22
+                ? (isDarkMode() ? "rgba(0, 0, 0, .55)" : "rgba(255, 255, 255, .9)")
+                : "rgba(0, 0, 0, .28)";
             },
             textStrokeWidth: 0
           },
           tooltip: {
-            backgroundColor: "#0b304c",
+            backgroundColor: colors.tooltipBackground,
             titleColor: "#ffffff",
             bodyColor: "#e8f6fb",
-            borderColor: "rgba(143, 227, 255, .28)",
+            borderColor: colors.tooltipBorder,
             borderWidth: 1,
             cornerRadius: 10,
             padding: 10,
@@ -2237,23 +2788,23 @@
         },
         scales: horizontal ? {
           x: {
-            grid: { color: "rgba(44, 105, 145, .12)" },
+            grid: { color: colors.grid },
             beginAtZero: true,
             ticks: {
-              color: "#7890a0",
+              color: colors.axisValue,
               precision: 0,
               maxTicksLimit: 5,
               callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
             }
           },
-          y: { grid: { display: false }, ticks: { color: "#678395", maxTicksLimit: 12 } }
+          y: { grid: { display: false }, ticks: { color: colors.axis, maxTicksLimit: 12 } }
         } : {
-          x: { grid: { display: false }, ticks: { color: "#678395", maxTicksLimit: 8, maxRotation: 0 } },
+          x: { grid: { display: false }, ticks: { color: colors.axis, maxTicksLimit: 8, maxRotation: 0 } },
           y: {
-            grid: { color: "rgba(44, 105, 145, .12)" },
+            grid: { color: colors.grid },
             beginAtZero: true,
             ticks: {
-              color: "#7890a0",
+              color: colors.axisValue,
               precision: 0,
               maxTicksLimit: 5,
               callback: (value) => money ? rupiah.format(value).replace(",00", "") : number.format(value)
@@ -2419,11 +2970,15 @@
       ["unitA", "unitB"].forEach((prefix) => {
         const layerSelect = document.getElementById(`${prefix}LayerFilter`);
         const spvSelect = document.getElementById(`${prefix}SpvFilter`);
+        const availableRows = allRows.filter((row) =>
+          (selectedTeam === "ALL" || row._group === selectedTeam)
+          && !isExcludedSpv(row[fields.spv])
+        );
         const currentLayer = layerSelect.value;
         const currentSpv = spvSelect.value;
-        const layers = [...new Set(allRows.map((row) => clean(row[fields.team])).filter(Boolean))]
+        const layers = [...new Set(availableRows.map((row) => clean(row[fields.team])).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-        const spvs = [...new Set(allRows
+        const spvs = [...new Set(availableRows
           .filter((row) => !currentLayer || clean(row[fields.team]) === currentLayer)
           .map((row) => clean(row[fields.spv]))
           .filter((spv) => spv && !isExcludedSpv(spv)))]
@@ -2448,15 +3003,18 @@
       const month = document.getElementById(`${prefix}MonthFilter`).value;
       const week = document.getElementById(`${prefix}WeekFilter`).value;
       const date = document.getElementById(`${prefix}DateFilter`).value;
-      const rows = baseRows.filter((row) =>
+      const dateRows = baseRows.filter((row) =>
         (!month || row._weekMonth === month)
         && (!week || clean(row[fields.week]) === week)
         && (!date || clean(row[fields.date]) === date)
       );
+      setUnitAgentOptions(prefix, dateRows);
+      const agent = document.getElementById(`${prefix}AgentFilter`).value;
+      const rows = dateRows.filter((row) => !agent || clean(row[fields.agent]) === agent);
       const coaches = groupSum(rows, fields.leader);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const title = [layer || "Semua layer", spv || "Semua SPV"].join(" | ");
+      const title = [layer || "Semua layer", spv || "Semua SPV", agent || "Semua agent"].join(" | ");
       ["Coach", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
         if (titleEl) titleEl.textContent = title;
@@ -2468,6 +3026,7 @@
       document.getElementById(`${prefix}Summary`).innerHTML = `
         <div class="coach-stat"><span>Layer</span><strong>${escapeHtml(layer || "Semua layer")}</strong></div>
         <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(spv || "Semua SPV")}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(agent || "Semua agent")}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.leader])).filter(Boolean)).size)}</strong></div>
       `;
@@ -2854,10 +3413,278 @@
           elements: { line: { borderWidth: 2 }, point: { radius: 2, hoverRadius: 4 } },
           plugins: {
             ...baseOptions().plugins,
-            legend: { position: "bottom", labels: { boxWidth: 18, font: { size: 10 } } }
+            legend: {
+              position: "bottom",
+              labels: {
+                color: chartTheme().legend,
+                usePointStyle: true,
+                pointStyle: "circle",
+                boxWidth: 8,
+                boxHeight: 8,
+                padding: 14,
+                font: { size: 10, weight: "600" }
+              }
+            }
           }
         }
       });
+    }
+
+    function presentationSourceLabel(sourceKey) {
+      return DAILY_PRESENTATION_SOURCES.find((source) => source.key === sourceKey)?.label || sourceKey;
+    }
+
+    function setPresentationSourceOptions() {
+      const select = document.getElementById("presentationSourceFilter");
+      if (!select) return;
+      const current = select.value;
+      select.innerHTML = `<option value="">Semua coach</option>` + DAILY_PRESENTATION_SOURCES
+        .map((source) => `<option value="${escapeHtml(source.key)}">${escapeHtml(source.label)}</option>`)
+        .join("");
+      if (DAILY_PRESENTATION_SOURCES.some((source) => source.key === current)) select.value = current;
+    }
+
+    function presentationSourceRows() {
+      const source = clean(document.getElementById("presentationSourceFilter")?.value);
+      return source
+        ? presentationRows.filter((row) => row._source === source)
+        : presentationRows;
+    }
+
+    function setPresentationDateOptions(rows) {
+      const select = document.getElementById("presentationDateFilter");
+      if (!select) return;
+      const current = select.value;
+      const dates = [...new Set(rows.map((row) => row._dateKey).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      select.innerHTML = `<option value="">Semua daily</option>` + dates
+        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(dateLabelFromKey(value))}</option>`)
+        .join("");
+      if (dates.includes(current)) select.value = current;
+    }
+
+    function setPresentationOptions() {
+      setPresentationSourceOptions();
+      const sourceRows = presentationSourceRows();
+      setMonthOptions("presentationMonthFilter", sourceRows);
+      const month = document.getElementById("presentationMonthFilter").value;
+      const monthRows = sourceRows.filter((row) => !month || row._weekMonth === month);
+      setOptions("presentationWeekFilter", monthRows.map((row) => row._week), "minggu");
+      const week = document.getElementById("presentationWeekFilter").value;
+      const weekRows = monthRows.filter((row) => !week || row._week === week);
+      setPresentationDateOptions(weekRows);
+      const date = document.getElementById("presentationDateFilter").value;
+      const dateRows = weekRows.filter((row) => !date || row._dateKey === date);
+      setOptions("presentationAgentFilter", dateRows.map((row) => row[presentationFields.agent]), "agent");
+      const agent = document.getElementById("presentationAgentFilter").value;
+      const agentRows = dateRows.filter((row) => !agent || clean(row[presentationFields.agent]) === agent);
+      setOptions("presentationSubStatusFilter", agentRows.map((row) => row[presentationFields.subStatus]), "sub status");
+      const subStatus = document.getElementById("presentationSubStatusFilter").value;
+      const subStatusRows = agentRows.filter((row) => !subStatus || clean(row[presentationFields.subStatus]) === subStatus);
+      setOptions("presentationProductFilter", subStatusRows.map((row) => row[presentationFields.product]), "product");
+    }
+
+    function presentationFilterRows() {
+      const month = document.getElementById("presentationMonthFilter").value;
+      const week = document.getElementById("presentationWeekFilter").value;
+      const date = document.getElementById("presentationDateFilter").value;
+      const agent = document.getElementById("presentationAgentFilter").value;
+      const subStatus = document.getElementById("presentationSubStatusFilter").value;
+      const product = document.getElementById("presentationProductFilter").value;
+      return presentationSourceRows().filter((row) =>
+        (!month || row._weekMonth === month)
+        && (!week || row._week === week)
+        && (!date || row._dateKey === date)
+        && (!agent || clean(row[presentationFields.agent]) === agent)
+        && (!subStatus || clean(row[presentationFields.subStatus]) === subStatus)
+        && (!product || clean(row[presentationFields.product]) === product)
+      );
+    }
+
+    function presentationPeriodForRow(row, mode, hasMonth) {
+      if (mode === "daily") {
+        const key = row._dateKey || "unknown-date";
+        return { key, label: row._dateLabel || key, sortKey: key };
+      }
+      if (mode === "weekly") {
+        const week = row._week || "-";
+        const month = row._weekMonth || "unknown-month";
+        return {
+          key: `${month}|${week}`,
+          label: hasMonth ? `Week ${week}` : `${monthLabel(month) || "Tanpa bulan"} · Week ${week}`,
+          sortKey: `${month}|${String(Number(week) || 999).padStart(3, "0")}`
+        };
+      }
+      const month = row._weekMonth || "unknown-month";
+      return { key: month, label: monthLabel(month) || "Tanpa bulan", sortKey: month };
+    }
+
+    function presentationDateKey(value) {
+      const date = value instanceof Date ? value : parseDateValue(value);
+      if (!date || Number.isNaN(date.getTime())) return dateKeyFromValue(value);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function presentationIsWorkingDate(value) {
+      const date = value instanceof Date ? value : parseDateValue(value);
+      if (!date || Number.isNaN(date.getTime())) return false;
+      const day = date.getDay();
+      return day >= 1 && day <= 5 && !PRESENTATION_HOLIDAYS.has(presentationDateKey(date));
+    }
+
+    function presentationHolidayCountInMonth(month) {
+      return [...PRESENTATION_HOLIDAYS]
+        .filter((key) => {
+          if (!key.startsWith(`${month}-`)) return false;
+          const date = parseDateValue(key);
+          const day = date?.getDay();
+          return day >= 1 && day <= 5;
+        })
+        .length;
+    }
+
+    function presentationMonthWorkdays(month) {
+      return Math.max(0, PRESENTATION_MONTH_WORKDAYS - presentationHolidayCountInMonth(month));
+    }
+
+    function presentationTimeScopeRows(sourceRows, month, week, date) {
+      return sourceRows.filter((row) =>
+        (!month || row._weekMonth === month)
+        && (!week || row._week === week)
+        && (!date || row._dateKey === date)
+      );
+    }
+
+    function presentationActiveWeekCount(rows) {
+      const weeks = new Set();
+      rows.forEach((row) => {
+        if (row._calendarWeek) {
+          weeks.add(row._calendarWeek);
+          return;
+        }
+        const week = clean(row._week) || weekNumberFromDate(row[presentationFields.date]);
+        if (!week) return;
+        const month = row._weekMonth || weekMonthFromDate(row[presentationFields.date]) || "unknown-month";
+        weeks.add(`${month}|${week}`);
+      });
+      return weeks.size;
+    }
+
+    function presentationWeekWorkdays(rows) {
+      const firstDate = rows
+        .map((row) => parseDateValue(row[presentationFields.date]))
+        .find((date) => date && !Number.isNaN(date.getTime()));
+      const monday = mondayOfWeek(firstDate);
+      if (!monday) return 5;
+      let workdays = 0;
+      for (let offset = 0; offset < 5; offset += 1) {
+        const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+        if (presentationIsWorkingDate(date)) workdays += 1;
+      }
+      return workdays;
+    }
+
+    function presentationMetricDenominators(sourceRows, month, week, date) {
+      const scopeRows = presentationTimeScopeRows(sourceRows, month, week, date);
+      if (date) {
+        return {
+          days: presentationIsWorkingDate(date) ? 1 : 0,
+          weeks: 1
+        };
+      }
+      if (week) {
+        return {
+          days: presentationWeekWorkdays(scopeRows),
+          weeks: 1
+        };
+      }
+      if (month) {
+        return {
+          days: presentationMonthWorkdays(month),
+          weeks: presentationActiveWeekCount(scopeRows) || 1
+        };
+      }
+      const months = [...new Set(sourceRows.map((row) => row._weekMonth).filter((value) => /^\d{4}-\d{2}$/.test(value)))];
+      return {
+        days: months.reduce((total, value) => total + presentationMonthWorkdays(value), 0) || 1,
+        weeks: presentationActiveWeekCount(sourceRows) || 1
+      };
+    }
+
+    function presentationAverage(total, denominator) {
+      return denominator > 0 ? decimal.format(total / denominator) : "—";
+    }
+
+    function renderPresentationPage() {
+      const sourceRows = presentationSourceRows();
+      const rows = presentationFilterRows();
+      const totalHold = rows.reduce((total, row) => total + (row._hold || 1), 0);
+      const month = document.getElementById("presentationMonthFilter").value;
+      const week = document.getElementById("presentationWeekFilter").value;
+      const date = document.getElementById("presentationDateFilter").value;
+      const agent = document.getElementById("presentationAgentFilter").value;
+      const subStatus = document.getElementById("presentationSubStatusFilter").value;
+      const product = document.getElementById("presentationProductFilter").value;
+      const source = document.getElementById("presentationSourceFilter")?.value || "";
+      const mode = week || date ? "daily" : month ? "weekly" : "monthly";
+      const metricDenominators = presentationMetricDenominators(sourceRows, month, week, date);
+      const periodsByKey = new Map();
+      rows.forEach((row) => {
+        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        if (!periodsByKey.has(period.key)) periodsByKey.set(period.key, period);
+      });
+      const periods = [...periodsByKey.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey, "id", { numeric: true }));
+      const agentMap = new Map();
+      rows.forEach((row) => {
+        const name = clean(row[presentationFields.agent]) || "Kosong";
+        if (!agentMap.has(name)) agentMap.set(name, { name, periods: {}, total: 0 });
+        const item = agentMap.get(name);
+        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        item.periods[period.key] = (item.periods[period.key] || 0) + (row._hold || 1);
+        item.total += (row._hold || 1);
+      });
+      const items = [...agentMap.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "id", { numeric: true }));
+      const periodTitle = mode === "daily" ? (date ? "Hold per tanggal" : "Hold per hari") : mode === "weekly" ? "Hold per minggu" : "Hold per bulan";
+      const note = mode === "daily"
+        ? "Breakdown harian agent"
+        : mode === "weekly"
+          ? "Breakdown mingguan pada bulan yang dipilih"
+          : "Breakdown bulanan agent";
+      const metricNote = `Hold / Day ÷ ${metricDenominators.days} hari kerja · Hold / Week ÷ ${metricDenominators.weeks} week berjalan`;
+      const periodLabel = date ? dateLabelFromKey(date) : week ? `Week ${week}` : month ? monthLabel(month) : "Semua periode";
+      const agentLabel = agent || `${new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size} agent`;
+      const sourceLabel = source ? presentationSourceLabel(source) : "Semua coach";
+      const totalLabel = date ? `Total ${dateLabelFromKey(date)}` : week ? `Total Week ${week}` : month ? `Total ${monthLabel(month)}` : "Total seluruh data";
+      const summary = document.getElementById("presentationSummary");
+      if (summary) {
+        summary.innerHTML = `
+          <div class="coach-stat"><span>Total Hold</span><strong>${number.format(totalHold)}</strong></div>
+          <div class="coach-stat"><span>Periode</span><strong>${escapeHtml(periodLabel)}</strong></div>
+          <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(sourceLabel)}</strong></div>
+          <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(agentLabel)}</strong></div>
+          <div class="coach-stat"><span>Hari Kerja Pembagi</span><strong>${number.format(metricDenominators.days)} hari</strong></div>
+          <div class="coach-stat"><span>Week Pembagi</span><strong>${number.format(metricDenominators.weeks)} week</strong></div>
+        `;
+      }
+      const title = document.getElementById("presentationTableTitle");
+      const tableNote = document.getElementById("presentationTableNote");
+      if (title) title.textContent = periodTitle;
+      if (tableNote) tableNote.textContent = sourceRows.length ? `${note} · ${metricNote}` : "Menunggu data dari spreadsheet DAILY PRESENTASI";
+      const head = document.getElementById("presentationHead");
+      const body = document.getElementById("presentationBody");
+      const foot = document.getElementById("presentationFoot");
+      const columnCount = periods.length + 4;
+      if (head) head.innerHTML = `<tr><th>Agent</th>${periods.map((period) => `<th class="right">${escapeHtml(period.label)}</th>`).join("")}<th class="right">Total Hold</th><th class="right">Hold / Agent / Day</th><th class="right">Hold / Agent / Week</th></tr>`;
+      if (body) {
+        body.innerHTML = items.length ? items.map((item) => {
+          const cells = periods.map((period) => `<td class="right">${number.format(item.periods[period.key] || 0)}</td>`).join("");
+          return `<tr><td>${escapeHtml(item.name)}</td>${cells}<td class="right"><strong>${number.format(item.total)}</strong></td><td class="right metric">${presentationAverage(item.total, metricDenominators.days)}</td><td class="right metric">${presentationAverage(item.total, metricDenominators.weeks)}</td></tr>`;
+        }).join("") : `<tr><td colspan="${columnCount}" class="empty">${sourceRows.length ? "Tidak ada data sesuai filter." : "Memuat data DAILY PRESENTASI..."}</td></tr>`;
+      }
+      if (foot) {
+        const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, Boolean(month)).key === period.key ? (row._hold || 1) : 0), 0));
+        foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td></tr>`;
+      }
     }
 
     function render() {
@@ -2876,6 +3703,8 @@
       renderAssignDatePage();
       setGrowthOptions();
       renderGrowthAgentPage();
+      setPresentationOptions();
+      renderPresentationPage();
       setCallOptions();
       renderCallTrackingPage();
     }
@@ -3191,7 +4020,7 @@
       ["leaderAMonthFilter", "leaderAWeekFilter", "leaderADateFilter", "leaderBMonthFilter", "leaderBWeekFilter", "leaderBDateFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", renderLeaderCompare);
       });
-      ["unitALayerFilter", "unitASpvFilter", "unitAMonthFilter", "unitAWeekFilter", "unitADateFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBMonthFilter", "unitBWeekFilter", "unitBDateFilter"].forEach((id) => {
+      ["unitALayerFilter", "unitASpvFilter", "unitAMonthFilter", "unitAWeekFilter", "unitADateFilter", "unitAAgentFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBMonthFilter", "unitBWeekFilter", "unitBDateFilter", "unitBAgentFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
           setUnitOptions();
           renderUnitCompare();
@@ -3219,6 +4048,12 @@
         document.getElementById(id).addEventListener("input", () => {
           setGrowthOptions();
           renderGrowthAgentPage();
+        });
+      });
+      ["presentationSourceFilter", "presentationMonthFilter", "presentationWeekFilter", "presentationDateFilter", "presentationAgentFilter", "presentationSubStatusFilter", "presentationProductFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          setPresentationOptions();
+          renderPresentationPage();
         });
       });
       ["callMonthFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
@@ -3303,6 +4138,33 @@
       }).filter((row) => clean(row["Agent Name"]));
     }
 
+    function rowsFromPresentationTable(table, sourceKey) {
+      const matrix = table.rows.map((row) => row.c.map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
+      const fallbackHeaders = ["Nama OEC", "Tanggal", "Sub Status", "Paket yang ditawarkan", "WEEK", "Hold"];
+      const headers = (table.cols || []).map((col, index) => clean(col.label) || fallbackHeaders[index]);
+      return matrix.map((line) => {
+        const row = {};
+        headers.forEach((header, index) => {
+          if (header) row[header] = line[index] ?? "";
+        });
+        row._dateKey = dateKeyFromValue(row[presentationFields.date]);
+        row._dateLabel = dateLabelFromKey(row._dateKey) || clean(row[presentationFields.date]);
+        row._week = clean(row[presentationFields.week]) || weekNumberFromDate(row[presentationFields.date]);
+        row._weekMonth = weekMonthFromDate(row[presentationFields.date]) || row._dateKey.slice(0, 7);
+        row._calendarWeek = (() => {
+          const date = parseDateValue(row[presentationFields.date]);
+          const monday = mondayOfWeek(date);
+          return monday ? presentationDateKey(monday) : "";
+        })();
+        row._hold = toNumber(row[presentationFields.holdCount]) || 1;
+        row._source = sourceKey;
+        return row;
+      }).filter((row) => {
+        const agent = normalizeName(row[presentationFields.agent]);
+        return agent && agent !== "nama oec";
+      });
+    }
+
     window.handleSheetData = function(response) {
       try {
         allRows = rowsFromGoogleTable(response.table);
@@ -3322,11 +4184,64 @@
       }
     };
 
+    function refreshPresentationDataState() {
+      const box = document.getElementById("presentationError");
+      const failedSources = DAILY_PRESENTATION_SOURCES
+        .filter((source) => presentationSourceStatus[source.key]?.error)
+        .map((source) => `${source.label}: ${presentationSourceStatus[source.key].error}`);
+      const pendingSources = DAILY_PRESENTATION_SOURCES
+        .filter((source) => !presentationSourceStatus[source.key])
+        .map((source) => source.label);
+      if (!box) return;
+      if (failedSources.length) {
+        box.style.display = "block";
+        box.textContent = `Sebagian data DAILY PRESENTASI tidak bisa dibaca. ${failedSources.join(" | ")}`;
+      } else if (pendingSources.length && !presentationRows.length) {
+        box.style.display = "block";
+        box.textContent = `Memuat data DAILY PRESENTASI: ${pendingSources.join(" dan ")}...`;
+      } else {
+        box.style.display = "none";
+        box.textContent = "";
+      }
+    }
+
+    function handleDailyPresentationSourceData(sourceKey, response) {
+      try {
+        const rows = rowsFromPresentationTable(response.table, sourceKey);
+        presentationRows = presentationRows.filter((row) => row._source !== sourceKey).concat(rows);
+        presentationSourceStatus[sourceKey] = { rows: rows.length };
+        refreshPresentationDataState();
+        setPresentationOptions();
+        renderPresentationPage();
+      } catch (error) {
+        presentationSourceStatus[sourceKey] = { error: error.message };
+        refreshPresentationDataState();
+        showPresentationError(`${presentationSourceLabel(sourceKey)}: ${error.message}`);
+      }
+    }
+
+    function handleDailyPresentationSourceError(sourceKey, message) {
+      presentationSourceStatus[sourceKey] = { error: message };
+      refreshPresentationDataState();
+      showPresentationError(`${presentationSourceLabel(sourceKey)}: ${message}`);
+    }
+
+    DAILY_PRESENTATION_SOURCES.forEach((source) => {
+      window[source.callback] = (response) => handleDailyPresentationSourceData(source.key, response);
+    });
+
     function showError(message) {
       document.getElementById("status").textContent = "Gagal memuat data";
       const box = document.getElementById("errorBox");
       box.style.display = "block";
       box.textContent = `Data tidak bisa dibaca. Pastikan Google Sheet bisa diakses publik. Detail: ${message}`;
+    }
+
+    function showPresentationError(message) {
+      const box = document.getElementById("presentationError");
+      if (!box) return;
+      box.style.display = "block";
+      box.textContent = `Data DAILY PRESENTASI tidak bisa dibaca. Pastikan Google Sheet bisa diakses publik. Detail: ${message}`;
     }
 
     function loadSheet() {
@@ -3343,8 +4258,20 @@
       document.body.appendChild(script);
     }
 
+    function loadDailyPresentationSheet() {
+      DAILY_PRESENTATION_SOURCES.forEach((source) => {
+        const script = document.createElement("script");
+        const query = encodeURIComponent(source.query);
+        script.src = `https://docs.google.com/spreadsheets/d/${DAILY_PRESENTATION_SHEET_ID}/gviz/tq?gid=${source.gid}&headers=1&tqx=out:json;responseHandler:${source.callback}&tq=${query}`;
+        script.onerror = () => handleDailyPresentationSourceError(source.key, "Google Sheet tidak bisa diakses dari halaman ini.");
+        document.body.appendChild(script);
+      });
+    }
+
+    setupThemeToggle();
     loadSheet();
     loadCallSheet();
+    loadDailyPresentationSheet();
   </script>
 </body>
 </html>

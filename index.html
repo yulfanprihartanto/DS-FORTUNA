@@ -2353,6 +2353,7 @@
     const number = new Intl.NumberFormat("id-ID");
     const decimal = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const PRESENTATION_MONTH_WORKDAYS = 25;
+    const PRESENTATION_DISPLAY_START_MONTH = "2026-06";
     const PRESENTATION_HOLIDAYS = new Set([
       "2025-12-25",
       "2026-01-01", "2026-01-16", "2026-02-17", "2026-03-19", "2026-03-20", "2026-03-21",
@@ -3607,6 +3608,17 @@
       }, 0);
     }
 
+    function presentationDefaultMonthKeys(rows) {
+      const availableMonths = new Set(rows
+        .map((row) => row._weekMonth)
+        .filter((value) => /^\d{4}-\d{2}$/.test(value)));
+      const today = new Date();
+      const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+      return [...availableMonths]
+        .filter((value) => value >= PRESENTATION_DISPLAY_START_MONTH && value <= currentMonth)
+        .sort();
+    }
+
     function presentationMetricDenominators(sourceRows, month, week, date) {
       const scopeRows = presentationTimeScopeRows(sourceRows, month, week, date);
       if (date) {
@@ -3627,9 +3639,15 @@
           weeks: presentationActiveWeekCount(scopeRows) || 1
         };
       }
-      const months = [...new Set(sourceRows.map((row) => row._weekMonth).filter((value) => /^\d{4}-\d{2}$/.test(value)))];
+      const monthRows = new Map();
+      sourceRows.forEach((row) => {
+        const value = row._weekMonth;
+        if (!/^\d{4}-\d{2}$/.test(value)) return;
+        if (!monthRows.has(value)) monthRows.set(value, []);
+        monthRows.get(value).push(row);
+      });
       return {
-        days: months.reduce((total, value) => total + presentationMonthWorkdays(value), 0) || 1,
+        days: [...monthRows.entries()].reduce((total, [value, rows]) => total + presentationMonthWorkdaysFromRows(value, rows), 0) || 1,
         weeks: presentationActiveWeekCount(sourceRows) || 1
       };
     }
@@ -3640,8 +3658,6 @@
 
     function renderPresentationPage() {
       const sourceRows = presentationSourceRows();
-      const rows = presentationFilterRows();
-      const totalHold = rows.reduce((total, row) => total + (row._hold || 1), 0);
       const month = document.getElementById("presentationMonthFilter").value;
       const week = document.getElementById("presentationWeekFilter").value;
       const date = document.getElementById("presentationDateFilter").value;
@@ -3650,7 +3666,17 @@
       const product = document.getElementById("presentationProductFilter").value;
       const source = document.getElementById("presentationSourceFilter")?.value || "";
       const mode = week || date ? "daily" : month ? "weekly" : "monthly";
-      const metricDenominators = presentationMetricDenominators(sourceRows, month, week, date);
+      const allMonthsView = mode === "monthly";
+      const allMonthKeys = allMonthsView ? presentationDefaultMonthKeys(sourceRows) : [];
+      const filteredRows = presentationFilterRows();
+      const rows = allMonthsView
+        ? filteredRows.filter((row) => allMonthKeys.includes(row._weekMonth))
+        : filteredRows;
+      const metricSourceRows = allMonthsView
+        ? sourceRows.filter((row) => allMonthKeys.includes(row._weekMonth))
+        : sourceRows;
+      const totalHold = rows.reduce((total, row) => total + (row._hold || 1), 0);
+      const metricDenominators = presentationMetricDenominators(metricSourceRows, month, week, date);
       const periodsByKey = new Map();
       rows.forEach((row) => {
         const period = presentationPeriodForRow(row, mode, Boolean(month));
@@ -3674,10 +3700,13 @@
           ? "Breakdown mingguan pada bulan yang dipilih"
           : "Breakdown bulanan agent";
       const metricNote = `Hold / Day ÷ ${metricDenominators.days} hari kerja · Hold / Week ÷ ${metricDenominators.weeks} week berjalan`;
-      const periodLabel = date ? dateLabelFromKey(date) : week ? `Week ${week}` : month ? monthLabel(month) : "Semua periode";
+      const allMonthsLabel = allMonthKeys.length
+        ? `${monthLabel(allMonthKeys[0])} – ${monthLabel(allMonthKeys.at(-1))}`
+        : "Semua periode";
+      const periodLabel = date ? dateLabelFromKey(date) : week ? `Week ${week}` : month ? monthLabel(month) : allMonthsLabel;
       const agentLabel = agent || `${new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size} agent`;
       const sourceLabel = source ? presentationSourceLabel(source) : "Semua coach";
-      const totalLabel = date ? `Total ${dateLabelFromKey(date)}` : week ? `Total Week ${week}` : month ? `Total ${monthLabel(month)}` : "Total seluruh data";
+      const totalLabel = date ? `Total ${dateLabelFromKey(date)}` : week ? `Total Week ${week}` : month ? `Total ${monthLabel(month)}` : `Total ${allMonthsLabel}`;
       const summary = document.getElementById("presentationSummary");
       if (summary) {
         summary.innerHTML = `

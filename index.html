@@ -4403,7 +4403,12 @@
         });
         row._dateKey = dateKeyFromValue(row[presentationFields.date]);
         row._dateLabel = dateLabelFromKey(row._dateKey) || clean(row[presentationFields.date]);
-        row._week = clean(row[presentationFields.week]) || weekNumberFromDate(row[presentationFields.date]);
+        const derivedWeek = weekNumberFromDate(row[presentationFields.date]);
+        // Sheet Chintya memiliki banyak nilai WEEK 52 yang tidak sesuai dengan tanggal.
+        // Untuk source tersebut, tanggal menjadi acuan Week agar filter dan breakdown akurat.
+        row._week = sourceKey === "chintya"
+          ? (derivedWeek || clean(row[presentationFields.week]))
+          : (clean(row[presentationFields.week]) || derivedWeek);
         row._weekMonth = weekMonthFromDate(row[presentationFields.date]) || row._dateKey.slice(0, 7);
         row._calendarWeek = (() => {
           const date = parseDateValue(row[presentationFields.date]);

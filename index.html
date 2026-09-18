@@ -1222,8 +1222,17 @@
       font-size: 12px;
     }
 
+    .presentation-product-table-wrap { max-height: 720px; }
+
+    #presentationProductTable {
+      min-width: 920px;
+      font-size: 12px;
+    }
+
     #presentationTable th,
-    #presentationTable td {
+    #presentationTable td,
+    #presentationProductTable th,
+    #presentationProductTable td {
       padding: 8px 8px;
       white-space: nowrap;
     }
@@ -1236,6 +1245,18 @@
     #presentationTable tfoot td {
       background: #f3f7fa;
       color: #163e59;
+      font-weight: 850;
+    }
+
+    #presentationProductTable tfoot td {
+      background: #f3f7fa;
+      color: #163e59;
+      font-weight: 850;
+    }
+
+    #presentationProductTable td.product-zero {
+      background: rgba(223, 93, 120, .13);
+      color: #b43c5b;
       font-weight: 850;
     }
 
@@ -1670,6 +1691,16 @@
     html[data-theme="dark"] #presentationTable tfoot td {
       background: #122d40;
       color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #presentationProductTable tfoot td {
+      background: #122d40;
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #presentationProductTable td.product-zero {
+      background: rgba(241, 122, 148, .16);
+      color: #ff9db2;
     }
 
     html[data-theme="dark"] #presentationTable td.metric {
@@ -2285,8 +2316,8 @@
           <label>Product<select id="presentationProductFilter"></select></label>
         </section>
         <div class="coach-summary" id="presentationSummary"></div>
-          <div>
-            <div class="panel-head">
+        <div>
+          <div class="panel-head">
             <h2 id="presentationTableTitle">Hold per Agent</h2>
             <span class="note" id="presentationTableNote">Hold / Day dan Hold / Week akan dihitung otomatis</span>
           </div>
@@ -2297,6 +2328,21 @@
                 <tr><td class="empty">Memuat data...</td></tr>
               </tbody>
               <tfoot id="presentationFoot"></tfoot>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div class="panel-head">
+            <h2 id="presentationProductTableTitle">Breakdown Hold per Product</h2>
+            <span class="note" id="presentationProductTableNote">Jumlah Hold tiap agent berdasarkan kategori product</span>
+          </div>
+          <div class="table-wrap presentation-product-table-wrap">
+            <table id="presentationProductTable">
+              <thead id="presentationProductHead"></thead>
+              <tbody id="presentationProductBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+              <tfoot id="presentationProductFoot"></tfoot>
             </table>
           </div>
         </div>
@@ -2413,6 +2459,14 @@
       product: "Paket yang ditawarkan",
       holdCount: "Hold"
     };
+    const PRESENTATION_PRODUCT_CATEGORIES = [
+      "Ruangbelajar",
+      "Brain Academy Online",
+      "Brain Academy Center",
+      "Ruangguru Private",
+      "Null",
+      "Lainnya"
+    ];
     let allRows = [];
     let callRows = [];
     let presentationRows = [];
@@ -3538,6 +3592,89 @@
       );
     }
 
+    function presentationProductCategory(value) {
+      const raw = normalizeName(value);
+      const compact = raw.replace(/[^a-z0-9]+/g, " ").trim();
+      if (!compact) return "Null";
+      if (compact === "brain academy"
+        || compact.includes("brain academy center")
+        || compact.includes("ba center")
+        || compact.includes("ba offline")) {
+        return "Brain Academy Center";
+      }
+      if (compact.includes("ruangguru private")
+        || compact.includes("ruangguru privat")
+        || /\brgp\b/.test(compact)) {
+        return "Ruangguru Private";
+      }
+      if (compact.includes("brain academy online")
+        || compact.includes("brain academy reguler")
+        || compact.includes("brain academy premium")
+        || compact.includes("brain academy elite")
+        || compact === "ba reguler"
+        || compact === "ba premium"
+        || compact === "ba elite") {
+        return "Brain Academy Online";
+      }
+      if (compact.includes("ruangbelajar") || compact.includes("ruang belajar")) {
+        return "Ruangbelajar";
+      }
+      return "Lainnya";
+    }
+
+    function presentationProductBreakdown(rows) {
+      const agents = new Map();
+      rows.forEach((row) => {
+        const name = clean(row[presentationFields.agent]) || "Kosong";
+        if (!agents.has(name)) {
+          agents.set(name, {
+            name,
+            categories: Object.fromEntries(PRESENTATION_PRODUCT_CATEGORIES.map((category) => [category, 0])),
+            total: 0
+          });
+        }
+        const item = agents.get(name);
+        const hold = row._hold || 1;
+        const category = presentationProductCategory(row[presentationFields.product]);
+        item.categories[category] += hold;
+        item.total += hold;
+      });
+      return [...agents.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "id", { numeric: true }));
+    }
+
+    function renderPresentationProductBreakdown(rows, periodLabel) {
+      const items = presentationProductBreakdown(rows);
+      const totals = Object.fromEntries(PRESENTATION_PRODUCT_CATEGORIES.map((category) => [category, 0]));
+      items.forEach((item) => PRESENTATION_PRODUCT_CATEGORIES.forEach((category) => {
+        totals[category] += item.categories[category] || 0;
+      }));
+      const totalHold = items.reduce((total, item) => total + item.total, 0);
+      const head = document.getElementById("presentationProductHead");
+      const body = document.getElementById("presentationProductBody");
+      const foot = document.getElementById("presentationProductFoot");
+      const title = document.getElementById("presentationProductTableTitle");
+      const note = document.getElementById("presentationProductTableNote");
+      const columnCount = PRESENTATION_PRODUCT_CATEGORIES.length + 2;
+      if (title) title.textContent = `Breakdown Hold per Product · ${periodLabel}`;
+      if (note) note.textContent = "Ruangbelajar · BA Online · BA Center · RG Private · Null · Lainnya";
+      if (head) {
+        head.innerHTML = `<tr><th>Agent</th>${PRESENTATION_PRODUCT_CATEGORIES.map((category) => `<th class="right">${escapeHtml(category)}</th>`).join("")}<th class="right">Total Hold</th></tr>`;
+      }
+      if (body) {
+        body.innerHTML = items.length ? items.map((item) => `<tr><td>${escapeHtml(item.name)}</td>${PRESENTATION_PRODUCT_CATEGORIES.map((category) => {
+          const value = item.categories[category] || 0;
+          return `<td class="right${value === 0 ? " product-zero" : ""}">${number.format(value)}</td>`;
+        }).join("")}<td class="right"><strong>${number.format(item.total)}</strong></td></tr>`).join("")
+          : `<tr><td colspan="${columnCount}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+      }
+      if (foot) {
+        foot.innerHTML = `<tr><td>Total</td>${PRESENTATION_PRODUCT_CATEGORIES.map((category) => {
+          const value = totals[category] || 0;
+          return `<td class="right${value === 0 ? " product-zero" : ""}">${number.format(value)}</td>`;
+        }).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td></tr>`;
+      }
+    }
+
     function presentationTransactionValue(row) {
       if (toNumber(row[fields.amount]) <= 0) return 0;
       const transaction = toNumber(row[fields.txn]);
@@ -3947,6 +4084,7 @@
         const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, Boolean(month)).key === period.key ? (row._hold || 1) : 0), 0));
         foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td><td class="right metric revenue-cell">${rupiah.format(sum(transactionRows, fields.amount))}</td><td class="right metric">${number.format(totalTransactions)}</td><td class="right metric">${presentationCR(totalTransactions, totalHold)}</td></tr>`;
       }
+      renderPresentationProductBreakdown(rows, periodLabel);
       renderPresentationTrend(rows, month, week, date, source);
     }
 

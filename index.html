@@ -2687,8 +2687,10 @@
     function weekMonthFromDate(value) {
       const monday = mondayOfWeek(parseDateValue(value));
       if (!monday) return "";
-      const reportingDay = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 3);
-      return `${reportingDay.getFullYear()}-${String(reportingDay.getMonth() + 1).padStart(2, "0")}`;
+      // A reporting week belongs to the month in which its Monday falls.
+      // This keeps W40 (28 Sep–4 Oct 2026) in September and starts
+      // October with W41, matching the dashboard's monthly calculation.
+      return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}`;
     }
 
     function monthLabel(value) {

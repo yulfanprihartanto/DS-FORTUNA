@@ -1729,6 +1729,185 @@
       .theme-toggle { width: fit-content; }
     }
   </style>
+  <style>
+    /* Multi-select filters: the native select remains as a data bridge while
+       the visible control uses a checklist so multiple values do not require
+       holding Ctrl/Command. */
+    .multi-select {
+      position: relative;
+      min-width: 0;
+    }
+
+    .multi-select-source {
+      display: none !important;
+    }
+
+    .multi-select-trigger {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      overflow: hidden;
+      border: 1px solid #d6e3ec;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .96);
+      color: var(--text);
+      padding: 0 13px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: inset 0 1px 2px rgba(28, 74, 103, .025);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .multi-select-trigger:hover {
+      border-color: #b7cfdd;
+    }
+
+    .multi-select-trigger:focus-visible,
+    .multi-select.open .multi-select-trigger {
+      border-color: #4d9bea;
+      box-shadow: 0 0 0 4px rgba(38, 117, 223, .12), 0 5px 15px rgba(38, 117, 223, .06);
+      outline: none;
+    }
+
+    .multi-select-trigger::after {
+      flex: 0 0 auto;
+      width: 0;
+      height: 0;
+      content: "";
+      border-right: 5px solid transparent;
+      border-left: 5px solid transparent;
+      border-top: 6px solid #6e8797;
+      transition: transform .18s ease;
+    }
+
+    .multi-select.open .multi-select-trigger::after {
+      transform: rotate(180deg);
+    }
+
+    .multi-select-label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .multi-select-menu {
+      position: fixed;
+      z-index: 10000;
+      display: none;
+      min-width: 220px;
+      max-width: min(360px, calc(100vw - 24px));
+      max-height: min(340px, calc(100vh - 24px));
+      overflow: auto;
+      padding: 7px;
+      border: 1px solid #d6e3ec;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .98);
+      box-shadow: 0 18px 42px rgba(18, 54, 79, .2);
+    }
+
+    .multi-select-menu.open {
+      display: block;
+    }
+
+    .multi-select-actions {
+      display: flex;
+      gap: 6px;
+      padding: 2px 2px 7px;
+      border-bottom: 1px solid #e0ebf2;
+    }
+
+    .multi-select-action {
+      border: 0;
+      border-radius: 8px;
+      background: #edf5fa;
+      color: #1c587d;
+      padding: 6px 8px;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .multi-select-action:hover {
+      background: #dcecf5;
+    }
+
+    .multi-select-option {
+      display: flex;
+      min-height: 34px;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      color: #31566b;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .multi-select-option:hover {
+      background: #edf5fa;
+    }
+
+    .multi-select-option input {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      margin: 0;
+      accent-color: #187ea0;
+    }
+
+    html[data-theme="dark"] .multi-select-trigger {
+      border-color: rgba(155, 196, 215, .22);
+      background-color: #10283b;
+      color: #edf7fb;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, .16);
+    }
+
+    html[data-theme="dark"] .multi-select-trigger:hover,
+    html[data-theme="dark"] .multi-select.open .multi-select-trigger {
+      border-color: #5fe1e2;
+      box-shadow: 0 0 0 4px rgba(95, 225, 226, .14), 0 5px 16px rgba(0, 0, 0, .18);
+    }
+
+    html[data-theme="dark"] .multi-select-trigger::after {
+      border-top-color: #a8c2d0;
+    }
+
+    html[data-theme="dark"] .multi-select-menu {
+      border-color: rgba(155, 196, 215, .24);
+      background: #10283b;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, .42);
+    }
+
+    html[data-theme="dark"] .multi-select-actions {
+      border-bottom-color: rgba(155, 196, 215, .18);
+    }
+
+    html[data-theme="dark"] .multi-select-action {
+      background: #15364c;
+      color: #dff8ff;
+    }
+
+    html[data-theme="dark"] .multi-select-action:hover,
+    html[data-theme="dark"] .multi-select-option:hover {
+      background: #19455d;
+    }
+
+    html[data-theme="dark"] .multi-select-option {
+      color: #d1e4ec;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -2574,6 +2753,230 @@
       }[char]));
     }
 
+    const MULTI_VALUE_SEPARATOR = "\u001f";
+    const multiSelectMeta = new WeakMap();
+
+    function splitFilterValue(value) {
+      if (Array.isArray(value)) return value.map(clean).filter(Boolean);
+      if (value && value.tagName === "SELECT") return selectedFilterValues(value);
+      const text = clean(value);
+      return text ? text.split(MULTI_VALUE_SEPARATOR).map(clean).filter(Boolean) : [];
+    }
+
+    function selectedFilterValues(idOrSelect) {
+      const select = typeof idOrSelect === "string" ? document.getElementById(idOrSelect) : idOrSelect;
+      if (!select) return [];
+      return Array.from(select.options || [])
+        .filter((option) => option.selected && clean(option.value))
+        .map((option) => clean(option.value));
+    }
+
+    function filterMatches(selection, value) {
+      const selected = splitFilterValue(selection);
+      return !selected.length || selected.includes(clean(value));
+    }
+
+    function filterIsActive(selection) {
+      return splitFilterValue(selection).length > 0;
+    }
+
+    function filterValueLabel(idOrValue, allLabel = "Semua") {
+      const select = typeof idOrValue === "string" && document.getElementById(idOrValue)?.tagName === "SELECT"
+        ? document.getElementById(idOrValue)
+        : null;
+      const values = select ? selectedFilterValues(select) : splitFilterValue(idOrValue);
+      if (!values.length) return allLabel;
+      const labels = values.map((value) => {
+        const option = select ? Array.from(select.options).find((item) => item.value === value) : null;
+        return option?.textContent?.trim() || value;
+      });
+      return labels.length <= 2 ? labels.join(", ") : `${labels.length} dipilih`;
+    }
+
+    function setNativeFilterValues(select, values) {
+      const options = Array.from(select.options || []);
+      const available = new Set(options.map((option) => clean(option.value)).filter(Boolean));
+      const wanted = new Set(splitFilterValue(values).filter((value) => available.has(value)));
+      options.forEach((option) => {
+        option.selected = Boolean(option.value && wanted.has(clean(option.value)));
+      });
+      const allOption = options.find((option) => !clean(option.value));
+      if (!wanted.size && allOption) allOption.selected = true;
+      if (wanted.size && allOption) allOption.selected = false;
+      refreshMultiSelect(select);
+    }
+
+    function installMultiSelectValueBridge(select) {
+      if (!select || select.dataset.multiValueBridge === "true") return;
+      select.multiple = true;
+      select.dataset.multiValueBridge = "true";
+      Object.defineProperty(select, "value", {
+        configurable: true,
+        get() {
+          return selectedFilterValues(select).join(MULTI_VALUE_SEPARATOR);
+        },
+        set(value) {
+          setNativeFilterValues(select, value);
+        }
+      });
+    }
+
+    function closeMultiSelect(meta) {
+      if (!meta) return;
+      meta.wrapper.classList.remove("open");
+      meta.menu.classList.remove("open");
+      meta.trigger.setAttribute("aria-expanded", "false");
+    }
+
+    function positionMultiSelectMenu(meta) {
+      if (!meta?.menu.classList.contains("open")) return;
+      const rect = meta.trigger.getBoundingClientRect();
+      const margin = 8;
+      const menuWidth = Math.max(rect.width, 220);
+      const left = Math.min(Math.max(margin, rect.left), Math.max(margin, window.innerWidth - menuWidth - margin));
+      const roomBelow = window.innerHeight - rect.bottom - margin;
+      const roomAbove = rect.top - margin;
+      const maxHeight = Math.max(150, Math.min(340, Math.max(roomBelow, roomAbove)));
+      meta.menu.style.width = `${menuWidth}px`;
+      meta.menu.style.maxHeight = `${maxHeight}px`;
+      meta.menu.style.left = `${left}px`;
+      if (roomBelow >= 190 || roomBelow >= roomAbove) {
+        meta.menu.style.top = `${rect.bottom + margin}px`;
+        meta.menu.style.bottom = "auto";
+      } else {
+        meta.menu.style.top = "auto";
+        meta.menu.style.bottom = `${window.innerHeight - rect.top + margin}px`;
+      }
+    }
+
+    function refreshMultiSelect(idOrSelect) {
+      const select = typeof idOrSelect === "string" ? document.getElementById(idOrSelect) : idOrSelect;
+      const meta = select && multiSelectMeta.get(select);
+      if (!select || !meta) return;
+      const options = Array.from(select.options || []).filter((option) => clean(option.value));
+      const selected = selectedFilterValues(select);
+      const labels = selected.map((value) => options.find((option) => option.value === value)?.textContent?.trim() || value);
+      meta.label.textContent = labels.length
+        ? (labels.length <= 2 ? labels.join(", ") : `${labels.length} dipilih`)
+        : (select.options[0]?.textContent?.trim() || "Pilih");
+      meta.trigger.title = labels.length ? labels.join(", ") : meta.label.textContent;
+      meta.menu.innerHTML = `
+        <div class="multi-select-actions">
+          <button type="button" class="multi-select-action" data-multi-action="all">Semua</button>
+          <button type="button" class="multi-select-action" data-multi-action="close">Tutup</button>
+        </div>
+        ${options.map((option) => `
+          <label class="multi-select-option">
+            <input type="checkbox" data-multi-value="${escapeHtml(option.value)}" ${option.selected ? "checked" : ""} />
+            <span>${escapeHtml(option.textContent)}</span>
+          </label>
+        `).join("") || `<div class="multi-select-option">Tidak ada pilihan</div>`}
+      `;
+      meta.menu.querySelectorAll("input[data-multi-value]").forEach((checkbox) => {
+        checkbox.addEventListener("change", () => {
+          const values = [...meta.menu.querySelectorAll("input[data-multi-value]:checked")]
+            .map((item) => item.dataset.multiValue);
+          setNativeFilterValues(select, values);
+          select.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+      });
+      meta.menu.querySelectorAll("[data-multi-action]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (button.dataset.multiAction === "all") {
+            setNativeFilterValues(select, []);
+            select.dispatchEvent(new Event("input", { bubbles: true }));
+          } else {
+            closeMultiSelect(meta);
+          }
+        });
+      });
+      positionMultiSelectMenu(meta);
+    }
+
+    function enhanceMultiSelects() {
+      document.querySelectorAll("select").forEach((select) => {
+        if (!select.id || multiSelectMeta.has(select)) return;
+        installMultiSelectValueBridge(select);
+        const wrapper = document.createElement("div");
+        wrapper.className = "multi-select";
+        const trigger = document.createElement("button");
+        trigger.type = "button";
+        trigger.className = "multi-select-trigger";
+        trigger.setAttribute("aria-haspopup", "listbox");
+        trigger.setAttribute("aria-expanded", "false");
+        const label = document.createElement("span");
+        label.className = "multi-select-label";
+        trigger.appendChild(label);
+        const menu = document.createElement("div");
+        menu.className = "multi-select-menu";
+        menu.setAttribute("role", "listbox");
+        document.body.appendChild(menu);
+        select.classList.add("multi-select-source");
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+        wrapper.appendChild(trigger);
+        const meta = { select, wrapper, trigger, label, menu };
+        multiSelectMeta.set(select, meta);
+        trigger.addEventListener("click", (event) => {
+          event.stopPropagation();
+          document.querySelectorAll(".multi-select.open").forEach((item) => {
+            if (item !== wrapper) closeMultiSelect(multiSelectMeta.get(item.querySelector("select")));
+          });
+          const open = !menu.classList.contains("open");
+          wrapper.classList.toggle("open", open);
+          menu.classList.toggle("open", open);
+          trigger.setAttribute("aria-expanded", String(open));
+          if (open) positionMultiSelectMenu(meta);
+        });
+        refreshMultiSelect(select);
+      });
+      if (!document.body.dataset.multiSelectEvents) {
+        document.body.dataset.multiSelectEvents = "true";
+        document.addEventListener("click", (event) => {
+          if (event.target.closest(".multi-select") || event.target.closest(".multi-select-menu")) return;
+          document.querySelectorAll(".multi-select.open").forEach((wrapper) => {
+            const select = wrapper.querySelector("select");
+            const meta = multiSelectMeta.get(select);
+            closeMultiSelect(meta);
+          });
+        });
+        window.addEventListener("resize", () => {
+          document.querySelectorAll(".multi-select.open").forEach((wrapper) => {
+            const meta = multiSelectMeta.get(wrapper.querySelector("select"));
+            positionMultiSelectMenu(meta);
+          });
+        });
+        window.addEventListener("scroll", () => {
+          document.querySelectorAll(".multi-select.open").forEach((wrapper) => {
+            const meta = multiSelectMeta.get(wrapper.querySelector("select"));
+            positionMultiSelectMenu(meta);
+          });
+        }, true);
+      }
+    }
+
+    function setFilterEntries(id, entries, allLabel = "Semua") {
+      const select = document.getElementById(id);
+      if (!select) return;
+      const previous = selectedFilterValues(select);
+      const unique = [];
+      const seen = new Set();
+      entries.forEach((entry) => {
+        const value = clean(entry.value);
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        unique.push({ value, label: clean(entry.label) || value });
+      });
+      select.innerHTML = `<option value="">${escapeHtml(allLabel)}</option>` + unique
+        .map((entry) => `<option value="${escapeHtml(entry.value)}">${escapeHtml(entry.label)}</option>`).join("");
+      setNativeFilterValues(select, previous.filter((value) => seen.has(value)));
+    }
+
+    function setFilterValues(idOrSelect, values) {
+      const select = typeof idOrSelect === "string" ? document.getElementById(idOrSelect) : idOrSelect;
+      if (select) setNativeFilterValues(select, values);
+    }
+
     function sum(data, key) {
       return data.reduce((total, row) => total + toNumber(row[key]), 0);
     }
@@ -2700,31 +3103,21 @@
     }
 
     function setMonthOptions(id, rows, label = "bulan") {
-      const select = document.getElementById(id);
-      if (!select) return;
-      const current = select.value;
       const months = [...new Set(rows.map((row) => row._weekMonth).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b));
-      select.innerHTML = `<option value="">Semua ${label}</option>` + months.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(monthLabel(value))}</option>`).join("");
-      if (months.includes(current)) select.value = current;
+      setFilterEntries(id, months.map((value) => ({ value, label: monthLabel(value) })), `Semua ${label}`);
     }
 
     function setOptions(id, values, label) {
-      const select = document.getElementById(id);
-      const current = select.value;
       const unique = [...new Set(values.map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-      select.innerHTML = `<option value="">Semua ${label}</option>` + unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-      if (unique.includes(current)) select.value = current;
+      setFilterEntries(id, unique.map((value) => ({ value, label: value })), `Semua ${label}`);
     }
 
     function setCompareOptions() {
       const leaders = [...new Set(allRows.map((row) => clean(row[fields.leader])).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
       ["compareLeaderAFilter", "compareLeaderBFilter"].forEach((id) => {
-        const select = document.getElementById(id);
-        const current = select.value;
-        select.innerHTML = `<option value="">Pilih leader</option>` + leaders.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-        if (leaders.includes(current)) select.value = current;
+        setFilterEntries(id, leaders.map((value) => ({ value, label: value })), "Pilih leader");
       });
     }
 
@@ -2733,32 +3126,25 @@
       const weekSelect = document.getElementById(`${prefix}WeekFilter`);
       const dateSelect = document.getElementById(`${prefix}DateFilter`);
       if (!weekSelect || !dateSelect) return;
-      const currentWeek = weekSelect.value;
-      const currentDate = dateSelect.value;
       if (monthSelect) setMonthOptions(`${prefix}MonthFilter`, rows);
-      const monthRows = rows.filter((row) => !monthSelect?.value || row._weekMonth === monthSelect.value);
+      const month = monthSelect?.value || "";
+      const monthRows = rows.filter((row) => filterMatches(month, row._weekMonth));
       const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))]
         .sort((a, b) => Number(a) - Number(b));
-      const activeWeek = weeks.includes(currentWeek) ? currentWeek : "";
-      const weekRows = monthRows.filter((row) => !activeWeek || clean(row[fields.week]) === activeWeek);
+      setOptions(`${prefix}WeekFilter`, weeks, "minggu");
+      const week = weekSelect.value;
+      const weekRows = monthRows.filter((row) => filterMatches(week, row[fields.week]));
       const dates = [...new Set(weekRows.map((row) => clean(row[fields.date])).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-      weekSelect.innerHTML = `<option value="">Semua weekly</option>` + weeks.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-      dateSelect.innerHTML = `<option value="">Semua daily</option>` + dates.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-      if (activeWeek) weekSelect.value = activeWeek;
-      if (dates.includes(currentDate)) dateSelect.value = currentDate;
+      setOptions(`${prefix}DateFilter`, dates, "daily");
     }
 
     function setUnitAgentOptions(prefix, rows) {
       const select = document.getElementById(`${prefix}AgentFilter`);
       if (!select) return;
-      const current = select.value;
       const agents = [...new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-      select.innerHTML = `<option value="">Semua agent</option>` + agents
-        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
-        .join("");
-      if (agents.includes(current)) select.value = current;
+      setFilterEntries(`${prefix}AgentFilter`, agents.map((value) => ({ value, label: value })), "Semua agent");
     }
 
     function setupPageTabs() {
@@ -2918,11 +3304,11 @@
       return allRows.filter((row) => {
         const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.leader], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
         return (selectedTeam === "ALL" || row._group === selectedTeam)
-          && (!month || row._weekMonth === month)
-          && (!week || clean(row[fields.week]) === week)
-          && (!leader || clean(row[fields.leader]) === leader)
-          && (!agent || clean(row[fields.agent]) === agent)
-          && (!product || clean(row[fields.product]) === product)
+          && filterMatches(month, row._weekMonth)
+          && filterMatches(week, row[fields.week])
+          && filterMatches(leader, row[fields.leader])
+          && filterMatches(agent, row[fields.agent])
+          && filterMatches(product, row[fields.product])
           && (!term || text.includes(term));
       });
     }
@@ -2946,7 +3332,7 @@
       document.getElementById("totalAmount").textContent = rupiah.format(sum(data, fields.amount));
       document.getElementById("totalTxn").textContent = number.format(sum(data, fields.txn) || data.length);
       document.getElementById("activeAgents").textContent = number.format(new Set(data.map((row) => clean(row[fields.agent])).filter(Boolean)).size);
-      document.getElementById("selectedAgent").textContent = document.getElementById("agentFilter").value || "Semua";
+      document.getElementById("selectedAgent").textContent = filterValueLabel("agentFilter", "Semua");
     }
 
     function renderTeamCharts(data) {
@@ -2987,21 +3373,21 @@
     function renderCoachSide(prefix, leader, color) {
       const baseRows = allRows.filter((row) =>
         (selectedTeam === "ALL" || row._group === selectedTeam)
-        && (!leader || clean(row[fields.leader]) === leader)
+        && filterMatches(leader, row[fields.leader])
       );
       setSideDateOptions(prefix, baseRows);
       const month = document.getElementById(`${prefix}MonthFilter`).value;
       const week = document.getElementById(`${prefix}WeekFilter`).value;
       const date = document.getElementById(`${prefix}DateFilter`).value;
-      const rows = leader ? baseRows.filter((row) =>
-        (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!date || clean(row[fields.date]) === date)
+      const rows = filterIsActive(leader) ? baseRows.filter((row) =>
+        filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(date, row[fields.date])
       ) : [];
       const agents = groupSum(rows, fields.agent);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const title = leader || "Belum dipilih";
+      const title = filterValueLabel(leader, "Belum dipilih");
       ["Agent", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
         if (titleEl) titleEl.textContent = title;
@@ -3011,7 +3397,7 @@
       const campaignCanvas = document.getElementById(`${prefix}CampaignChart`);
       if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(285, campaigns.length * 44 + 80)}px`;
       document.getElementById(`${prefix}Summary`).innerHTML = `
-        <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(leader || "Belum dipilih")}</strong></div>
+        <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(title)}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>Transaksi</span><strong>${number.format(sum(rows, fields.txn) || rows.length)}</strong></div>
         <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean)).size)}</strong></div>
@@ -3072,14 +3458,12 @@
         const layers = [...new Set(availableRows.map((row) => clean(row[fields.team])).filter(Boolean))]
           .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
         const spvs = [...new Set(availableRows
-          .filter((row) => !currentLayer || clean(row[fields.team]) === currentLayer)
+          .filter((row) => filterMatches(currentLayer, row[fields.team]))
           .map((row) => clean(row[fields.spv]))
           .filter((spv) => spv && !isExcludedSpv(spv)))]
           .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-        layerSelect.innerHTML = `<option value="">Semua layer</option>` + layers.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-        if (layers.includes(currentLayer)) layerSelect.value = currentLayer;
-        spvSelect.innerHTML = `<option value="">Semua SPV</option>` + spvs.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
-        if (spvs.includes(currentSpv)) spvSelect.value = currentSpv;
+        setFilterEntries(prefix + "LayerFilter", layers.map((value) => ({ value, label: value })), "Semua layer");
+        setFilterEntries(prefix + "SpvFilter", spvs.map((value) => ({ value, label: value })), "Semua SPV");
       });
     }
 
@@ -3089,25 +3473,25 @@
       const baseRows = allRows.filter((row) =>
         (selectedTeam === "ALL" || row._group === selectedTeam)
         && !isExcludedSpv(row[fields.spv])
-        && (!layer || clean(row[fields.team]) === layer)
-        && (!spv || clean(row[fields.spv]) === spv)
+        && filterMatches(layer, row[fields.team])
+        && filterMatches(spv, row[fields.spv])
       );
       setSideDateOptions(prefix, baseRows);
       const month = document.getElementById(`${prefix}MonthFilter`).value;
       const week = document.getElementById(`${prefix}WeekFilter`).value;
       const date = document.getElementById(`${prefix}DateFilter`).value;
       const dateRows = baseRows.filter((row) =>
-        (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!date || clean(row[fields.date]) === date)
+        filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(date, row[fields.date])
       );
       setUnitAgentOptions(prefix, dateRows);
       const agent = document.getElementById(`${prefix}AgentFilter`).value;
-      const rows = dateRows.filter((row) => !agent || clean(row[fields.agent]) === agent);
+      const rows = dateRows.filter((row) => filterMatches(agent, row[fields.agent]));
       const coaches = groupSum(rows, fields.leader);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
-      const title = [layer || "Semua layer", spv || "Semua SPV", agent || "Semua agent"].join(" | ");
+      const title = [filterValueLabel(layer, "Semua layer"), filterValueLabel(spv, "Semua SPV"), filterValueLabel(agent, "Semua agent")].join(" | ");
       ["Coach", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
         if (titleEl) titleEl.textContent = title;
@@ -3117,9 +3501,9 @@
       const campaignCanvas = document.getElementById(`${prefix}CampaignChart`);
       if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(285, campaigns.length * 44 + 80)}px`;
       document.getElementById(`${prefix}Summary`).innerHTML = `
-        <div class="coach-stat"><span>Layer</span><strong>${escapeHtml(layer || "Semua layer")}</strong></div>
-        <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(spv || "Semua SPV")}</strong></div>
-        <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(agent || "Semua agent")}</strong></div>
+        <div class="coach-stat"><span>Layer</span><strong>${escapeHtml(filterValueLabel(layer, "Semua layer"))}</strong></div>
+        <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(filterValueLabel(spv, "Semua SPV"))}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(filterValueLabel(agent, "Semua agent"))}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.leader])).filter(Boolean)).size)}</strong></div>
       `;
@@ -3157,14 +3541,14 @@
     function setTenureOptions() {
       setMonthOptions("tenureMonthFilter", allRows);
       const currentMonth = document.getElementById("tenureMonthFilter").value;
-      const monthRows = allRows.filter((row) => !currentMonth || row._weekMonth === currentMonth);
+      const monthRows = allRows.filter((row) => filterMatches(currentMonth, row._weekMonth));
       setOptions("tenureWeekFilter", monthRows.map((row) => row[fields.week]), "minggu");
       const currentSpv = document.getElementById("tenureSpvFilter").value;
       const currentCoach = document.getElementById("tenureCoachFilter").value;
       const spvRows = monthRows.filter((row) => !isExcludedSpv(row[fields.spv]));
       setOptions("tenureSpvFilter", spvRows.map((row) => row[fields.spv]), "SPV");
       if (currentSpv) document.getElementById("tenureSpvFilter").value = currentSpv;
-      const coachRows = spvRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      const coachRows = spvRows.filter((row) => filterMatches(currentSpv, row[fields.spv]));
       setOptions("tenureCoachFilter", coachRows.map((row) => row[fields.leader]), "coach");
       if (currentCoach) document.getElementById("tenureCoachFilter").value = currentCoach;
     }
@@ -3176,10 +3560,10 @@
       const coach = document.getElementById("tenureCoachFilter").value;
       return allRows.filter((row) =>
         !isExcludedSpv(row[fields.spv])
-        && (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!spv || clean(row[fields.spv]) === spv)
-        && (!coach || clean(row[fields.leader]) === coach)
+        && filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(spv, row[fields.spv])
+        && filterMatches(coach, row[fields.leader])
       );
     }
 
@@ -3228,7 +3612,7 @@
     function setBreakdownOptions() {
       setMonthOptions("breakdownMonthFilter", allRows);
       const currentMonth = document.getElementById("breakdownMonthFilter").value;
-      const monthRows = allRows.filter((row) => !currentMonth || row._weekMonth === currentMonth);
+      const monthRows = allRows.filter((row) => filterMatches(currentMonth, row._weekMonth));
       setOptions("breakdownWeekFilter", monthRows.map((row) => row[fields.week]), "minggu");
       const currentSpv = document.getElementById("breakdownSpvFilter").value;
       const currentCoach = document.getElementById("breakdownCoachFilter").value;
@@ -3236,10 +3620,10 @@
       const spvRows = monthRows.filter((row) => !isExcludedSpv(row[fields.spv]));
       setOptions("breakdownSpvFilter", spvRows.map((row) => row[fields.spv]), "SPV");
       if (currentSpv) document.getElementById("breakdownSpvFilter").value = currentSpv;
-      const coachRows = spvRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      const coachRows = spvRows.filter((row) => filterMatches(currentSpv, row[fields.spv]));
       setOptions("breakdownCoachFilter", coachRows.map((row) => row[fields.leader]), "coach");
       if (currentCoach) document.getElementById("breakdownCoachFilter").value = currentCoach;
-      const productRows = coachRows.filter((row) => !currentCoach || clean(row[fields.leader]) === currentCoach);
+      const productRows = coachRows.filter((row) => filterMatches(currentCoach, row[fields.leader]));
       setOptions("breakdownProductFilter", productRows.map((row) => row[fields.product]), "produk");
       if (currentProduct) document.getElementById("breakdownProductFilter").value = currentProduct;
     }
@@ -3252,11 +3636,11 @@
       const product = document.getElementById("breakdownProductFilter").value;
       return allRows.filter((row) =>
         !isExcludedSpv(row[fields.spv])
-        && (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!spv || clean(row[fields.spv]) === spv)
-        && (!coach || clean(row[fields.leader]) === coach)
-        && (!product || clean(row[fields.product]) === product)
+        && filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(spv, row[fields.spv])
+        && filterMatches(coach, row[fields.leader])
+        && filterMatches(product, row[fields.product])
       );
     }
 
@@ -3264,7 +3648,7 @@
       const rows = breakdownRows();
       const campaigns = groupCampaignSum(rows).slice(0, 20);
       const grades = groupSum(rows, fields.grade);
-      const product = document.getElementById("breakdownProductFilter").value || "Semua product type";
+      const product = filterValueLabel("breakdownProductFilter", "Semua product type");
       const palette = CHART_PALETTE;
       document.getElementById("breakdownCampaignTitle").textContent = product;
       document.getElementById("breakdownGradeTitle").textContent = product;
@@ -3313,24 +3697,23 @@
         .filter(Boolean)
         .map((campaign) => [campaign, campaignShortName(campaign)])
       ).entries()].sort((a, b) => a[1].localeCompare(b[1], "id", { numeric: true }));
-      select.innerHTML = `<option value="">Semua campaign</option>` + campaigns.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join("");
-      if (campaigns.some(([value]) => value === current)) select.value = current;
+      setFilterEntries(id, campaigns.map(([value, label]) => ({ value, label })), "Semua campaign");
     }
 
     function setAssignOptions() {
       setMonthOptions("assignMonthFilter", allRows);
       const currentMonth = document.getElementById("assignMonthFilter").value;
-      const monthRows = allRows.filter((row) => !currentMonth || row._weekMonth === currentMonth);
+      const monthRows = allRows.filter((row) => filterMatches(currentMonth, row._weekMonth));
       setOptions("assignWeekFilter", monthRows.map((row) => row[fields.week]), "minggu");
       const currentSpv = document.getElementById("assignSpvFilter").value;
       const currentLeader = document.getElementById("assignLeaderFilter").value;
       const baseRows = monthRows.filter((row) => !isExcludedSpv(row[fields.spv]));
       setOptions("assignSpvFilter", baseRows.map((row) => row[fields.spv]), "SPV");
       if (currentSpv) document.getElementById("assignSpvFilter").value = currentSpv;
-      const leaderRows = baseRows.filter((row) => !currentSpv || clean(row[fields.spv]) === currentSpv);
+      const leaderRows = baseRows.filter((row) => filterMatches(currentSpv, row[fields.spv]));
       setOptions("assignLeaderFilter", leaderRows.map((row) => row[fields.leader]), "leader");
       if (currentLeader) document.getElementById("assignLeaderFilter").value = currentLeader;
-      const campaignRows = leaderRows.filter((row) => !currentLeader || clean(row[fields.leader]) === currentLeader);
+      const campaignRows = leaderRows.filter((row) => filterMatches(currentLeader, row[fields.leader]));
       setCampaignOptions("assignCampaignFilter", campaignRows);
     }
 
@@ -3342,11 +3725,11 @@
       const campaign = document.getElementById("assignCampaignFilter").value;
       return allRows.filter((row) =>
         !isExcludedSpv(row[fields.spv])
-        && (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!spv || clean(row[fields.spv]) === spv)
-        && (!leader || clean(row[fields.leader]) === leader)
-        && (!campaign || clean(row[fields.campaign]) === campaign)
+        && filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(spv, row[fields.spv])
+        && filterMatches(leader, row[fields.leader])
+        && filterMatches(campaign, row[fields.campaign])
       );
     }
 
@@ -3371,7 +3754,7 @@
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>Invoice</span><strong>${number.format(totalInvoices)}</strong></div>
         <div class="coach-stat"><span>Assigned Date</span><strong>${number.format(groups.length)}</strong></div>
-        <div class="coach-stat"><span>Campaign</span><strong>${escapeHtml(campaignShortName(document.getElementById("assignCampaignFilter").value) || "Semua campaign")}</strong></div>
+        <div class="coach-stat"><span>Campaign</span><strong>${escapeHtml(filterValueLabel("assignCampaignFilter", "Semua campaign"))}</strong></div>
       `;
       ["assignRevenueChart", "assignInvoiceChart"].forEach((id) => {
         const canvas = document.getElementById(id);
@@ -3398,19 +3781,19 @@
     function setGrowthOptions() {
       setMonthOptions("growthMonthFilter", allRows);
       const month = document.getElementById("growthMonthFilter").value;
-      const monthRows = allRows.filter((row) => !month || row._weekMonth === month);
+      const monthRows = allRows.filter((row) => filterMatches(month, row._weekMonth));
       setOptions("growthWeekFilter", monthRows.map((row) => row[fields.week]), "minggu");
       const week = document.getElementById("growthWeekFilter").value;
-      const weekRows = monthRows.filter((row) => !week || clean(row[fields.week]) === week);
+      const weekRows = monthRows.filter((row) => filterMatches(week, row[fields.week]));
       setOptions("growthDateFilter", weekRows.map((row) => row[fields.date]), "daily");
       const date = document.getElementById("growthDateFilter").value;
-      const dateRows = weekRows.filter((row) => !date || clean(row[fields.date]) === date);
+      const dateRows = weekRows.filter((row) => filterMatches(date, row[fields.date]));
       setOptions("growthSpvFilter", dateRows.map((row) => row[fields.spv]), "SPV");
       const spv = document.getElementById("growthSpvFilter").value;
-      const spvRows = dateRows.filter((row) => !spv || clean(row[fields.spv]) === spv);
+      const spvRows = dateRows.filter((row) => filterMatches(spv, row[fields.spv]));
       setOptions("growthCoachFilter", spvRows.map((row) => row[fields.leader]), "coach");
       const coach = document.getElementById("growthCoachFilter").value;
-      const coachRows = spvRows.filter((row) => !coach || clean(row[fields.leader]) === coach);
+      const coachRows = spvRows.filter((row) => filterMatches(coach, row[fields.leader]));
       setOptions("growthAgentFilter", coachRows.map((row) => row[fields.agent]), "agent");
     }
 
@@ -3423,12 +3806,12 @@
       const agent = document.getElementById("growthAgentFilter").value;
       return allRows.filter((row) =>
         !isExcludedSpv(row[fields.spv])
-        && (!month || row._weekMonth === month)
-        && (!week || clean(row[fields.week]) === week)
-        && (!date || clean(row[fields.date]) === date)
-        && (!spv || clean(row[fields.spv]) === spv)
-        && (!coach || clean(row[fields.leader]) === coach)
-        && (!agent || clean(row[fields.agent]) === agent)
+        && filterMatches(month, row._weekMonth)
+        && filterMatches(week, row[fields.week])
+        && filterMatches(date, row[fields.date])
+        && filterMatches(spv, row[fields.spv])
+        && filterMatches(coach, row[fields.leader])
+        && filterMatches(agent, row[fields.agent])
       );
     }
 
@@ -3437,7 +3820,7 @@
       const selectedMonth = document.getElementById("growthMonthFilter").value;
       const hasDetailFilter = ["growthWeekFilter", "growthDateFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"]
         .some((id) => document.getElementById(id).value);
-      const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && (!selectedMonth || row._weekMonth === selectedMonth));
+      const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && filterMatches(selectedMonth, row._weekMonth));
       const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
       const rowLabel = hasDetailFilter ? "Agent" : "Coach";
       const groupKey = hasDetailFilter ? fields.agent : fields.leader;
@@ -3453,7 +3836,7 @@
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
       );
       document.getElementById("growthSummary").innerHTML = `
-        <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(selectedMonth ? monthLabel(selectedMonth) : "Semua bulan")}</strong></div>
+        <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(filterValueLabel("growthMonthFilter", "Semua bulan"))}</strong></div>
         <div class="coach-stat"><span>Total Revenue</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>${rowLabel}</span><strong>${number.format(items.length)}</strong></div>
         <div class="coach-stat"><span>Week Range</span><strong>${weeks.length ? `${weeks[0]}-${weeks[weeks.length - 1]}` : "-"}</strong></div>
@@ -3530,30 +3913,22 @@
     function setPresentationSourceOptions() {
       const select = document.getElementById("presentationSourceFilter");
       if (!select) return;
-      const current = select.value;
-      select.innerHTML = `<option value="">Semua coach</option>` + DAILY_PRESENTATION_SOURCES
-        .map((source) => `<option value="${escapeHtml(source.key)}">${escapeHtml(source.label)}</option>`)
-        .join("");
-      if (DAILY_PRESENTATION_SOURCES.some((source) => source.key === current)) select.value = current;
+      setFilterEntries("presentationSourceFilter", DAILY_PRESENTATION_SOURCES.map((source) => ({ value: source.key, label: source.label })), "Semua coach");
     }
 
     function presentationSourceRows() {
-      const source = clean(document.getElementById("presentationSourceFilter")?.value);
-      return source
-        ? presentationRows.filter((row) => row._source === source)
+      const source = document.getElementById("presentationSourceFilter")?.value || "";
+      return filterIsActive(source)
+        ? presentationRows.filter((row) => filterMatches(source, row._source))
         : presentationRows;
     }
 
     function setPresentationDateOptions(rows) {
       const select = document.getElementById("presentationDateFilter");
       if (!select) return;
-      const current = select.value;
       const dates = [...new Set(rows.map((row) => row._dateKey).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
-      select.innerHTML = `<option value="">Semua daily</option>` + dates
-        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(dateLabelFromKey(value))}</option>`)
-        .join("");
-      if (dates.includes(current)) select.value = current;
+      setFilterEntries("presentationDateFilter", dates.map((value) => ({ value, label: dateLabelFromKey(value) })), "Semua daily");
     }
 
     function setPresentationOptions() {
@@ -3561,19 +3936,19 @@
       const sourceRows = presentationSourceRows();
       setMonthOptions("presentationMonthFilter", sourceRows);
       const month = document.getElementById("presentationMonthFilter").value;
-      const monthRows = sourceRows.filter((row) => !month || row._weekMonth === month);
+      const monthRows = sourceRows.filter((row) => filterMatches(month, row._weekMonth));
       setOptions("presentationWeekFilter", monthRows.map((row) => row._week), "minggu");
       const week = document.getElementById("presentationWeekFilter").value;
-      const weekRows = monthRows.filter((row) => !week || row._week === week);
+      const weekRows = monthRows.filter((row) => filterMatches(week, row._week));
       setPresentationDateOptions(weekRows);
       const date = document.getElementById("presentationDateFilter").value;
-      const dateRows = weekRows.filter((row) => !date || row._dateKey === date);
+      const dateRows = weekRows.filter((row) => filterMatches(date, row._dateKey));
       setOptions("presentationAgentFilter", dateRows.map((row) => row[presentationFields.agent]), "agent");
       const agent = document.getElementById("presentationAgentFilter").value;
-      const agentRows = dateRows.filter((row) => !agent || clean(row[presentationFields.agent]) === agent);
+      const agentRows = dateRows.filter((row) => filterMatches(agent, row[presentationFields.agent]));
       setOptions("presentationSubStatusFilter", agentRows.map((row) => row[presentationFields.subStatus]), "sub status");
       const subStatus = document.getElementById("presentationSubStatusFilter").value;
-      const subStatusRows = agentRows.filter((row) => !subStatus || clean(row[presentationFields.subStatus]) === subStatus);
+      const subStatusRows = agentRows.filter((row) => filterMatches(subStatus, row[presentationFields.subStatus]));
       setOptions("presentationProductFilter", subStatusRows.map((row) => row[presentationFields.product]), "product");
     }
 
@@ -3585,12 +3960,12 @@
       const subStatus = document.getElementById("presentationSubStatusFilter").value;
       const product = document.getElementById("presentationProductFilter").value;
       return presentationSourceRows().filter((row) =>
-        (!month || row._weekMonth === month)
-        && (!week || row._week === week)
-        && (!date || row._dateKey === date)
-        && (!agent || clean(row[presentationFields.agent]) === agent)
-        && (!subStatus || clean(row[presentationFields.subStatus]) === subStatus)
-        && (!product || clean(row[presentationFields.product]) === product)
+        filterMatches(month, row._weekMonth)
+        && filterMatches(week, row._week)
+        && filterMatches(date, row._dateKey)
+        && filterMatches(agent, row[presentationFields.agent])
+        && filterMatches(subStatus, row[presentationFields.subStatus])
+        && filterMatches(product, row[presentationFields.product])
       );
     }
 
@@ -3684,22 +4059,25 @@
     }
 
     function presentationTransactionProductMatches(row, product) {
-      if (!product) return true;
-      const selected = normalizeName(product);
       const rawProduct = normalizeName(row[fields.product]);
-      if (!selected || !rawProduct) return false;
-      if (selected === rawProduct) return true;
-      if (selected === "brain academy center") return rawProduct === "brain academy";
-      if (selected === "brain academy online") return rawProduct.startsWith("brain academy online");
-      return false;
+      const selectedProducts = splitFilterValue(product).map(normalizeName);
+      if (!selectedProducts.length) return true;
+      if (!rawProduct) return false;
+      return selectedProducts.some((selected) => {
+        if (!selected) return false;
+        if (selected === rawProduct) return true;
+        if (selected === "brain academy center") return rawProduct === "brain academy";
+        if (selected === "brain academy online") return rawProduct.startsWith("brain academy online");
+        return false;
+      });
     }
 
     function presentationTransactionRows(source, month, week, date, agent, product, allMonthKeys, restrictToMonthKeys, presentationRowsForScope) {
-      const selectedLeader = PRESENTATION_TRANSACTION_LEADERS[source];
-      const leaders = selectedLeader
-        ? [normalizeName(selectedLeader)]
+      const selectedSources = splitFilterValue(source);
+      const leaders = selectedSources.length
+        ? selectedSources.map((key) => PRESENTATION_TRANSACTION_LEADERS[key]).filter(Boolean).map(normalizeName)
         : Object.values(PRESENTATION_TRANSACTION_LEADERS).map(normalizeName);
-      const agentKey = normalizeName(agent);
+      const agentKeys = new Set(splitFilterValue(agent).map(normalizeName));
       const presentationAgentKeys = new Set(presentationRowsForScope
         .map((row) => normalizeName(row[presentationFields.agent]))
         .filter(Boolean));
@@ -3710,10 +4088,10 @@
         return presentationTransactionValue(row) > 0
           && leaders.includes(rowLeader)
           && presentationAgentKeys.has(rowAgent)
-          && (!month || row._weekMonth === month)
-          && (!week || rowWeek === week)
-          && (!date || dateKeyFromValue(row[fields.date]) === date)
-          && (!agentKey || rowAgent === agentKey)
+          && filterMatches(month, row._weekMonth)
+          && filterMatches(week, rowWeek)
+          && filterMatches(date, dateKeyFromValue(row[fields.date]))
+          && (!agentKeys.size || agentKeys.has(rowAgent))
           && presentationTransactionProductMatches(row, product)
           && (!restrictToMonthKeys || allMonthKeys.includes(row._weekMonth));
       });
@@ -3782,9 +4160,9 @@
 
     function presentationTimeScopeRows(sourceRows, month, week, date) {
       return sourceRows.filter((row) =>
-        (!month || row._weekMonth === month)
-        && (!week || row._week === week)
-        && (!date || row._dateKey === date)
+        filterMatches(month, row._weekMonth)
+        && filterMatches(week, row._week)
+        && filterMatches(date, row._dateKey)
       );
     }
 
@@ -3815,6 +4193,23 @@
         if (presentationIsWorkingDate(date)) workdays += 1;
       }
       return workdays;
+    }
+
+    function presentationWeekWorkdaysForRows(rows) {
+      const starts = new Map();
+      rows.forEach((row) => {
+        const monday = mondayOfWeek(parseDateValue(row[presentationFields.date]));
+        if (monday) starts.set(presentationDateKey(monday), monday);
+      });
+      if (!starts.size) return presentationWeekWorkdays(rows);
+      return [...starts.values()].reduce((total, monday) => {
+        let workdays = 0;
+        for (let offset = 0; offset < 5; offset += 1) {
+          const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+          if (presentationIsWorkingDate(date)) workdays += 1;
+        }
+        return total + workdays;
+      }, 0);
     }
 
     function presentationActiveWeekStarts(rows) {
@@ -3855,19 +4250,23 @@
       const scopeRows = presentationTimeScopeRows(sourceRows, month, week, date);
       if (date) {
         return {
-          days: presentationIsWorkingDate(date) ? 1 : 0,
-          weeks: 1
+          days: new Set(splitFilterValue(date).filter((value) => presentationIsWorkingDate(value))).size,
+          weeks: presentationActiveWeekCount(scopeRows) || 1
         };
       }
       if (week) {
         return {
-          days: presentationWeekWorkdays(scopeRows),
-          weeks: 1
+          days: presentationWeekWorkdaysForRows(scopeRows),
+          weeks: presentationActiveWeekCount(scopeRows) || 1
         };
       }
       if (month) {
+        const selectedMonths = splitFilterValue(month);
+        const days = selectedMonths.length
+          ? selectedMonths.reduce((total, value) => total + presentationMonthWorkdaysFromRows(value, scopeRows.filter((row) => row._weekMonth === value)), 0)
+          : presentationMonthWorkdaysFromRows(month, scopeRows);
         return {
-          days: presentationMonthWorkdaysFromRows(month, scopeRows),
+          days,
           weeks: presentationActiveWeekCount(scopeRows) || 1
         };
       }
@@ -3893,18 +4292,19 @@
       const note = document.getElementById("presentationTrendNote");
       if (!document.getElementById("presentationTrendChart")) return;
       const mode = week || date ? "daily" : "weekly";
+      const hasSingleMonth = splitFilterValue(month).length === 1;
       const periodsByKey = new Map();
       rows.forEach((row) => {
-        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        const period = presentationPeriodForRow(row, mode, hasSingleMonth);
         if (!periodsByKey.has(period.key)) periodsByKey.set(period.key, period);
       });
       const periods = [...periodsByKey.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey, "id", { numeric: true }));
       const totals = periods.map((period) => rows.reduce((total, row) => {
-        const rowPeriod = presentationPeriodForRow(row, mode, Boolean(month));
+        const rowPeriod = presentationPeriodForRow(row, mode, hasSingleMonth);
         return total + (rowPeriod.key === period.key ? (row._hold || 1) : 0);
       }, 0));
       const agentCount = new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size;
-      const coachLabel = source ? presentationSourceLabel(source) : `${DAILY_PRESENTATION_SOURCES.length} coach`;
+      const coachLabel = filterIsActive(source) ? filterValueLabel("presentationSourceFilter", "") : `${DAILY_PRESENTATION_SOURCES.length} coach`;
       const periodName = mode === "monthly" ? "bulan" : mode === "weekly" ? "minggu" : "hari";
       if (title) title.textContent = `Pergerakan Total Hold · ${coachLabel}`;
       if (note) note.textContent = `${number.format(agentCount)} agent · total per ${periodName} · X = ${mode === "daily" ? "tanggal" : "week"} · Y = total Hold`;
@@ -3984,6 +4384,7 @@
       const product = document.getElementById("presentationProductFilter").value;
       const source = document.getElementById("presentationSourceFilter")?.value || "";
       const mode = week || date ? "daily" : month ? "weekly" : "monthly";
+      const hasSingleMonth = splitFilterValue(month).length === 1;
       const allMonthsView = mode === "monthly";
       const allMonthKeys = allMonthsView ? presentationDefaultMonthKeys(sourceRows) : [];
       const filteredRows = presentationFilterRows();
@@ -4017,7 +4418,7 @@
       const metricDenominators = presentationMetricDenominators(metricSourceRows, month, week, date);
       const periodsByKey = new Map();
       rows.forEach((row) => {
-        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        const period = presentationPeriodForRow(row, mode, hasSingleMonth);
         if (!periodsByKey.has(period.key)) periodsByKey.set(period.key, period);
       });
       const periods = [...periodsByKey.values()].sort((a, b) => a.sortKey.localeCompare(b.sortKey, "id", { numeric: true }));
@@ -4034,7 +4435,7 @@
           });
         }
         const item = agentMap.get(name);
-        const period = presentationPeriodForRow(row, mode, Boolean(month));
+        const period = presentationPeriodForRow(row, mode, hasSingleMonth);
         item.periods[period.key] = (item.periods[period.key] || 0) + (row._hold || 1);
         item.total += (row._hold || 1);
       });
@@ -4049,10 +4450,10 @@
       const allMonthsLabel = allMonthKeys.length
         ? `${presentationShortMonthLabel(allMonthKeys[0])} – ${presentationShortMonthLabel(allMonthKeys.at(-1))}`
         : "Semua periode";
-      const periodLabel = date ? dateLabelFromKey(date) : week ? `W${week}` : month ? presentationShortMonthLabel(month) : allMonthsLabel;
-      const agentLabel = agent || `${new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size} agent`;
-      const sourceLabel = source ? presentationSourceLabel(source) : "Semua coach";
-      const totalLabel = date ? `Total ${dateLabelFromKey(date)}` : week ? `Total W${week}` : month ? `Total ${presentationShortMonthLabel(month)}` : `Total ${allMonthsLabel}`;
+      const periodLabel = date ? filterValueLabel("presentationDateFilter", dateLabelFromKey(date)) : week ? `W${filterValueLabel("presentationWeekFilter", "")}` : month ? filterValueLabel("presentationMonthFilter", "Semua bulan") : allMonthsLabel;
+      const agentLabel = filterIsActive(agent) ? filterValueLabel("presentationAgentFilter", "") : `${new Set(rows.map((row) => clean(row[presentationFields.agent])).filter(Boolean)).size} agent`;
+      const sourceLabel = filterIsActive(source) ? filterValueLabel("presentationSourceFilter", "") : "Semua coach";
+      const totalLabel = date ? `Total ${filterValueLabel("presentationDateFilter", dateLabelFromKey(date))}` : week ? `Total ${filterValueLabel("presentationWeekFilter", "")}` : month ? `Total ${filterValueLabel("presentationMonthFilter", "Semua bulan")}` : `Total ${allMonthsLabel}`;
       const summary = document.getElementById("presentationSummary");
       if (summary) {
         summary.innerHTML = `
@@ -4083,7 +4484,7 @@
         }).join("") : `<tr><td colspan="${columnCount}" class="empty">${sourceRows.length ? "Tidak ada data sesuai filter." : "Memuat data DAILY PRESENTASI..."}</td></tr>`;
       }
       if (foot) {
-        const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, Boolean(month)).key === period.key ? (row._hold || 1) : 0), 0));
+        const periodTotals = periods.map((period) => rows.reduce((total, row) => total + (presentationPeriodForRow(row, mode, hasSingleMonth).key === period.key ? (row._hold || 1) : 0), 0));
         foot.innerHTML = `<tr><td>${escapeHtml(totalLabel)}</td>${periodTotals.map((total) => `<td class="right">${number.format(total)}</td>`).join("")}<td class="right"><strong>${number.format(totalHold)}</strong></td><td class="right metric">${presentationAverage(totalHold, metricDenominators.days)}</td><td class="right metric">${presentationAverage(totalHold, metricDenominators.weeks)}</td><td class="right metric revenue-cell">${rupiah.format(sum(transactionRows, fields.amount))}</td><td class="right metric">${number.format(totalTransactions)}</td><td class="right metric">${presentationCR(totalTransactions, totalHold)}</td></tr>`;
       }
       renderPresentationProductBreakdown(rows, periodLabel);
@@ -4174,23 +4575,18 @@
       const currentWeek = weekSelect.value;
       setMonthOptions("callMonthFilter", callRows);
       const month = monthSelect.value;
-      const monthRows = callRows.filter((row) => !month || row._weekMonth === month);
+      const monthRows = callRows.filter((row) => filterMatches(month, row._weekMonth));
       const weeks = [...new Set(monthRows.map((row) => row._week).filter(Boolean))]
         .sort((a, b) => Number(a) - Number(b));
-      weekSelect.innerHTML = `<option value="">Semua weekly</option>` + weeks
-        .map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
-        .join("");
-      if (weeks.includes(currentWeek)) weekSelect.value = currentWeek;
+      setOptions("callWeekFilter", weeks, "weekly");
       const week = weekSelect.value;
-      const weekRows = monthRows.filter((row) => !week || row._week === week);
+      const weekRows = monthRows.filter((row) => filterMatches(week, row._week));
       setOptions("callDateFilter", weekRows.map((row) => row._date), "daily");
       setOptions("callStatusFilter", weekRows.map((row) => row.Status), "status");
       setOptions("callCoachFilter", weekRows.map((row) => row.COACH), "coach");
       setOptions("callAgentFilter", weekRows.map((row) => row["Agent Name"]), "agent");
       const select = document.getElementById("callTimeFilter");
-      const current = select.value;
-      select.innerHTML = `<option value="">Semua waktu</option>` + CALL_BUCKETS.map((bucket) => `<option value="${bucket.label}">${bucket.label}</option>`).join("");
-      if (CALL_BUCKETS.some((bucket) => bucket.label === current)) select.value = current;
+      setFilterEntries("callTimeFilter", CALL_BUCKETS.map((bucket) => ({ value: bucket.label, label: bucket.label })), "Semua waktu");
     }
 
     function filteredCallRows() {
@@ -4202,13 +4598,13 @@
       const agent = document.getElementById("callAgentFilter").value;
       const bucket = document.getElementById("callTimeFilter").value;
       return callRows.filter((row) =>
-        (!month || row._weekMonth === month)
-        && (!week || row._week === week)
-        && (!date || row._date === date)
-        && (!status || clean(row.Status) === status)
-        && (!coach || clean(row.COACH) === coach)
-        && (!agent || clean(row["Agent Name"]) === agent)
-        && (!bucket || row._bucket === bucket)
+        filterMatches(month, row._weekMonth)
+        && filterMatches(week, row._week)
+        && filterMatches(date, row._date)
+        && filterMatches(status, row.Status)
+        && filterMatches(coach, row.COACH)
+        && filterMatches(agent, row["Agent Name"])
+        && filterMatches(bucket, row._bucket)
       );
     }
 
@@ -4347,16 +4743,16 @@
       const currentStatus = statusSelect.value;
       setOptions(`${prefix}CoachFilter`, callRows.map((row) => row.COACH), "coach");
       if (currentCoach) coachSelect.value = currentCoach;
-      const coachRows = callRows.filter((row) => !coachSelect.value || clean(row.COACH) === coachSelect.value);
+      const coachRows = callRows.filter((row) => filterMatches(coachSelect.value, row.COACH));
       setOptions(`${prefix}AgentFilter`, coachRows.map((row) => row["Agent Name"]), "agent");
       if (currentAgent) agentSelect.value = currentAgent;
-      const agentRows = coachRows.filter((row) => !agentSelect.value || clean(row["Agent Name"]) === agentSelect.value);
+      const agentRows = coachRows.filter((row) => filterMatches(agentSelect.value, row["Agent Name"]));
       setMonthOptions(`${prefix}MonthFilter`, agentRows);
       if (currentMonth) monthSelect.value = currentMonth;
-      const monthRows = agentRows.filter((row) => !monthSelect?.value || row._weekMonth === monthSelect.value);
+      const monthRows = agentRows.filter((row) => filterMatches(monthSelect?.value || "", row._weekMonth));
       setOptions(`${prefix}DateFilter`, monthRows.map((row) => row._date), "daily");
       if (currentDate) dateSelect.value = currentDate;
-      const dateRows = monthRows.filter((row) => !dateSelect.value || row._date === dateSelect.value);
+      const dateRows = monthRows.filter((row) => filterMatches(dateSelect.value, row._date));
       setOptions(`${prefix}StatusFilter`, dateRows.map((row) => row.Status), "status");
       if (currentStatus) statusSelect.value = currentStatus;
     }
@@ -4368,11 +4764,11 @@
       const date = document.getElementById(`${prefix}DateFilter`).value;
       const status = document.getElementById(`${prefix}StatusFilter`).value;
       return callRows.filter((row) =>
-        (!coach || clean(row.COACH) === coach)
-        && (!agent || clean(row["Agent Name"]) === agent)
-        && (!month || row._weekMonth === month)
-        && (!date || row._date === date)
-        && (!status || clean(row.Status) === status)
+        filterMatches(coach, row.COACH)
+        && filterMatches(agent, row["Agent Name"])
+        && filterMatches(month, row._weekMonth)
+        && filterMatches(date, row._date)
+        && filterMatches(status, row.Status)
       );
     }
 
@@ -4417,9 +4813,10 @@
     }
 
     function initialize() {
+      enhanceMultiSelects();
       setMonthOptions("monthFilter", allRows);
       const currentMonth = document.getElementById("monthFilter").value;
-      const monthRows = allRows.filter((row) => !currentMonth || row._weekMonth === currentMonth);
+      const monthRows = allRows.filter((row) => filterMatches(currentMonth, row._weekMonth));
       setOptions("weekFilter", monthRows.map((row) => row[fields.week]), "minggu");
       setOptions("leaderFilter", allRows.map((row) => row[fields.leader]), "leader");
       setOptions("agentFilter", allRows.map((row) => row[fields.agent]), "agent");
@@ -4428,7 +4825,7 @@
         document.getElementById(id).addEventListener("input", () => {
           if (id === "monthFilter") {
             const month = document.getElementById("monthFilter").value;
-            setOptions("weekFilter", allRows.filter((row) => !month || row._weekMonth === month).map((row) => row[fields.week]), "minggu");
+            setOptions("weekFilter", allRows.filter((row) => filterMatches(month, row._weekMonth)).map((row) => row[fields.week]), "minggu");
           }
           render();
         });
@@ -4692,6 +5089,7 @@
       });
     }
 
+    enhanceMultiSelects();
     setupThemeToggle();
     loadSheet();
     loadCallSheet();

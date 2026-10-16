@@ -1105,6 +1105,10 @@
       margin-bottom: 0;
     }
 
+    #pageGrowthAgent .growth-filters {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .coach-summary {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
@@ -1257,6 +1261,64 @@
     #presentationProductTable td.product-zero {
       background: rgba(223, 93, 120, .13);
       color: #b43c5b;
+      font-weight: 850;
+    }
+
+    .daily-closing-table-wrap { max-height: 760px; }
+
+    #dailyClosingTable {
+      min-width: 760px;
+      font-size: 12px;
+    }
+
+    #dailyClosingTable th,
+    #dailyClosingTable td {
+      padding: 8px 9px;
+      white-space: nowrap;
+    }
+
+    #dailyClosingTable th:first-child,
+    #dailyClosingTable td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 170px;
+      background: #f3f7fa;
+    }
+
+    #dailyClosingTable td:first-child {
+      color: #163e59;
+      font-weight: 750;
+    }
+
+    #dailyClosingTable th:last-child,
+    #dailyClosingTable td:last-child {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: #eaf3f6;
+    }
+
+    #dailyClosingTable td.closing-zero {
+      background: rgba(223, 93, 120, .16);
+      color: #b43c5b;
+      font-weight: 850;
+    }
+
+    #dailyClosingTable td.closing-positive {
+      color: #176b79;
+      font-weight: 750;
+    }
+
+    #dailyClosingTable td.closing-negative {
+      background: rgba(237, 170, 50, .16);
+      color: #9a6710;
+      font-weight: 850;
+    }
+
+    #dailyClosingTable tfoot td {
+      background: #f3f7fa;
+      color: #163e59;
       font-weight: 850;
     }
 
@@ -1703,6 +1765,39 @@
       color: #ff9db2;
     }
 
+    html[data-theme="dark"] #dailyClosingTable th:first-child,
+    html[data-theme="dark"] #dailyClosingTable td:first-child {
+      background: #112a3e;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable td:first-child {
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable th:last-child,
+    html[data-theme="dark"] #dailyClosingTable td:last-child {
+      background: #173448;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable td.closing-zero {
+      background: rgba(241, 122, 148, .18);
+      color: #ff9db2;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable td.closing-positive {
+      color: #78dfd9;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable td.closing-negative {
+      background: rgba(245, 196, 94, .18);
+      color: #ffd477;
+    }
+
+    html[data-theme="dark"] #dailyClosingTable tfoot td {
+      background: #122d40;
+      color: #e2f2f7;
+    }
+
     html[data-theme="dark"] #presentationTable td.metric {
       color: #78dfd9;
     }
@@ -1949,6 +2044,7 @@
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
       <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
       <button type="button" data-page="pageDailyPresentation">DAILY PRESENTASI</button>
+      <button type="button" data-page="pageDailyClosing">DAILY CLOSING</button>
     </div>
 
     <section class="kpis">
@@ -1970,6 +2066,7 @@
             <label>Monthly<select id="leaderAMonthFilter"></select></label>
             <label>Weekly<select id="leaderAWeekFilter"></select></label>
             <label>Daily<select id="leaderADateFilter"></select></label>
+            <label>Product<select id="leaderAProductFilter"></select></label>
           </div>
           <div class="coach-summary" id="leaderASummary"></div>
           <div>
@@ -2007,6 +2104,7 @@
             <label>Monthly<select id="leaderBMonthFilter"></select></label>
             <label>Weekly<select id="leaderBWeekFilter"></select></label>
             <label>Daily<select id="leaderBDateFilter"></select></label>
+            <label>Product<select id="leaderBProductFilter"></select></label>
           </div>
           <div class="coach-summary" id="leaderBSummary"></div>
           <div>
@@ -2051,6 +2149,7 @@
             <label>Weekly<select id="unitAWeekFilter"></select></label>
             <label>Daily<select id="unitADateFilter"></select></label>
             <label>Agent<select id="unitAAgentFilter"></select></label>
+            <label>Product<select id="unitAProductFilter"></select></label>
           </div>
           <div class="coach-summary" id="unitASummary"></div>
           <div>
@@ -2090,6 +2189,7 @@
             <label>Weekly<select id="unitBWeekFilter"></select></label>
             <label>Daily<select id="unitBDateFilter"></select></label>
             <label>Agent<select id="unitBAgentFilter"></select></label>
+            <label>Product<select id="unitBProductFilter"></select></label>
           </div>
           <div class="coach-summary" id="unitBSummary"></div>
           <div>
@@ -2445,10 +2545,11 @@
           <h2>Growth Agent</h2>
           <span class="note">revenue week by week dan growth dari minggu sebelumnya</span>
         </div>
-        <section class="filters">
+        <section class="filters growth-filters">
           <label>Monthly<select id="growthMonthFilter"></select></label>
           <label>Weekly<select id="growthWeekFilter"></select></label>
           <label>Daily<select id="growthDateFilter"></select></label>
+          <label>Product Type<select id="growthProductFilter"></select></label>
           <label>SPV<select id="growthSpvFilter"></select></label>
           <label>Coach<select id="growthCoachFilter"></select></label>
           <label>Agent<select id="growthAgentFilter"></select></label>
@@ -2531,6 +2632,42 @@
             <span class="note" id="presentationTrendNote">X = periode · Y = total Hold</span>
           </div>
           <div class="chart-wrap presentation-trend-wrap"><canvas id="presentationTrendChart"></canvas></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="page" id="pageDailyClosing">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>DAILY CLOSING</h2>
+          <span class="note">revenue per agent dan tanggal closing</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="dailyClosingMonthFilter"></select></label>
+          <label>Weekly<select id="dailyClosingWeekFilter"></select></label>
+          <label>Daily<select id="dailyClosingDateFilter"></select></label>
+          <label>Layer<select id="dailyClosingLayerFilter"></select></label>
+          <label>SPV<select id="dailyClosingSpvFilter"></select></label>
+          <label>Coach<select id="dailyClosingCoachFilter"></select></label>
+          <label>Agent<select id="dailyClosingAgentFilter"></select></label>
+          <label>Product<select id="dailyClosingProductFilter"></select></label>
+          <label>Campaign<select id="dailyClosingCampaignFilter"></select></label>
+        </section>
+        <div class="coach-summary" id="dailyClosingSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2 id="dailyClosingTableTitle">Revenue per Agent · Minggu Berjalan</h2>
+            <span class="note" id="dailyClosingTableNote">Sel merah berarti tidak ada closing pada tanggal tersebut</span>
+          </div>
+          <div class="table-wrap daily-closing-table-wrap">
+            <table id="dailyClosingTable">
+              <thead id="dailyClosingHead"></thead>
+              <tbody id="dailyClosingBody">
+                <tr><td class="empty">Memuat data...</td></tr>
+              </tbody>
+              <tfoot id="dailyClosingFoot"></tfoot>
+            </table>
+          </div>
         </div>
       </section>
     </section>
@@ -2650,6 +2787,10 @@
     let callRows = [];
     let presentationRows = [];
     const presentationSourceStatus = {};
+    let dailyClosingDefaultApplied = false;
+    let dailyClosingCacheSource = null;
+    const dailyClosingOrgRowsCache = new Map();
+    const dailyClosingTimeRowsCache = new WeakMap();
     let selectedTeam = "ALL";
     const charts = {};
     const THEME_STORAGE_KEY = "fortuna-theme";
@@ -2755,12 +2896,18 @@
 
     const MULTI_VALUE_SEPARATOR = "\u001f";
     const multiSelectMeta = new WeakMap();
+    const filterValuePartsCache = new Map();
+    const filterSelectionSetCache = new Map();
 
     function splitFilterValue(value) {
       if (Array.isArray(value)) return value.map(clean).filter(Boolean);
       if (value && value.tagName === "SELECT") return selectedFilterValues(value);
       const text = clean(value);
-      return text ? text.split(MULTI_VALUE_SEPARATOR).map(clean).filter(Boolean) : [];
+      if (!text) return [];
+      if (filterValuePartsCache.has(text)) return filterValuePartsCache.get(text);
+      const parts = text.split(MULTI_VALUE_SEPARATOR).map(clean).filter(Boolean);
+      filterValuePartsCache.set(text, parts);
+      return parts;
     }
 
     function selectedFilterValues(idOrSelect) {
@@ -2772,8 +2919,15 @@
     }
 
     function filterMatches(selection, value) {
-      const selected = splitFilterValue(selection);
-      return !selected.length || selected.includes(clean(value));
+      const values = splitFilterValue(selection);
+      if (!values.length) return true;
+      const cacheKey = values.join("\u0000");
+      let selected = filterSelectionSetCache.get(cacheKey);
+      if (!selected) {
+        selected = new Set(values);
+        filterSelectionSetCache.set(cacheKey, selected);
+      }
+      return selected.has(clean(value));
     }
 
     function filterIsActive(selection) {
@@ -2793,7 +2947,8 @@
       return labels.length <= 2 ? labels.join(", ") : `${labels.length} dipilih`;
     }
 
-    function setNativeFilterValues(select, values) {
+    function setNativeFilterValues(select, values, forceRefresh = false) {
+      const before = selectedFilterValues(select).join(MULTI_VALUE_SEPARATOR);
       const options = Array.from(select.options || []);
       const available = new Set(options.map((option) => clean(option.value)).filter(Boolean));
       const wanted = new Set(splitFilterValue(values).filter((value) => available.has(value)));
@@ -2803,7 +2958,8 @@
       const allOption = options.find((option) => !clean(option.value));
       if (!wanted.size && allOption) allOption.selected = true;
       if (wanted.size && allOption) allOption.selected = false;
-      refreshMultiSelect(select);
+      const after = selectedFilterValues(select).join(MULTI_VALUE_SEPARATOR);
+      if (forceRefresh || before !== after) refreshMultiSelect(select);
     }
 
     function installMultiSelectValueBridge(select) {
@@ -2860,36 +3016,45 @@
         ? (labels.length <= 2 ? labels.join(", ") : `${labels.length} dipilih`)
         : (select.options[0]?.textContent?.trim() || "Pilih");
       meta.trigger.title = labels.length ? labels.join(", ") : meta.label.textContent;
-      meta.menu.innerHTML = `
-        <div class="multi-select-actions">
-          <button type="button" class="multi-select-action" data-multi-action="all">Semua</button>
-          <button type="button" class="multi-select-action" data-multi-action="close">Tutup</button>
-        </div>
-        ${options.map((option) => `
-          <label class="multi-select-option">
-            <input type="checkbox" data-multi-value="${escapeHtml(option.value)}" ${option.selected ? "checked" : ""} />
-            <span>${escapeHtml(option.textContent)}</span>
-          </label>
-        `).join("") || `<div class="multi-select-option">Tidak ada pilihan</div>`}
-      `;
-      meta.menu.querySelectorAll("input[data-multi-value]").forEach((checkbox) => {
-        checkbox.addEventListener("change", () => {
-          const values = [...meta.menu.querySelectorAll("input[data-multi-value]:checked")]
-            .map((item) => item.dataset.multiValue);
-          setNativeFilterValues(select, values);
-          select.dispatchEvent(new Event("input", { bubbles: true }));
-        });
-      });
-      meta.menu.querySelectorAll("[data-multi-action]").forEach((button) => {
-        button.addEventListener("click", () => {
-          if (button.dataset.multiAction === "all") {
-            setNativeFilterValues(select, []);
+      const optionSignature = options.map((option) => `${option.value}\u0000${option.textContent}`).join("\u0001");
+      if (meta.optionSignature !== optionSignature) {
+        meta.optionSignature = optionSignature;
+        meta.menu.innerHTML = `
+          <div class="multi-select-actions">
+            <button type="button" class="multi-select-action" data-multi-action="all">Semua</button>
+            <button type="button" class="multi-select-action" data-multi-action="close">Tutup</button>
+          </div>
+          ${options.map((option) => `
+            <label class="multi-select-option">
+              <input type="checkbox" data-multi-value="${escapeHtml(option.value)}" ${option.selected ? "checked" : ""} />
+              <span>${escapeHtml(option.textContent)}</span>
+            </label>
+          `).join("") || `<div class="multi-select-option">Tidak ada pilihan</div>`}
+        `;
+        meta.menu.querySelectorAll("input[data-multi-value]").forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            const values = [...meta.menu.querySelectorAll("input[data-multi-value]:checked")]
+              .map((item) => item.dataset.multiValue);
+            setNativeFilterValues(select, values);
             select.dispatchEvent(new Event("input", { bubbles: true }));
-          } else {
-            closeMultiSelect(meta);
-          }
+          });
         });
-      });
+        meta.menu.querySelectorAll("[data-multi-action]").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (button.dataset.multiAction === "all") {
+              setNativeFilterValues(select, []);
+              select.dispatchEvent(new Event("input", { bubbles: true }));
+            } else {
+              closeMultiSelect(meta);
+            }
+          });
+        });
+      } else {
+        const selectedSet = new Set(selected);
+        meta.menu.querySelectorAll("input[data-multi-value]").forEach((checkbox) => {
+          checkbox.checked = selectedSet.has(checkbox.dataset.multiValue);
+        });
+      }
       positionMultiSelectMenu(meta);
     }
 
@@ -2967,9 +3132,12 @@
         seen.add(value);
         unique.push({ value, label: clean(entry.label) || value });
       });
+      const signature = JSON.stringify([allLabel, unique]);
+      if (select.dataset.filterSignature === signature) return;
+      select.dataset.filterSignature = signature;
       select.innerHTML = `<option value="">${escapeHtml(allLabel)}</option>` + unique
         .map((entry) => `<option value="${escapeHtml(entry.value)}">${escapeHtml(entry.label)}</option>`).join("");
-      setNativeFilterValues(select, previous.filter((value) => seen.has(value)));
+      setNativeFilterValues(select, previous.filter((value) => seen.has(value)), true);
     }
 
     function setFilterValues(idOrSelect, values) {
@@ -3026,6 +3194,7 @@
     const MONTH_LABELS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
     function parseDateValue(value) {
+      if (value instanceof Date && !Number.isNaN(value.getTime())) return new Date(value.getFullYear(), value.getMonth(), value.getDate());
       const text = clean(value);
       if (!text) return null;
       const googleDate = text.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
@@ -3057,6 +3226,9 @@
     }
 
     function dateKeyFromValue(value) {
+      if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+      }
       const date = parseDateValue(value);
       if (!date) return clean(value);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -3145,6 +3317,12 @@
       const agents = [...new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
       setFilterEntries(`${prefix}AgentFilter`, agents.map((value) => ({ value, label: value })), "Semua agent");
+    }
+
+    function setSideProductOptions(prefix, rows) {
+      const products = [...new Set(rows.map((row) => clean(row[fields.product])).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      setFilterEntries(`${prefix}ProductFilter`, products.map((value) => ({ value, label: value })), "Semua produk");
     }
 
     function setupPageTabs() {
@@ -3384,9 +3562,12 @@
         && filterMatches(week, row[fields.week])
         && filterMatches(date, row[fields.date])
       ) : [];
-      const agents = groupSum(rows, fields.agent);
-      const products = groupSum(rows, fields.product).slice(0, 8);
-      const campaigns = groupCampaignSum(rows).slice(0, 15);
+      setSideProductOptions(prefix, rows);
+      const product = document.getElementById(`${prefix}ProductFilter`).value;
+      const filteredRows = rows.filter((row) => filterMatches(product, row[fields.product]));
+      const agents = groupSum(filteredRows, fields.agent);
+      const products = groupSum(filteredRows, fields.product).slice(0, 8);
+      const campaigns = groupCampaignSum(filteredRows).slice(0, 15);
       const title = filterValueLabel(leader, "Belum dipilih");
       ["Agent", "Product", "Campaign"].forEach((name) => {
         const titleEl = document.getElementById(`${prefix}${name}Title`);
@@ -3398,9 +3579,10 @@
       if (campaignCanvas) campaignCanvas.parentElement.style.height = `${Math.max(285, campaigns.length * 44 + 80)}px`;
       document.getElementById(`${prefix}Summary`).innerHTML = `
         <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(title)}</strong></div>
-        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
-        <div class="coach-stat"><span>Transaksi</span><strong>${number.format(sum(rows, fields.txn) || rows.length)}</strong></div>
-        <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.agent])).filter(Boolean)).size)}</strong></div>
+        <div class="coach-stat"><span>Product</span><strong>${escapeHtml(filterValueLabel(`${prefix}ProductFilter`, "Semua produk"))}</strong></div>
+        <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(filteredRows, fields.amount))}</strong></div>
+        <div class="coach-stat"><span>Transaksi</span><strong>${number.format(sum(filteredRows, fields.txn) || filteredRows.length)}</strong></div>
+        <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(filteredRows.map((row) => clean(row[fields.agent])).filter(Boolean)).size)}</strong></div>
       `;
       makeChart(`${prefix}AgentChart`, {
         type: "bar",
@@ -3436,7 +3618,7 @@
         },
         options: baseOptions({ horizontal: true })
       });
-      return rows;
+      return filteredRows;
     }
     function renderLeaderCompare() {
       const leaderA = document.getElementById("compareLeaderAFilter").value;
@@ -3486,8 +3668,13 @@
         && filterMatches(date, row[fields.date])
       );
       setUnitAgentOptions(prefix, dateRows);
+      setSideProductOptions(prefix, dateRows);
       const agent = document.getElementById(`${prefix}AgentFilter`).value;
-      const rows = dateRows.filter((row) => filterMatches(agent, row[fields.agent]));
+      const product = document.getElementById(`${prefix}ProductFilter`).value;
+      const rows = dateRows.filter((row) =>
+        filterMatches(agent, row[fields.agent])
+        && filterMatches(product, row[fields.product])
+      );
       const coaches = groupSum(rows, fields.leader);
       const products = groupSum(rows, fields.product).slice(0, 8);
       const campaigns = groupCampaignSum(rows).slice(0, 15);
@@ -3504,6 +3691,7 @@
         <div class="coach-stat"><span>Layer</span><strong>${escapeHtml(filterValueLabel(layer, "Semua layer"))}</strong></div>
         <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(filterValueLabel(spv, "Semua SPV"))}</strong></div>
         <div class="coach-stat"><span>Agent</span><strong>${escapeHtml(filterValueLabel(agent, "Semua agent"))}</strong></div>
+        <div class="coach-stat"><span>Product</span><strong>${escapeHtml(filterValueLabel(`${prefix}ProductFilter`, "Semua produk"))}</strong></div>
         <div class="coach-stat"><span>Total Amount</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row[fields.leader])).filter(Boolean)).size)}</strong></div>
       `;
@@ -3788,9 +3976,12 @@
       setOptions("growthDateFilter", weekRows.map((row) => row[fields.date]), "daily");
       const date = document.getElementById("growthDateFilter").value;
       const dateRows = weekRows.filter((row) => filterMatches(date, row[fields.date]));
-      setOptions("growthSpvFilter", dateRows.map((row) => row[fields.spv]), "SPV");
+      setOptions("growthProductFilter", dateRows.map((row) => row[fields.product]), "product type");
+      const product = document.getElementById("growthProductFilter").value;
+      const productRows = dateRows.filter((row) => filterMatches(product, row[fields.product]));
+      setOptions("growthSpvFilter", productRows.map((row) => row[fields.spv]), "SPV");
       const spv = document.getElementById("growthSpvFilter").value;
-      const spvRows = dateRows.filter((row) => filterMatches(spv, row[fields.spv]));
+      const spvRows = productRows.filter((row) => filterMatches(spv, row[fields.spv]));
       setOptions("growthCoachFilter", spvRows.map((row) => row[fields.leader]), "coach");
       const coach = document.getElementById("growthCoachFilter").value;
       const coachRows = spvRows.filter((row) => filterMatches(coach, row[fields.leader]));
@@ -3801,6 +3992,7 @@
       const month = document.getElementById("growthMonthFilter").value;
       const week = document.getElementById("growthWeekFilter").value;
       const date = document.getElementById("growthDateFilter").value;
+      const product = document.getElementById("growthProductFilter").value;
       const spv = document.getElementById("growthSpvFilter").value;
       const coach = document.getElementById("growthCoachFilter").value;
       const agent = document.getElementById("growthAgentFilter").value;
@@ -3809,6 +4001,7 @@
         && filterMatches(month, row._weekMonth)
         && filterMatches(week, row[fields.week])
         && filterMatches(date, row[fields.date])
+        && filterMatches(product, row[fields.product])
         && filterMatches(spv, row[fields.spv])
         && filterMatches(coach, row[fields.leader])
         && filterMatches(agent, row[fields.agent])
@@ -3818,7 +4011,7 @@
     function renderGrowthAgentPage() {
       const rows = growthRows();
       const selectedMonth = document.getElementById("growthMonthFilter").value;
-      const hasDetailFilter = ["growthWeekFilter", "growthDateFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"]
+      const hasDetailFilter = ["growthWeekFilter", "growthDateFilter", "growthProductFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"]
         .some((id) => document.getElementById(id).value);
       const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && filterMatches(selectedMonth, row._weekMonth));
       const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
@@ -3837,6 +4030,7 @@
       );
       document.getElementById("growthSummary").innerHTML = `
         <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(filterValueLabel("growthMonthFilter", "Semua bulan"))}</strong></div>
+        <div class="coach-stat"><span>Product Type</span><strong>${escapeHtml(filterValueLabel("growthProductFilter", "Semua product type"))}</strong></div>
         <div class="coach-stat"><span>Total Revenue</span><strong>${rupiah.format(sum(rows, fields.amount))}</strong></div>
         <div class="coach-stat"><span>${rowLabel}</span><strong>${number.format(items.length)}</strong></div>
         <div class="coach-stat"><span>Week Range</span><strong>${weeks.length ? `${weeks[0]}-${weeks[weeks.length - 1]}` : "-"}</strong></div>
@@ -4491,6 +4685,313 @@
       renderPresentationTrend(rows, month, week, date, source);
     }
 
+    function dailyClosingFilterValue(id) {
+      return document.getElementById(id)?.value || "";
+    }
+
+    function dailyClosingWeekNumber(value) {
+      return clean(value).replace(/^week\s*/i, "").replace(/^w\s*/i, "");
+    }
+
+    function dailyClosingWeekLabel(value) {
+      const text = clean(value);
+      return /^w/i.test(text) ? text : `W${text}`;
+    }
+
+    function dailyClosingShortDateLabel(value) {
+      const key = dateKeyFromValue(value);
+      const match = key.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return clean(value);
+      const date = parseDateValue(key);
+      const weekdays = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+      const shortMonths = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      return date
+        ? `${weekdays[date.getDay()]} ${Number(match[3])} ${shortMonths[Number(match[2]) - 1] || match[2]}`
+        : dateLabelFromKey(key);
+    }
+
+    function dailyClosingWeekMatches(value, selection) {
+      const selected = splitFilterValue(selection);
+      return !selected.length || selected.some((item) => dailyClosingWeekNumber(item) === dailyClosingWeekNumber(value));
+    }
+
+    function dailyClosingRowDateKey(row) {
+      if (row._dailyClosingDateKey === undefined) row._dailyClosingDateKey = dateKeyFromValue(row[fields.date]);
+      return row._dailyClosingDateKey;
+    }
+
+    function dailyClosingRowWeek(row) {
+      if (row._dailyClosingWeek === undefined) row._dailyClosingWeek = clean(row[fields.week]) || weekNumberFromDate(dailyClosingRowDateKey(row));
+      return row._dailyClosingWeek;
+    }
+
+    function dailyClosingRowMonth(row) {
+      if (row._dailyClosingMonth === undefined) row._dailyClosingMonth = row._weekMonth || weekMonthFromDate(dailyClosingRowDateKey(row));
+      return row._dailyClosingMonth;
+    }
+
+    function dailyClosingRowAmount(row) {
+      if (row._dailyClosingAmount === undefined) row._dailyClosingAmount = toNumber(row[fields.amount]);
+      return row._dailyClosingAmount;
+    }
+
+    function dailyClosingOrgRows(exclude = "") {
+      if (dailyClosingCacheSource !== allRows) {
+        dailyClosingOrgRowsCache.clear();
+        dailyClosingCacheSource = allRows;
+      }
+      const layer = dailyClosingFilterValue("dailyClosingLayerFilter");
+      const spv = dailyClosingFilterValue("dailyClosingSpvFilter");
+      const coach = dailyClosingFilterValue("dailyClosingCoachFilter");
+      const agent = dailyClosingFilterValue("dailyClosingAgentFilter");
+      const product = dailyClosingFilterValue("dailyClosingProductFilter");
+      const campaign = dailyClosingFilterValue("dailyClosingCampaignFilter");
+      const cacheKey = JSON.stringify([exclude, selectedTeam, layer, spv, coach, agent, product, campaign]);
+      if (dailyClosingOrgRowsCache.has(cacheKey)) return dailyClosingOrgRowsCache.get(cacheKey);
+      const result = allRows.filter((row) =>
+        (selectedTeam === "ALL" || row._group === selectedTeam)
+        && (exclude === "layer" || filterMatches(layer, row[fields.team]))
+        && (exclude === "spv" || filterMatches(spv, row[fields.spv]))
+        && (exclude === "coach" || filterMatches(coach, row[fields.leader]))
+        && (exclude === "agent" || filterMatches(agent, row[fields.agent]))
+        && (exclude === "product" || filterMatches(product, row[fields.product]))
+        && (exclude === "campaign" || filterMatches(campaign, row[fields.campaign]))
+      );
+      dailyClosingOrgRowsCache.set(cacheKey, result);
+      return result;
+    }
+
+    function dailyClosingTimeRows(rows, options = {}) {
+      const month = dailyClosingFilterValue("dailyClosingMonthFilter");
+      const week = dailyClosingFilterValue("dailyClosingWeekFilter");
+      const date = dailyClosingFilterValue("dailyClosingDateFilter");
+      const useMonth = options.month !== false;
+      const useWeek = options.week !== false;
+      const useDate = options.date !== false;
+      let cache = dailyClosingTimeRowsCache.get(rows);
+      if (!cache) {
+        cache = new Map();
+        dailyClosingTimeRowsCache.set(rows, cache);
+      }
+      const cacheKey = JSON.stringify([month, week, date, useMonth, useWeek, useDate]);
+      if (cache.has(cacheKey)) return cache.get(cacheKey);
+      const result = rows.filter((row) =>
+        (!useMonth || filterMatches(month, dailyClosingRowMonth(row)))
+        && (!useWeek || dailyClosingWeekMatches(dailyClosingRowWeek(row), week))
+        && (!useDate || filterMatches(date, dailyClosingRowDateKey(row)))
+      );
+      cache.set(cacheKey, result);
+      return result;
+    }
+
+    function dailyClosingSetOptions(id, values, label, formatter) {
+      const unique = [...new Set(values.map(clean).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      setFilterEntries(id, unique.map((value) => ({
+        value,
+        label: formatter ? formatter(value) : value
+      })), `Semua ${label}`);
+    }
+
+    function dailyClosingDefaultWeekValue(rows) {
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      const currentWeek = weekNumberFromDate(todayKey);
+      const currentMonth = weekMonthFromDate(todayKey);
+      const current = rows.find((row) =>
+        dailyClosingWeekNumber(clean(row[fields.week]) || weekNumberFromDate(row[fields.date])) === currentWeek
+        && row._weekMonth === currentMonth
+      );
+      if (current) return clean(current[fields.week]) || currentWeek;
+      const dated = rows
+        .filter((row) => parseDateValue(row[fields.date]))
+        .sort((a, b) => dateKeyFromValue(b[fields.date]).localeCompare(dateKeyFromValue(a[fields.date])));
+      return dated.length ? (clean(dated[0][fields.week]) || weekNumberFromDate(dated[0][fields.date])) : "";
+    }
+
+    function setDailyClosingOptions() {
+      const layerRows = dailyClosingOrgRows("layer");
+      dailyClosingSetOptions("dailyClosingLayerFilter", layerRows.map((row) => row[fields.team]), "layer");
+
+      const spvRows = dailyClosingOrgRows("spv");
+      dailyClosingSetOptions("dailyClosingSpvFilter", spvRows.map((row) => row[fields.spv]), "SPV");
+
+      const coachRows = dailyClosingOrgRows("coach");
+      dailyClosingSetOptions("dailyClosingCoachFilter", coachRows.map((row) => row[fields.leader]), "coach");
+
+      const orgRows = dailyClosingOrgRows();
+      setMonthOptions("dailyClosingMonthFilter", orgRows);
+      const weekRows = dailyClosingTimeRows(orgRows, { month: true, week: false, date: false });
+      dailyClosingSetOptions("dailyClosingWeekFilter", weekRows.map((row) => clean(row[fields.week]) || weekNumberFromDate(row[fields.date])), "minggu", dailyClosingWeekLabel);
+
+      const weekSelect = document.getElementById("dailyClosingWeekFilter");
+      if (!dailyClosingDefaultApplied && weekSelect && !filterIsActive(weekSelect)) {
+        const defaultWeek = dailyClosingDefaultWeekValue(weekRows);
+        if (defaultWeek) {
+          const available = Array.from(weekSelect.options || []).map((option) => clean(option.value));
+          const selectedWeek = available.find((value) => dailyClosingWeekNumber(value) === dailyClosingWeekNumber(defaultWeek));
+          if (selectedWeek) setFilterValues(weekSelect, [selectedWeek]);
+        }
+        dailyClosingDefaultApplied = true;
+      }
+
+      const selectedMonthRows = dailyClosingTimeRows(orgRows, { month: true, week: false, date: false });
+      dailyClosingSetOptions("dailyClosingDateFilter", selectedMonthRows.map((row) => dateKeyFromValue(row[fields.date])), "daily", dailyClosingShortDateLabel);
+      const selectedTimeRows = dailyClosingTimeRows(orgRows);
+
+      const agentRows = dailyClosingTimeRows(dailyClosingOrgRows("agent"));
+      dailyClosingSetOptions("dailyClosingAgentFilter", agentRows.map((row) => row[fields.agent]), "agent");
+
+      const productRows = dailyClosingTimeRows(dailyClosingOrgRows("product"));
+      dailyClosingSetOptions("dailyClosingProductFilter", productRows.map((row) => row[fields.product]), "product");
+
+      const campaignRows = dailyClosingTimeRows(dailyClosingOrgRows("campaign"));
+      dailyClosingSetOptions("dailyClosingCampaignFilter", campaignRows.map((row) => row[fields.campaign]), "campaign", campaignShortName);
+
+      // Refresh the date list once more after the default/current week has been applied.
+      const finalTimeRows = dailyClosingTimeRows(orgRows, { month: true, week: true, date: false });
+      dailyClosingSetOptions("dailyClosingDateFilter", finalTimeRows.map((row) => dateKeyFromValue(row[fields.date])), "daily", dailyClosingShortDateLabel);
+      return selectedTimeRows;
+    }
+
+    function dailyClosingRows() {
+      return dailyClosingTimeRows(dailyClosingOrgRows());
+    }
+
+    function dailyClosingCalendarRows() {
+      const month = dailyClosingFilterValue("dailyClosingMonthFilter");
+      const week = dailyClosingFilterValue("dailyClosingWeekFilter");
+      const date = dailyClosingFilterValue("dailyClosingDateFilter");
+      const teamRows = allRows.filter((row) => selectedTeam === "ALL" || row._group === selectedTeam);
+      const hierarchyRows = teamRows.filter((row) =>
+        filterMatches(dailyClosingFilterValue("dailyClosingLayerFilter"), row[fields.team])
+        && filterMatches(dailyClosingFilterValue("dailyClosingSpvFilter"), row[fields.spv])
+        && filterMatches(dailyClosingFilterValue("dailyClosingCoachFilter"), row[fields.leader])
+      );
+      const scoped = dailyClosingTimeRows(hierarchyRows);
+      return scoped.length || filterIsActive(date) ? scoped : dailyClosingTimeRows(teamRows);
+    }
+
+    function dailyClosingDateKeys(rows) {
+      const month = dailyClosingFilterValue("dailyClosingMonthFilter");
+      const week = dailyClosingFilterValue("dailyClosingWeekFilter");
+      const date = dailyClosingFilterValue("dailyClosingDateFilter");
+      const selectedDates = splitFilterValue(date).map(dateKeyFromValue).filter(Boolean);
+      if (selectedDates.length) return [...new Set(selectedDates)].sort();
+
+      const keys = new Set();
+      const months = splitFilterValue(month);
+      const weeks = splitFilterValue(week);
+      const hasCalendarFilter = months.length || weeks.length;
+      const weekStarts = new Map();
+      rows.forEach((row) => {
+        const parsed = parseDateValue(row[fields.date]);
+        const monday = mondayOfWeek(parsed);
+        if (monday) weekStarts.set(dateKeyFromValue(monday), monday);
+        const rowKey = dailyClosingRowDateKey(row);
+        if (rowKey) keys.add(rowKey);
+      });
+
+      if (hasCalendarFilter) {
+        weekStarts.forEach((monday) => {
+          for (let offset = 0; offset < 5; offset += 1) {
+            const dateValue = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + offset);
+            const key = dateKeyFromValue(dateValue);
+            const generatedWeek = weekNumberFromDate(key);
+            const generatedMonth = weekMonthFromDate(key);
+            if (presentationIsWorkingDate(dateValue)
+              && (!months.length || months.includes(generatedMonth))
+              && (!weeks.length || dailyClosingWeekMatches(generatedWeek, week))) {
+              keys.add(key);
+            }
+          }
+        });
+      }
+
+      return [...keys].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+    }
+
+    function formatDailyClosingRevenue(value) {
+      return rupiah.format(value).replace(",00", "");
+    }
+
+    function renderDailyClosingPage() {
+      const rows = dailyClosingRows();
+      const calendarRows = dailyClosingCalendarRows();
+      const dates = dailyClosingDateKeys(calendarRows);
+      const byAgent = new Map();
+      rows.forEach((row) => {
+        const name = clean(row[fields.agent]) || "Kosong";
+        const key = normalizeName(name) || "kosong";
+        const dateKey = dailyClosingRowDateKey(row);
+        if (!byAgent.has(key)) byAgent.set(key, { name, days: {}, total: 0 });
+        const item = byAgent.get(key);
+        const amount = dailyClosingRowAmount(row);
+        if (dateKey) item.days[dateKey] = (item.days[dateKey] || 0) + amount;
+        item.total += amount;
+      });
+      const items = [...byAgent.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "id", { numeric: true }));
+      const dayTotals = Object.fromEntries(dates.map((date) => [date, 0]));
+      items.forEach((item) => dates.forEach((date) => {
+        dayTotals[date] += item.days[date] || 0;
+      }));
+      const totalRevenue = items.reduce((total, item) => total + item.total, 0);
+      const activeClosingDays = new Set(rows.filter((row) => dailyClosingRowAmount(row) > 0).map(dailyClosingRowDateKey)).size;
+      const month = dailyClosingFilterValue("dailyClosingMonthFilter");
+      const week = dailyClosingFilterValue("dailyClosingWeekFilter");
+      const date = dailyClosingFilterValue("dailyClosingDateFilter");
+      const periodLabel = date
+        ? filterValueLabel("dailyClosingDateFilter", "daily")
+        : week
+          ? filterValueLabel("dailyClosingWeekFilter", "minggu")
+          : month
+            ? filterValueLabel("dailyClosingMonthFilter", "bulan")
+            : "Semua periode";
+      const title = document.getElementById("dailyClosingTableTitle");
+      const note = document.getElementById("dailyClosingTableNote");
+      const summary = document.getElementById("dailyClosingSummary");
+      if (title) title.textContent = `Revenue per Agent · ${periodLabel}`;
+      if (note) note.textContent = `${number.format(dates.length)} tanggal ditampilkan · sel merah = tidak ada closing`;
+      if (summary) {
+        summary.innerHTML = `
+          <div class="coach-stat"><span>Total Revenue</span><strong>${formatDailyClosingRevenue(totalRevenue)}</strong></div>
+          <div class="coach-stat"><span>Agent</span><strong>${number.format(items.length)}</strong></div>
+          <div class="coach-stat"><span>Hari Ada Closing</span><strong>${number.format(activeClosingDays)}</strong></div>
+          <div class="coach-stat"><span>Periode</span><strong>${escapeHtml(periodLabel)}</strong></div>
+          <div class="coach-stat"><span>Coach</span><strong>${escapeHtml(filterValueLabel("dailyClosingCoachFilter", "Semua coach"))}</strong></div>
+          <div class="coach-stat"><span>SPV</span><strong>${escapeHtml(filterValueLabel("dailyClosingSpvFilter", "Semua SPV"))}</strong></div>
+        `;
+      }
+
+      const head = document.getElementById("dailyClosingHead");
+      const body = document.getElementById("dailyClosingBody");
+      const foot = document.getElementById("dailyClosingFoot");
+      const table = document.getElementById("dailyClosingTable");
+      if (table) table.style.minWidth = `${Math.max(760, 190 + dates.length * 118 + 120)}px`;
+      const columnCount = dates.length + 2;
+      if (head) {
+        head.innerHTML = `<tr><th>Agent</th>${dates.map((dateKey) => `<th class="right" title="${escapeHtml(dateLabelFromKey(dateKey))}">${escapeHtml(dailyClosingShortDateLabel(dateKey))}</th>`).join("")}<th class="right">Total Revenue</th></tr>`;
+      }
+      if (body) {
+        body.innerHTML = items.length && dates.length ? items.map((item) => {
+          const cells = dates.map((dateKey) => {
+            const value = item.days[dateKey] || 0;
+            const cellClass = value === 0 ? "closing-zero" : value < 0 ? "closing-negative" : "closing-positive";
+            return `<td class="right ${cellClass}" title="${escapeHtml(dateLabelFromKey(dateKey))}">${escapeHtml(formatDailyClosingRevenue(value))}</td>`;
+          }).join("");
+          return `<tr><td>${escapeHtml(item.name)}</td>${cells}<td class="right"><strong>${escapeHtml(formatDailyClosingRevenue(item.total))}</strong></td></tr>`;
+        }).join("") : `<tr><td colspan="${columnCount}" class="empty">${rows.length ? "Tidak ada tanggal untuk filter ini." : "Tidak ada revenue sesuai filter."}</td></tr>`;
+      }
+      if (foot) {
+        const dayCells = dates.map((dateKey) => {
+          const value = dayTotals[dateKey] || 0;
+          const cellClass = value === 0 ? "closing-zero" : value < 0 ? "closing-negative" : "closing-positive";
+          return `<td class="right ${cellClass}">${escapeHtml(formatDailyClosingRevenue(value))}</td>`;
+        }).join("");
+        foot.innerHTML = `<tr><td>Total</td>${dayCells}<td class="right"><strong>${escapeHtml(formatDailyClosingRevenue(totalRevenue))}</strong></td></tr>`;
+      }
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -4509,6 +5010,8 @@
       renderGrowthAgentPage();
       setPresentationOptions();
       renderPresentationPage();
+      setDailyClosingOptions();
+      renderDailyClosingPage();
       setCallOptions();
       renderCallTrackingPage();
     }
@@ -4812,6 +5315,18 @@
       renderCallCompare();
     }
 
+    const filterRenderTimers = new Map();
+
+    function scheduleFilterRender(key, callback, delay = 75) {
+      const previousTimer = filterRenderTimers.get(key);
+      if (previousTimer) clearTimeout(previousTimer);
+      const timer = setTimeout(() => {
+        filterRenderTimers.delete(key);
+        callback();
+      }, delay);
+      filterRenderTimers.set(key, timer);
+    }
+
     function initialize() {
       enhanceMultiSelects();
       setMonthOptions("monthFilter", allRows);
@@ -4823,62 +5338,86 @@
       setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
       ["monthFilter", "weekFilter", "leaderFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          if (id === "monthFilter") {
-            const month = document.getElementById("monthFilter").value;
-            setOptions("weekFilter", allRows.filter((row) => filterMatches(month, row._weekMonth)).map((row) => row[fields.week]), "minggu");
-          }
-          render();
+          scheduleFilterRender("dashboard", () => {
+            if (id === "monthFilter") {
+              const month = document.getElementById("monthFilter").value;
+              setOptions("weekFilter", allRows.filter((row) => filterMatches(month, row._weekMonth)).map((row) => row[fields.week]), "minggu");
+            }
+            render();
+          });
         });
       });
-      document.getElementById("compareLeaderAFilter").addEventListener("input", renderLeaderCompare);
-      document.getElementById("compareLeaderBFilter").addEventListener("input", renderLeaderCompare);
-      ["leaderAMonthFilter", "leaderAWeekFilter", "leaderADateFilter", "leaderBMonthFilter", "leaderBWeekFilter", "leaderBDateFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", renderLeaderCompare);
+      document.getElementById("compareLeaderAFilter").addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
+      document.getElementById("compareLeaderBFilter").addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
+      ["leaderAMonthFilter", "leaderAWeekFilter", "leaderADateFilter", "leaderAProductFilter", "leaderBMonthFilter", "leaderBWeekFilter", "leaderBDateFilter", "leaderBProductFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
       });
-      ["unitALayerFilter", "unitASpvFilter", "unitAMonthFilter", "unitAWeekFilter", "unitADateFilter", "unitAAgentFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBMonthFilter", "unitBWeekFilter", "unitBDateFilter", "unitBAgentFilter"].forEach((id) => {
+      ["unitALayerFilter", "unitASpvFilter", "unitAMonthFilter", "unitAWeekFilter", "unitADateFilter", "unitAAgentFilter", "unitAProductFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBMonthFilter", "unitBWeekFilter", "unitBDateFilter", "unitBAgentFilter", "unitBProductFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setUnitOptions();
-          renderUnitCompare();
+          scheduleFilterRender("unitCompare", () => {
+            setUnitOptions();
+            renderUnitCompare();
+          });
         });
       });
       ["tenureMonthFilter", "tenureWeekFilter", "tenureSpvFilter", "tenureCoachFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setTenureOptions();
-          renderTenurePage();
+          scheduleFilterRender("tenure", () => {
+            setTenureOptions();
+            renderTenurePage();
+          });
         });
       });
       ["breakdownMonthFilter", "breakdownWeekFilter", "breakdownSpvFilter", "breakdownCoachFilter", "breakdownProductFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setBreakdownOptions();
-          renderBreakdownPage();
+          scheduleFilterRender("breakdown", () => {
+            setBreakdownOptions();
+            renderBreakdownPage();
+          });
         });
       });
       ["assignMonthFilter", "assignWeekFilter", "assignSpvFilter", "assignLeaderFilter", "assignCampaignFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setAssignOptions();
-          renderAssignDatePage();
+          scheduleFilterRender("assign", () => {
+            setAssignOptions();
+            renderAssignDatePage();
+          });
         });
       });
-      ["growthMonthFilter", "growthWeekFilter", "growthDateFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"].forEach((id) => {
+      ["growthMonthFilter", "growthWeekFilter", "growthDateFilter", "growthProductFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setGrowthOptions();
-          renderGrowthAgentPage();
+          scheduleFilterRender("growth", () => {
+            setGrowthOptions();
+            renderGrowthAgentPage();
+          });
         });
       });
       ["presentationSourceFilter", "presentationMonthFilter", "presentationWeekFilter", "presentationDateFilter", "presentationAgentFilter", "presentationSubStatusFilter", "presentationProductFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          setPresentationOptions();
-          renderPresentationPage();
+          scheduleFilterRender("presentation", () => {
+            setPresentationOptions();
+            renderPresentationPage();
+          });
+        });
+      });
+      ["dailyClosingMonthFilter", "dailyClosingWeekFilter", "dailyClosingDateFilter", "dailyClosingLayerFilter", "dailyClosingSpvFilter", "dailyClosingCoachFilter", "dailyClosingAgentFilter", "dailyClosingProductFilter", "dailyClosingCampaignFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          scheduleFilterRender("dailyClosing", () => {
+            setDailyClosingOptions();
+            renderDailyClosingPage();
+          });
         });
       });
       ["callMonthFilter", "callWeekFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
-          if (id === "callMonthFilter" || id === "callWeekFilter") setCallOptions();
-          renderCallTrackingPage();
+          scheduleFilterRender("callTracking", () => {
+            if (id === "callMonthFilter" || id === "callWeekFilter") setCallOptions();
+            renderCallTrackingPage();
+          });
         });
       });
       ["callCompareACoachFilter", "callCompareAAgentFilter", "callCompareAMonthFilter", "callCompareADateFilter", "callCompareAStatusFilter", "callCompareBCoachFilter", "callCompareBAgentFilter", "callCompareBMonthFilter", "callCompareBDateFilter", "callCompareBStatusFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", renderCallCompare);
+        document.getElementById(id).addEventListener("input", () => scheduleFilterRender("callCompare", renderCallCompare));
       });
       setupPageTabs();
       renderTabs();

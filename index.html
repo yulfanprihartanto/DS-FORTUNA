@@ -2785,6 +2785,8 @@
     ];
     let allRows = [];
     let callRows = [];
+    let callSheetLoading = false;
+    let callSheetLoaded = false;
     let presentationRows = [];
     const presentationSourceStatus = {};
     let dailyClosingDefaultApplied = false;
@@ -2793,6 +2795,8 @@
     const dailyClosingTimeRowsCache = new WeakMap();
     let selectedTeam = "ALL";
     const charts = {};
+    const chartDatasetMaxCache = new WeakMap();
+    const rowNumberCache = new WeakMap();
     const THEME_STORAGE_KEY = "fortuna-theme";
     Chart.register(ChartDataLabels);
 
@@ -2888,6 +2892,17 @@
       return Number(text) || 0;
     }
 
+    function rowNumber(row, key) {
+      if (!row || typeof row !== "object") return 0;
+      let values = rowNumberCache.get(row);
+      if (!values) {
+        values = new Map();
+        rowNumberCache.set(row, values);
+      }
+      if (!values.has(key)) values.set(key, toNumber(row[key]));
+      return values.get(key);
+    }
+
     function escapeHtml(value) {
       return clean(value).replace(/[&<>"']/g, (char) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -2979,6 +2994,10 @@
 
     function closeMultiSelect(meta) {
       if (!meta) return;
+      if (meta.select?.dataset.multiDirty === "true") {
+        delete meta.select.dataset.multiDirty;
+        meta.select.dispatchEvent(new Event("input", { bubbles: true }));
+      }
       meta.wrapper.classList.remove("open");
       meta.menu.classList.remove("open");
       meta.trigger.setAttribute("aria-expanded", "false");
@@ -3036,14 +3055,14 @@
             const values = [...meta.menu.querySelectorAll("input[data-multi-value]:checked")]
               .map((item) => item.dataset.multiValue);
             setNativeFilterValues(select, values);
-            select.dispatchEvent(new Event("input", { bubbles: true }));
+            select.dataset.multiDirty = "true";
           });
         });
         meta.menu.querySelectorAll("[data-multi-action]").forEach((button) => {
           button.addEventListener("click", () => {
             if (button.dataset.multiAction === "all") {
               setNativeFilterValues(select, []);
-              select.dispatchEvent(new Event("input", { bubbles: true }));
+              select.dataset.multiDirty = "true";
             } else {
               closeMultiSelect(meta);
             }
@@ -3146,14 +3165,14 @@
     }
 
     function sum(data, key) {
-      return data.reduce((total, row) => total + toNumber(row[key]), 0);
+      return data.reduce((total, row) => total + rowNumber(row, key), 0);
     }
 
     function groupSum(data, key, valueKey = fields.amount) {
       const map = new Map();
       data.forEach((row) => {
         const name = clean(row[key]) || "Kosong";
-        map.set(name, (map.get(name) || 0) + toNumber(row[valueKey]));
+        map.set(name, (map.get(name) || 0) + rowNumber(row, valueKey));
       });
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
     }
@@ -3168,7 +3187,7 @@
         const name = !raw || lower === "no campaign"
           ? "No Campaign"
           : clean(splitIndex > 0 ? raw.slice(0, splitIndex) : raw) || raw;
-        map.set(name, (map.get(name) || 0) + toNumber(row[fields.amount]));
+        map.set(name, (map.get(name) || 0) + rowNumber(row, fields.amount));
       });
       return [...map.entries()].sort((a, b) => b[1] - a[1]);
     }
@@ -3325,26 +3344,118 @@
       setFilterEntries(`${prefix}ProductFilter`, products.map((value) => ({ value, label: value })), "Semua produk");
     }
 
+    function activePageId() {
+      return document.querySelector(".page.active")?.id || "pageLeader";
+    }
+
+    function renderPage(pageId = activePageId(), dashboardData = null) {
+      switch (pageId) {
+        case "pageLeader": {
+          const data = dashboardData || filteredRows();
+          renderTeamCharts(data);
+          setCompareOptions();
+          renderRankCharts(data);
+          break;
+        }
+        case "pageUnit":
+          setUnitOptions();
+          renderUnitCompare();
+          break;
+        case "pageTenure":
+          setTenureOptions();
+          renderTenurePage();
+          break;
+        case "pageProductBreakdown":
+          setBreakdownOptions();
+          renderBreakdownPage();
+          break;
+        case "pageAssignDate":
+          setAssignOptions();
+          renderAssignDatePage();
+          break;
+        case "pageCallTracking":
+          loadCallSheet();
+          if (!callSheetLoaded) {
+            const callSummary = document.getElementById("callSummary");
+            if (callSummary) callSummary.innerHTML = `<div class="coach-stat"><span>Status</span><strong>Memuat data call...</strong></div>`;
+            break;
+          }
+          setCallOptions();
+          renderCallTrackingPage();
+          break;
+        case "pageGrowthAgent":
+          setGrowthOptions();
+          renderGrowthAgentPage();
+          break;
+        case "pageDailyPresentation":
+          setPresentationOptions();
+          renderPresentationPage();
+          break;
+        case "pageDailyClosing":
+          setDailyClosingOptions();
+          renderDailyClosingPage();
+          break;
+        default:
+          break;
+      }
+    }
+
     function setupPageTabs() {
       document.querySelectorAll("#pageTabs button").forEach((button) => {
         button.addEventListener("click", () => {
+          const previousPage = activePageId();
+          const nextPage = button.dataset.page;
+          if (previousPage !== nextPage) destroyPageCharts(previousPage);
           document.querySelectorAll("#pageTabs button").forEach((item) => item.classList.remove("active"));
           document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
           button.classList.add("active");
-          document.getElementById(button.dataset.page).classList.add("active");
+          document.getElementById(nextPage).classList.add("active");
+          requestAnimationFrame(() => renderPage(nextPage));
         });
+      });
+    }
+
+    const PAGE_CHART_IDS = {
+      pageLeader: [
+        "teamAmountChart", "teamTxnChart",
+        "leaderAAgentChart", "leaderAProductChart", "leaderACampaignChart",
+        "leaderBAgentChart", "leaderBProductChart", "leaderBCampaignChart"
+      ],
+      pageUnit: [
+        "unitACoachChart", "unitAProductChart", "unitACampaignChart",
+        "unitBCoachChart", "unitBProductChart", "unitBCampaignChart"
+      ],
+      pageTenure: ["tenureChart"],
+      pageProductBreakdown: ["breakdownCampaignChart", "breakdownGradeChart"],
+      pageAssignDate: ["assignRevenueChart", "assignInvoiceChart"],
+      pageGrowthAgent: ["growthTrendChart"],
+      pageDailyPresentation: ["presentationTrendChart"]
+    };
+
+    function destroyPageCharts(pageId) {
+      (PAGE_CHART_IDS[pageId] || []).forEach((id) => {
+        if (!charts[id]) return;
+        charts[id].destroy();
+        delete charts[id];
       });
     }
 
     function makeChart(id, config) {
       const canvas = document.getElementById(id);
       if (!canvas) return;
-      if (charts[id]) charts[id].destroy();
       (config.data?.datasets || []).forEach((dataset) => {
         if (dataset.backgroundColor === "#28c8ff") {
           dataset.backgroundColor = blueBarGradient;
         }
       });
+      const existing = charts[id];
+      if (existing && existing.config?.type === config.type) {
+        existing.data = config.data;
+        existing.options = config.options;
+        existing.update("none");
+        return;
+      }
+      if (existing) existing.destroy();
       charts[id] = new Chart(canvas, config);
     }
 
@@ -3363,13 +3474,21 @@
       return gradient;
     }
 
+    function chartDataMax(context) {
+      const dataset = context.dataset || {};
+      if (chartDatasetMaxCache.has(dataset)) return chartDatasetMaxCache.get(dataset);
+      const max = (dataset.data || []).reduce((highest, value) => Math.max(highest, Number(value) || 0), 0);
+      chartDatasetMaxCache.set(dataset, max);
+      return max;
+    }
+
     function baseOptions({ money = true, horizontal = false } = {}) {
       const colors = chartTheme();
       return {
         responsive: true,
         maintainAspectRatio: false,
         indexAxis: horizontal ? "y" : "x",
-        animation: { duration: 550, easing: "easeOutQuart" },
+        animation: { duration: 180, easing: "easeOutQuart" },
         plugins: {
           legend: {
             position: "bottom",
@@ -3387,15 +3506,13 @@
             anchor: "end",
             align(context) {
               if (!horizontal) return "bottom";
-              const values = context.dataset.data || [];
-              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const max = chartDataMax(context);
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
               return current < max * 0.22 ? "right" : "left";
             },
             color(context) {
               if (!horizontal) return "#ffffff";
-              const values = context.dataset.data || [];
-              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const max = chartDataMax(context);
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
               return current < max * 0.22 ? colors.datalabelOutside : "#ffffff";
             },
@@ -3407,8 +3524,7 @@
             clamp: true,
             textStrokeColor(context) {
               if (!horizontal) return "rgba(0, 0, 0, .28)";
-              const values = context.dataset.data || [];
-              const max = Math.max(...values.map((value) => Number(value) || 0));
+              const max = chartDataMax(context);
               const current = Number(context.dataset.data[context.dataIndex]) || 0;
               return current < max * 0.22
                 ? (isDarkMode() ? "rgba(0, 0, 0, .55)" : "rgba(255, 255, 255, .9)")
@@ -3480,14 +3596,13 @@
       const term = clean(document.getElementById("searchInput").value).toLowerCase();
 
       return allRows.filter((row) => {
-        const text = [row[fields.invoice], row[fields.user], row[fields.agent], row[fields.leader], row[fields.campaign], row[fields.product], row[fields.status]].map(clean).join(" ").toLowerCase();
         return (selectedTeam === "ALL" || row._group === selectedTeam)
           && filterMatches(month, row._weekMonth)
           && filterMatches(week, row[fields.week])
           && filterMatches(leader, row[fields.leader])
           && filterMatches(agent, row[fields.agent])
           && filterMatches(product, row[fields.product])
-          && (!term || text.includes(term));
+          && (!term || row._searchText.includes(term));
       });
     }
 
@@ -3927,7 +4042,7 @@
         const date = clean(row[fields.assignedDate]) || "Kosong";
         if (!map.has(date)) map.set(date, { date, amount: 0, invoices: new Set() });
         const item = map.get(date);
-        item.amount += toNumber(row[fields.amount]);
+        item.amount += rowNumber(row, fields.amount);
         if (clean(row[fields.invoice])) item.invoices.add(clean(row[fields.invoice]));
       });
       return [...map.values()].sort((a, b) => b.amount - a.amount);
@@ -4023,7 +4138,7 @@
         if (!agentMap.has(name)) agentMap.set(name, { name, coach: clean(row[fields.leader]), spv: clean(row[fields.spv]), weeks: {} });
         const item = agentMap.get(name);
         const week = clean(row[fields.week]);
-        item.weeks[week] = (item.weeks[week] || 0) + toNumber(row[fields.amount]);
+        item.weeks[week] = (item.weeks[week] || 0) + rowNumber(row, fields.amount);
       });
       const items = [...agentMap.values()].sort((a, b) =>
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
@@ -4059,7 +4174,7 @@
         if (!agentTrendMap.has(agent)) agentTrendMap.set(agent, { name: agent, weeks: {} });
         const item = agentTrendMap.get(agent);
         const week = clean(row[fields.week]);
-        item.weeks[week] = (item.weeks[week] || 0) + toNumber(row[fields.amount]);
+        item.weeks[week] = (item.weeks[week] || 0) + rowNumber(row, fields.amount);
       });
       const trendItems = [...agentTrendMap.values()].sort((a, b) =>
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
@@ -4247,8 +4362,8 @@
     }
 
     function presentationTransactionValue(row) {
-      if (toNumber(row[fields.amount]) <= 0) return 0;
-      const transaction = toNumber(row[fields.txn]);
+      if (rowNumber(row, fields.amount) <= 0) return 0;
+      const transaction = rowNumber(row, fields.txn);
       return transaction > 0 ? transaction : 1;
     }
 
@@ -4602,7 +4717,7 @@
         const agentKey = normalizeName(row[fields.agent]);
         const transactionValue = presentationTransactionValue(row);
         transactionsByAgent.set(agentKey, (transactionsByAgent.get(agentKey) || 0) + transactionValue);
-        revenueByAgent.set(agentKey, (revenueByAgent.get(agentKey) || 0) + toNumber(row[fields.amount]));
+        revenueByAgent.set(agentKey, (revenueByAgent.get(agentKey) || 0) + rowNumber(row, fields.amount));
       });
       const metricSourceRows = allMonthsView
         ? sourceRows.filter((row) => allMonthKeys.includes(row._weekMonth))
@@ -4995,25 +5110,7 @@
     function render() {
       const data = filteredRows();
       renderKpis(data);
-      renderTeamCharts(data);
-      setCompareOptions();
-      renderRankCharts(data);
-      setUnitOptions();
-      renderUnitCompare();
-      setTenureOptions();
-      renderTenurePage();
-      setBreakdownOptions();
-      renderBreakdownPage();
-      setAssignOptions();
-      renderAssignDatePage();
-      setGrowthOptions();
-      renderGrowthAgentPage();
-      setPresentationOptions();
-      renderPresentationPage();
-      setDailyClosingOptions();
-      renderDailyClosingPage();
-      setCallOptions();
-      renderCallTrackingPage();
+      renderPage(activePageId(), data);
     }
 
     function callDate(value) {
@@ -5464,6 +5561,10 @@
         row._team = normalizeTeam(row[fields.team]);
         row._group = getGroup(row);
         row._weekMonth = weekMonthFromDate(row[fields.date]);
+        row._searchText = [
+          row[fields.invoice], row[fields.user], row[fields.agent], row[fields.leader],
+          row[fields.campaign], row[fields.product], row[fields.status]
+        ].map(clean).join(" ").toLowerCase();
         return row;
       }).filter((row) => TEAM_GROUPS.includes(row._group));
     }
@@ -5537,9 +5638,14 @@
     window.handleCallData = function(response) {
       try {
         callRows = rowsFromCallTable(response.table);
-        setCallOptions();
-        renderCallTrackingPage();
+        callSheetLoading = false;
+        callSheetLoaded = true;
+        if (activePageId() === "pageCallTracking") {
+          setCallOptions();
+          renderCallTrackingPage();
+        }
       } catch (error) {
+        callSheetLoading = false;
         showError(`Data call tracking tidak bisa dibaca. Detail: ${error.message}`);
       }
     };
@@ -5571,8 +5677,13 @@
         presentationRows = presentationRows.filter((row) => row._source !== sourceKey).concat(rows);
         presentationSourceStatus[sourceKey] = { rows: rows.length };
         refreshPresentationDataState();
-        setPresentationOptions();
-        renderPresentationPage();
+        if (activePageId() === "pageDailyPresentation") {
+          scheduleFilterRender("presentationData", () => {
+            if (activePageId() !== "pageDailyPresentation") return;
+            setPresentationOptions();
+            renderPresentationPage();
+          }, 120);
+        }
       } catch (error) {
         presentationSourceStatus[sourceKey] = { error: error.message };
         refreshPresentationDataState();
@@ -5612,9 +5723,14 @@
     }
 
     function loadCallSheet() {
+      if (callSheetLoading || callSheetLoaded) return;
+      callSheetLoading = true;
       const script = document.createElement("script");
       script.src = `https://docs.google.com/spreadsheets/d/${CALL_SHEET_ID}/gviz/tq?gid=${CALL_GID}&headers=1&tqx=out:json;responseHandler:handleCallData`;
-      script.onerror = () => showError("Google Sheet call tracking tidak bisa diakses dari halaman ini.");
+      script.onerror = () => {
+        callSheetLoading = false;
+        showError("Google Sheet call tracking tidak bisa diakses dari halaman ini.");
+      };
       document.body.appendChild(script);
     }
 
@@ -5631,7 +5747,6 @@
     enhanceMultiSelects();
     setupThemeToggle();
     loadSheet();
-    loadCallSheet();
     loadDailyPresentationSheet();
   </script>
 </body>

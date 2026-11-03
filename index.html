@@ -385,6 +385,120 @@
       text-align: left;
     }
 
+    /* Growth Agent stays readable when a detail filter returns many agents.
+       Short months fit in the panel; longer periods keep a deliberate
+       horizontal scroll instead of stretching the identity columns. */
+    .growth-table-wrap {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    /* The panel is a grid and its table section otherwise sizes itself from
+       the table's min-content width. Keep the section inside the panel so a
+       long week range scrolls inside the table instead of pushing the data
+       outside the visible card. */
+    #pageGrowthAgent .panel > div:has(.growth-table-wrap),
+    #pageGrowthAgent .growth-table-section {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    #pageGrowthAgent .growth-table-wrap > table {
+      margin: 0;
+    }
+
+    #growthAgentTable.growth-table-fit {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+      table-layout: fixed;
+    }
+
+    #growthAgentTable.growth-table-scroll {
+      width: max-content;
+      min-width: 1120px;
+      max-width: none;
+      table-layout: auto;
+    }
+
+    #growthAgentTable.growth-table-fit th,
+    #growthAgentTable.growth-table-fit td {
+      padding: 8px 6px;
+      font-size: 11px;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-name-col,
+    #growthAgentTable.growth-table-fit .growth-name-cell {
+      width: 20%;
+      min-width: 0;
+      max-width: none;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-meta-col,
+    #growthAgentTable.growth-table-fit .growth-meta-cell {
+      width: 13%;
+      min-width: 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-week-col,
+    #growthAgentTable.growth-table-fit .growth-week-cell {
+      width: 9%;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-growth-col,
+    #growthAgentTable.growth-table-fit .growth-growth-cell {
+      width: 8%;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-total-col,
+    #growthAgentTable.growth-table-fit .growth-total-cell {
+      width: 12%;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-scroll .growth-name-cell {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--panel);
+    }
+
+    #growthAgentTable.growth-table-scroll .growth-name-col {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: var(--panel);
+    }
+
+    #growthAgentTable.growth-table-scroll .growth-total-col,
+    #growthAgentTable.growth-table-scroll .growth-total-cell {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: var(--panel);
+      box-shadow: -8px 0 12px rgba(4, 35, 56, .08);
+    }
+
+    #growthAgentTable.growth-table-scroll .growth-total-col {
+      z-index: 3;
+    }
+
     table {
       width: 100%;
       min-width: 920px;
@@ -1322,6 +1436,66 @@
       font-weight: 850;
     }
 
+    .activity-renewal-table-wrap { max-height: 760px; }
+
+    .activity-renewal-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 12px 0 16px;
+    }
+
+    .activity-load-button {
+      border: 1px solid rgba(30, 151, 166, .42);
+      border-radius: 10px;
+      padding: 9px 13px;
+      color: #0b4f62;
+      background: #e6f7f7;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .activity-load-button:hover { background: #d3f0f1; }
+
+    #activityRenewalTable {
+      min-width: 900px;
+      font-size: 12px;
+    }
+
+    #activityRenewalTable th,
+    #activityRenewalTable td {
+      padding: 9px 10px;
+      white-space: nowrap;
+    }
+
+    #activityRenewalTable th:first-child,
+    #activityRenewalTable td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      min-width: 190px;
+      background: #f3f7fa;
+    }
+
+    #activityRenewalTable td:first-child {
+      color: #163e59;
+      font-weight: 750;
+    }
+
+    #activityRenewalTable td.activity-revenue {
+      color: #176b79;
+      font-weight: 850;
+    }
+
+    #activityRenewalTable tfoot td {
+      background: #f3f7fa;
+      color: #163e59;
+      font-weight: 850;
+    }
+
+
     .table-wrap {
       overflow: auto;
       border: 1px solid #dce8ef;
@@ -1798,6 +1972,33 @@
       color: #e2f2f7;
     }
 
+    html[data-theme="dark"] #activityRenewalTable th:first-child,
+    html[data-theme="dark"] #activityRenewalTable td:first-child {
+      background: #112a3e;
+    }
+
+    html[data-theme="dark"] #activityRenewalTable td:first-child {
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #activityRenewalTable td.activity-revenue {
+      color: #78dfd9;
+    }
+
+    html[data-theme="dark"] #activityRenewalTable tfoot td {
+      background: #122d40;
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] .activity-load-button {
+      border-color: rgba(95, 225, 226, .34);
+      color: #d9fbfb;
+      background: #123b4b;
+    }
+
+    html[data-theme="dark"] .activity-load-button:hover { background: #185266; }
+
+
     html[data-theme="dark"] #presentationTable td.metric {
       color: #78dfd9;
     }
@@ -2003,6 +2204,133 @@
       color: #d1e4ec;
     }
   </style>
+  <style id="growth-layout-fix">
+    /* Keep the Growth table inside its card. A long week range must scroll
+       inside this wrapper; otherwise the grid item grows to the table's full
+       min-content width and the panel clips the actual data. */
+    #pageGrowthAgent .panel > div:has(.growth-table-wrap),
+    #pageGrowthAgent .growth-table-section {
+      box-sizing: border-box;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    #pageGrowthAgent .growth-table-wrap {
+      box-sizing: border-box;
+      display: block;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+    }
+
+    #pageGrowthAgent .growth-table-wrap > table {
+      margin: 0;
+    }
+
+    /* Use natural readable cell widths and let only the wrapper scroll. */
+    #growthAgentTable.growth-table-fit,
+    #growthAgentTable.growth-table-scroll {
+      width: max-content;
+      min-width: 100%;
+      max-width: none;
+      table-layout: auto;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-name-col,
+    #growthAgentTable.growth-table-fit .growth-name-cell,
+    #growthAgentTable.growth-table-scroll .growth-name-col,
+    #growthAgentTable.growth-table-scroll .growth-name-cell {
+      width: auto;
+      min-width: 180px;
+      max-width: none;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-meta-col,
+    #growthAgentTable.growth-table-fit .growth-meta-cell,
+    #growthAgentTable.growth-table-scroll .growth-meta-col,
+    #growthAgentTable.growth-table-scroll .growth-meta-cell {
+      width: auto;
+      min-width: 145px;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-week-col,
+    #growthAgentTable.growth-table-fit .growth-week-cell,
+    #growthAgentTable.growth-table-scroll .growth-week-col,
+    #growthAgentTable.growth-table-scroll .growth-week-cell {
+      width: auto;
+      min-width: 125px;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-growth-col,
+    #growthAgentTable.growth-table-fit .growth-growth-cell,
+    #growthAgentTable.growth-table-scroll .growth-growth-col,
+    #growthAgentTable.growth-table-scroll .growth-growth-cell {
+      width: auto;
+      min-width: 105px;
+      white-space: nowrap;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-total-col,
+    #growthAgentTable.growth-table-fit .growth-total-cell,
+    #growthAgentTable.growth-table-scroll .growth-total-col,
+    #growthAgentTable.growth-table-scroll .growth-total-cell {
+      width: auto;
+      min-width: 145px;
+      white-space: nowrap;
+    }
+
+    /* Keep the identity and total visible while the middle week columns are
+       being scrolled on a narrow screen. */
+    #growthAgentTable.growth-table-fit .growth-name-col,
+    #growthAgentTable.growth-table-fit .growth-name-cell,
+    #growthAgentTable.growth-table-scroll .growth-name-col,
+    #growthAgentTable.growth-table-scroll .growth-name-cell {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: var(--panel);
+    }
+
+    #growthAgentTable.growth-table-fit .growth-name-col,
+    #growthAgentTable.growth-table-scroll .growth-name-col {
+      z-index: 3;
+    }
+
+    #growthAgentTable.growth-table-fit .growth-total-col,
+    #growthAgentTable.growth-table-fit .growth-total-cell,
+    #growthAgentTable.growth-table-scroll .growth-total-col,
+    #growthAgentTable.growth-table-scroll .growth-total-cell {
+      position: sticky;
+      right: 0;
+      z-index: 2;
+      background: var(--panel);
+      box-shadow: -8px 0 12px rgba(4, 35, 56, .08);
+    }
+
+    #growthAgentTable.growth-table-fit .growth-total-col,
+    #growthAgentTable.growth-table-scroll .growth-total-col {
+      z-index: 3;
+    }
+
+    html[data-theme="dark"] #growthAgentTable.growth-table-fit .growth-name-col,
+    html[data-theme="dark"] #growthAgentTable.growth-table-fit .growth-name-cell,
+    html[data-theme="dark"] #growthAgentTable.growth-table-fit .growth-total-col,
+    html[data-theme="dark"] #growthAgentTable.growth-table-fit .growth-total-cell,
+    html[data-theme="dark"] #growthAgentTable.growth-table-scroll .growth-name-col,
+    html[data-theme="dark"] #growthAgentTable.growth-table-scroll .growth-name-cell,
+    html[data-theme="dark"] #growthAgentTable.growth-table-scroll .growth-total-col,
+    html[data-theme="dark"] #growthAgentTable.growth-table-scroll .growth-total-cell {
+      background: #0e1d2d;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -2045,6 +2373,7 @@
       <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
       <button type="button" data-page="pageDailyPresentation">DAILY PRESENTASI</button>
       <button type="button" data-page="pageDailyClosing">DAILY CLOSING</button>
+      <button type="button" data-page="pageActivityRenewal">ACTIVITY RENEWAL</button>
     </div>
 
     <section class="kpis">
@@ -2555,12 +2884,12 @@
           <label>Agent<select id="growthAgentFilter"></select></label>
         </section>
         <div class="coach-summary" id="growthSummary"></div>
-        <div>
+        <div class="growth-table-section">
           <div class="panel-head">
             <h2>Revenue Growth Agent</h2>
-            <span class="note">growth hijau naik, merah turun</span>
+            <span class="note" id="growthTableNote">growth hijau naik, merah turun</span>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap growth-table-wrap">
             <table id="growthAgentTable">
               <thead id="growthAgentHead"></thead>
               <tbody id="growthAgentBody">
@@ -2572,7 +2901,7 @@
         <div>
           <div class="panel-head">
             <h2>Trend Growth</h2>
-            <span class="note">grafik garis revenue week by week</span>
+            <span class="note" id="growthTrendNote">grafik garis revenue week by week</span>
           </div>
           <div class="chart-wrap growth-trend-wrap"><canvas id="growthTrendChart"></canvas></div>
         </div>
@@ -2672,6 +3001,42 @@
       </section>
     </section>
 
+    <section class="page" id="pageActivityRenewal">
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <h2>ACTIVITY RENEWAL</h2>
+          <span class="note">akumulasi aktivitas belajar per user</span>
+        </div>
+        <section class="filters">
+          <label>Monthly<select id="activityRenewalMonthFilter"></select></label>
+          <label>Daily<select id="activityRenewalDateFilter"></select></label>
+          <label>Email Agent<input id="activityRenewalEmailFilter" type="email" placeholder="Tempel email..." /></label>
+        </section>
+        <div class="activity-renewal-actions">
+          <button type="button" class="activity-load-button" id="activityRenewalLoadAllButton">Muat semua user</button>
+          <span class="note">Untuk loading lebih cepat, tempel email terlebih dahulu. Data akan diambil hanya untuk email tersebut.</span>
+        </div>
+        <div class="error" id="activityRenewalError"></div>
+        <div class="coach-summary" id="activityRenewalSummary"></div>
+        <div>
+          <div class="panel-head">
+            <h2 id="activityRenewalTableTitle">Aktivitas belajar per user</h2>
+            <span class="note" id="activityRenewalTableNote">Menit belajar dijumlahkan kumulatif · setiap baris email dihitung sebagai kehadiran</span>
+          </div>
+          <div class="table-wrap activity-renewal-table-wrap">
+            <table id="activityRenewalTable">
+              <thead id="activityRenewalHead"></thead>
+              <tbody id="activityRenewalBody">
+                <tr><td class="empty">Tempel email lalu tekan Enter.</td></tr>
+              </tbody>
+              <tfoot id="activityRenewalFoot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+    </section>
+
+
   </main>
 
   <script>
@@ -2680,6 +3045,8 @@
     const CALL_SHEET_ID = "1wt5Vv5lu3shvy-bYyNjIeLs6iMWcPD78ZuGMMLdfrpU";
     const CALL_GID = "0";
     const DAILY_PRESENTATION_SHEET_ID = "1ijuubVUb6Hz49NerKKMI-8q3edCnkjOIeS3f50MSwdo";
+    const ACTIVITY_RENEWAL_SHEET_ID = "1LG617KJmt_MHDWHxUylx-uovnxlSwd3wOa1eQCeoW5k";
+    const ACTIVITY_RENEWAL_GID = "0";
     const DAILY_PRESENTATION_SOURCES = [
       {
         key: "pambudi",
@@ -2736,6 +3103,7 @@
       "INBOUND": "#ff2dac"
     };
     const CHART_PALETTE = ["#28c8ff", "#ff2dac", "#10d6a3", "#ffc247", "#9d4edd", "#ff477e", "#3b82f6", "#22c55e", "#f97316", "#06b6d4", "#e879f9", "#facc15"];
+    const GROWTH_CHART_MAX_SERIES = 12;
     const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
     const number = new Intl.NumberFormat("id-ID");
     const decimal = new Intl.NumberFormat("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2789,11 +3157,18 @@
     let callSheetLoaded = false;
     let presentationRows = [];
     const presentationSourceStatus = {};
+    let activityRenewalRows = [];
+    let activityRenewalLoaded = false;
+    let activityRenewalLoading = false;
+    let activityRenewalRequestedEmail = "";
+    let activityRenewalRequestSerial = 0;
+    let activityRenewalRequestTimeout = null;
     let dailyClosingDefaultApplied = false;
     let dailyClosingCacheSource = null;
     const dailyClosingOrgRowsCache = new Map();
     const dailyClosingTimeRowsCache = new WeakMap();
     let selectedTeam = "ALL";
+    let growthChartRenderToken = 0;
     const charts = {};
     const chartDatasetMaxCache = new WeakMap();
     const rowNumberCache = new WeakMap();
@@ -3394,6 +3769,10 @@
         case "pageDailyClosing":
           setDailyClosingOptions();
           renderDailyClosingPage();
+          break;
+        case "pageActivityRenewal":
+          setActivityRenewalOptions();
+          renderActivityRenewalPage();
           break;
         default:
           break;
@@ -4129,7 +4508,14 @@
       const hasDetailFilter = ["growthWeekFilter", "growthDateFilter", "growthProductFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"]
         .some((id) => document.getElementById(id).value);
       const monthRows = allRows.filter((row) => !isExcludedSpv(row[fields.spv]) && filterMatches(selectedMonth, row._weekMonth));
-      const weeks = [...new Set(monthRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
+      const selectedWeek = document.getElementById("growthWeekFilter").value;
+      const selectedDate = document.getElementById("growthDateFilter").value;
+      /* If a specific week/day is selected, keep only that period in the
+         table. This prevents the selected result from sitting in a far-right
+         column among blank weeks; monthly/product/coach filters still retain
+         the full week-by-week trend. */
+      const weekSourceRows = filterIsActive(selectedWeek) || filterIsActive(selectedDate) ? rows : monthRows;
+      const weeks = [...new Set(weekSourceRows.map((row) => clean(row[fields.week])).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
       const rowLabel = hasDetailFilter ? "Agent" : "Coach";
       const groupKey = hasDetailFilter ? fields.agent : fields.leader;
       const agentMap = new Map();
@@ -4143,6 +4529,18 @@
       const items = [...agentMap.values()].sort((a, b) =>
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
       );
+      const growthTable = document.getElementById("growthAgentTable");
+      const growthTableNote = document.getElementById("growthTableNote");
+      const tableFitsPanel = weeks.length <= 3;
+      const tableMayScroll = hasDetailFilter || weeks.length > 3;
+      growthTable.classList.toggle("growth-table-fit", tableFitsPanel);
+      growthTable.classList.toggle("growth-table-scroll", !tableFitsPanel);
+      growthTable.classList.toggle("growth-detail-table", hasDetailFilter);
+      if (growthTableNote) {
+        growthTableNote.textContent = tableMayScroll
+          ? "growth hijau naik, merah turun · geser horizontal jika perlu"
+          : "growth hijau naik, merah turun";
+      }
       document.getElementById("growthSummary").innerHTML = `
         <div class="coach-stat"><span>Monthly</span><strong>${escapeHtml(filterValueLabel("growthMonthFilter", "Semua bulan"))}</strong></div>
         <div class="coach-stat"><span>Product Type</span><strong>${escapeHtml(filterValueLabel("growthProductFilter", "Semua product type"))}</strong></div>
@@ -4150,7 +4548,7 @@
         <div class="coach-stat"><span>${rowLabel}</span><strong>${number.format(items.length)}</strong></div>
         <div class="coach-stat"><span>Week Range</span><strong>${weeks.length ? `${weeks[0]}-${weeks[weeks.length - 1]}` : "-"}</strong></div>
       `;
-      document.getElementById("growthAgentHead").innerHTML = `<tr><th>${rowLabel}</th>${hasDetailFilter ? "<th>Coach</th><th>SPV</th>" : ""}${weeks.map((week, index) => `<th class="right">Week ${escapeHtml(week)}</th>${index ? `<th class="right">Growth ${escapeHtml(weeks[index - 1])}-${escapeHtml(week)}</th>` : ""}`).join("")}<th class="right">Total</th></tr>`;
+      document.getElementById("growthAgentHead").innerHTML = `<tr><th class="growth-name-col">${rowLabel}</th>${hasDetailFilter ? "<th class=\"growth-meta-col\">Coach</th><th class=\"growth-meta-col\">SPV</th>" : ""}${weeks.map((week, index) => `<th class="right growth-week-col">Week ${escapeHtml(week)}</th>${index ? `<th class="right growth-growth-col">Growth ${escapeHtml(weeks[index - 1])}-${escapeHtml(week)}</th>` : ""}`).join("")}<th class="right growth-total-col">Total</th></tr>`;
       document.getElementById("growthAgentBody").innerHTML = items.length ? items.map((item) => {
         let previous = null;
         let total = 0;
@@ -4161,12 +4559,12 @@
           if (index) {
             const growth = previous ? ((value - previous) / previous) * 100 : (value ? 100 : 0);
             const growthClass = growth > 0 ? "growth-up" : growth < 0 ? "growth-down" : "growth-flat";
-            growthCell = `<td class="right ${growthClass}">${growth > 0 ? "+" : ""}${growth.toFixed(1)}%</td>`;
+            growthCell = `<td class="right growth-growth-cell ${growthClass}">${growth > 0 ? "+" : ""}${growth.toFixed(1)}%</td>`;
           }
           previous = value;
-          return `<td class="right">${rupiah.format(value)}</td>${growthCell}`;
+          return `<td class="right growth-week-cell">${rupiah.format(value)}</td>${growthCell}`;
         }).join("");
-        return `<tr><td>${escapeHtml(item.name)}</td>${hasDetailFilter ? `<td>${escapeHtml(item.coach)}</td><td>${escapeHtml(item.spv)}</td>` : ""}${cells}<td class="right">${rupiah.format(total)}</td></tr>`;
+        return `<tr><td class="growth-name-cell">${escapeHtml(item.name)}</td>${hasDetailFilter ? `<td class="growth-meta-cell">${escapeHtml(item.coach)}</td><td class="growth-meta-cell">${escapeHtml(item.spv)}</td>` : ""}${cells}<td class="right growth-total-cell">${rupiah.format(total)}</td></tr>`;
       }).join("") : `<tr><td colspan="${weeks.length * 2 + (hasDetailFilter ? 3 : 1)}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
       const agentTrendMap = new Map();
       rows.forEach((row) => {
@@ -4176,43 +4574,68 @@
         const week = clean(row[fields.week]);
         item.weeks[week] = (item.weeks[week] || 0) + rowNumber(row, fields.amount);
       });
-      const trendItems = [...agentTrendMap.values()].sort((a, b) =>
+      const sortedTrendItems = [...agentTrendMap.values()].sort((a, b) =>
         weeks.reduce((total, week) => total + (b.weeks[week] || 0), 0) - weeks.reduce((total, week) => total + (a.weeks[week] || 0), 0)
       );
-      makeChart("growthTrendChart", {
-        type: "line",
-        data: {
-          labels: weeks.map((week) => `Week ${week}`),
-          datasets: trendItems.map((item, index) => ({
-            label: item.name,
-            data: weeks.map((week) => item.weeks[week] || 0),
-            borderColor: CHART_PALETTE[index % CHART_PALETTE.length],
-            backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length],
-            tension: .28,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          }))
-        },
-        options: {
-          ...baseOptions(),
-          elements: { line: { borderWidth: 2 }, point: { radius: 2, hoverRadius: 4 } },
-          plugins: {
-            ...baseOptions().plugins,
-            legend: {
-              position: "bottom",
-              labels: {
-                color: chartTheme().legend,
-                usePointStyle: true,
-                pointStyle: "circle",
-                boxWidth: 8,
-                boxHeight: 8,
-                padding: 14,
-                font: { size: 10, weight: "600" }
+      const trendItems = sortedTrendItems.length > GROWTH_CHART_MAX_SERIES
+        ? (() => {
+          const topItems = sortedTrendItems.slice(0, GROWTH_CHART_MAX_SERIES);
+          const otherItems = sortedTrendItems.slice(GROWTH_CHART_MAX_SERIES);
+          const other = { name: `Lainnya (${otherItems.length} agent)`, weeks: {} };
+          weeks.forEach((week) => {
+            other.weeks[week] = otherItems.reduce((total, item) => total + (item.weeks[week] || 0), 0);
+          });
+          return [...topItems, other];
+        })()
+        : sortedTrendItems;
+      const trendNote = document.getElementById("growthTrendNote");
+      if (trendNote) {
+        trendNote.textContent = sortedTrendItems.length > GROWTH_CHART_MAX_SERIES
+          ? `top ${GROWTH_CHART_MAX_SERIES} agent + agregat lainnya`
+          : "grafik garis revenue week by week";
+      }
+      const chartToken = ++growthChartRenderToken;
+      setTimeout(() => {
+        if (chartToken !== growthChartRenderToken || activePageId() !== "pageGrowthAgent") return;
+        const chartBase = baseOptions();
+        makeChart("growthTrendChart", {
+          type: "line",
+          data: {
+            labels: weeks.map((week) => `Week ${week}`),
+            datasets: trendItems.map((item, index) => ({
+              label: item.name,
+              data: weeks.map((week) => item.weeks[week] || 0),
+              borderColor: CHART_PALETTE[index % CHART_PALETTE.length],
+              backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length],
+              tension: .28,
+              pointRadius: 2,
+              pointHoverRadius: 4
+            }))
+          },
+          options: {
+            ...chartBase,
+            animation: false,
+            normalized: true,
+            elements: { line: { borderWidth: 2 }, point: { radius: 2, hoverRadius: 4 } },
+            plugins: {
+              ...chartBase.plugins,
+              datalabels: { display: false },
+              legend: {
+                position: "bottom",
+                labels: {
+                  color: chartTheme().legend,
+                  usePointStyle: true,
+                  pointStyle: "circle",
+                  boxWidth: 8,
+                  boxHeight: 8,
+                  padding: 14,
+                  font: { size: 10, weight: "600" }
+                }
               }
             }
           }
-        }
-      });
+        });
+      }, 0);
     }
 
     function presentationSourceLabel(sourceKey) {
@@ -5107,6 +5530,222 @@
       }
     }
 
+    const ACTIVITY_RENEWAL_FALLBACK_HEADERS = [
+      "BULAN", "MINGGU", "TANGGAL", "TIME", "event_name", "ba_category_tag", "subject_tag",
+      "event_end_time_gmt7", "main_presenter", "presenter_extract", "assistant_presenter", "user_id",
+      "user_email", "user_name", "join_timestamp_gmt7", "teacher_rating_star", "material_rating_star",
+      "% DURASI", "MENIT BELAJAR", "user_cellphone_number", "bao_type", "product_type"
+    ];
+
+    const ACTIVITY_RENEWAL_FIELD_ALIASES = {
+      month: ["BULAN", "bulan", "month"],
+      date: ["TANGGAL", "tanggal", "date"],
+      userId: ["user_id", "user id", "userid"],
+      email: ["user_email", "user email", "email"],
+      name: ["user_name", "user name", "nama user", "nama"],
+      duration: ["% DURASI", "% durasi", "durasi", "duration"],
+      minutes: ["MENIT BELAJAR", "menit belajar", "learning minutes", "minutes"],
+      product: ["product_type", "product type", "tipe produk"],
+      baoType: ["bao_type", "bao type"],
+      event: ["event_name", "event name", "nama event"]
+    };
+
+    function activityRenewalFindHeader(headers, aliases) {
+      const aliasSet = new Set(aliases.map(normalizeHeader));
+      return headers.find((header) => aliasSet.has(normalizeHeader(header))) || "";
+    }
+
+    function activityRenewalNumber(value) {
+      const text = clean(value).replace(/\s/g, "").replace(/%/g, "");
+      if (!text || text.toLowerCase() === "null") return 0;
+      let normalized = text.replace(/[^0-9,.-]/g, "");
+      const comma = normalized.lastIndexOf(",");
+      const dot = normalized.lastIndexOf(".");
+      if (comma > dot) normalized = normalized.replace(/\./g, "").replace(",", ".");
+      else if (dot > comma && comma >= 0) normalized = normalized.replace(/,/g, "");
+      else if (comma >= 0) normalized = normalized.replace(",", ".");
+      const result = Number(normalized);
+      return Number.isFinite(result) ? result : 0;
+    }
+
+    function rowsFromActivityRenewalTable(table) {
+      const matrix = (table.rows || []).map((row) => (row.c || []).map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
+      let headers = (table.cols || []).map((col) => clean(col.label || col.id));
+      let startIndex = 0;
+      const hasKnownHeader = headers.some((header) => normalizeHeader(header) === "user_email" || normalizeHeader(header) === "user email");
+
+      if (!hasKnownHeader) {
+        const detectedIndex = matrix.findIndex((row) => {
+          const normalized = row.map(normalizeHeader);
+          return normalized.includes("user_email") || normalized.includes("user email");
+        });
+        if (detectedIndex >= 0) {
+          headers = matrix[detectedIndex].map(clean);
+          startIndex = detectedIndex + 1;
+        } else {
+          headers = ACTIVITY_RENEWAL_FALLBACK_HEADERS;
+        }
+      }
+      if (!headers.length) headers = ACTIVITY_RENEWAL_FALLBACK_HEADERS;
+
+      const header = Object.fromEntries(Object.entries(ACTIVITY_RENEWAL_FIELD_ALIASES)
+        .map(([key, aliases]) => [key, activityRenewalFindHeader(headers, aliases)]));
+
+      return matrix.slice(startIndex).map((line) => {
+        const row = {};
+        headers.forEach((name, index) => {
+          if (name) row[name] = line[index] ?? "";
+        });
+        const rawDate = clean(row[header.date]);
+        const dateKey = dateKeyFromValue(rawDate);
+        const email = clean(row[header.email]);
+        const userId = clean(row[header.userId]);
+        const userName = clean(row[header.name]);
+        const durationRaw = clean(row[header.duration]);
+        const userKey = normalizeName(email) || normalizeName(userId) || normalizeName(userName);
+        return {
+          _dateKey: dateKey,
+          _month: dateKey.match(/^\d{4}-\d{2}/)?.[0] || "",
+          _weekMonth: dateKey.match(/^\d{4}-\d{2}/)?.[0] || "",
+          _email: email,
+          _userId: userId,
+          _userName: userName || email || userId || "Kosong",
+          _userKey: userKey,
+          _minutes: activityRenewalNumber(row[header.minutes]),
+          _duration: activityRenewalNumber(durationRaw),
+          _durationValid: Boolean(durationRaw) && durationRaw.toLowerCase() !== "null",
+          _product: clean(row[header.product]) || clean(row[header.baoType]),
+          _event: clean(row[header.event])
+        };
+      }).filter((row) => row._userKey || row._dateKey || row._event);
+    }
+
+    function activityRenewalFilterValue(id) {
+      return document.getElementById(id)?.value || "";
+    }
+
+    function activityRenewalFilteredRows() {
+      const month = activityRenewalFilterValue("activityRenewalMonthFilter");
+      const date = activityRenewalFilterValue("activityRenewalDateFilter");
+      const email = normalizeName(activityRenewalFilterValue("activityRenewalEmailFilter"));
+      return activityRenewalRows.filter((row) =>
+        (!month || row._month === month)
+        && (!date || row._dateKey === date)
+        && (!email || normalizeName(row._email).includes(email))
+      );
+    }
+
+    function setActivityRenewalOptions() {
+      if (!activityRenewalRows.length) return;
+      setMonthOptions("activityRenewalMonthFilter", activityRenewalRows, "bulan");
+      const month = activityRenewalFilterValue("activityRenewalMonthFilter");
+      const monthRows = activityRenewalRows.filter((row) => !month || row._month === month);
+      const dates = [...new Set(monthRows.map((row) => row._dateKey).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      setFilterEntries(
+        "activityRenewalDateFilter",
+        dates.map((value) => ({ value, label: dateLabelFromKey(value) })),
+        "Semua tanggal"
+      );
+    }
+
+    function formatActivityRenewalMinutes(value) {
+      return new Intl.NumberFormat("id-ID", { maximumFractionDigits: 2 }).format(value || 0);
+    }
+
+    function formatActivityRenewalPercent(value) {
+      return Number.isFinite(value) ? `${decimal.format(value)}%` : "—";
+    }
+
+    function renderActivityRenewalPage() {
+      const summary = document.getElementById("activityRenewalSummary");
+      const title = document.getElementById("activityRenewalTableTitle");
+      const note = document.getElementById("activityRenewalTableNote");
+      const head = document.getElementById("activityRenewalHead");
+      const body = document.getElementById("activityRenewalBody");
+      const foot = document.getElementById("activityRenewalFoot");
+      const error = document.getElementById("activityRenewalError");
+      if (!summary || !body) return;
+
+      if (!activityRenewalLoaded) {
+        const status = activityRenewalLoading
+          ? "Memuat data Activity Renewal..."
+          : "Tempel email lalu tunggu data muncul";
+        summary.innerHTML = `<div class="coach-stat"><span>Status</span><strong>${status}</strong></div>`;
+        if (head) head.innerHTML = "";
+        if (head) head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Menit Belajar</th><th class="right">Jumlah Kehadiran</th><th class="right">Rata-rata % Durasi</th></tr>`;
+        body.innerHTML = `<tr><td colspan="5" class="empty">${status}</td></tr>`;
+        if (foot) foot.innerHTML = "";
+        return;
+      }
+
+      const rows = activityRenewalFilteredRows();
+      const grouped = new Map();
+      rows.forEach((row) => {
+        const key = row._userKey || `row-${grouped.size}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            name: row._userName,
+            email: row._email,
+            minutes: 0,
+            attendance: 0,
+            durationSum: 0,
+            durationCount: 0
+          });
+        }
+        const item = grouped.get(key);
+        item.minutes += row._minutes;
+        item.attendance += 1;
+        if (row._durationValid) {
+          item.durationSum += row._duration;
+          item.durationCount += 1;
+        }
+        if (!item.email && row._email) item.email = row._email;
+        if ((!item.name || item.name === "Kosong") && row._userName) item.name = row._userName;
+      });
+
+      const items = [...grouped.values()].sort((a, b) => b.minutes - a.minutes || b.attendance - a.attendance || a.name.localeCompare(b.name, "id", { numeric: true }));
+      const totalMinutes = rows.reduce((total, row) => total + row._minutes, 0);
+      const durationRows = rows.filter((row) => row._durationValid);
+      const averageDuration = durationRows.length
+        ? durationRows.reduce((total, row) => total + row._duration, 0) / durationRows.length
+        : NaN;
+      const periodLabel = activityRenewalFilterValue("activityRenewalDateFilter")
+        ? filterValueLabel("activityRenewalDateFilter", "Semua tanggal")
+        : activityRenewalFilterValue("activityRenewalMonthFilter")
+          ? filterValueLabel("activityRenewalMonthFilter", "Semua bulan")
+          : "Semua periode";
+      const emailFilter = activityRenewalFilterValue("activityRenewalEmailFilter");
+
+      if (error) {
+        error.style.display = "none";
+        error.textContent = "";
+      }
+      if (title) title.textContent = `Aktivitas belajar per user · ${periodLabel}`;
+      if (note) note.textContent = "Menit belajar = jumlah kumulatif · Kehadiran = jumlah baris per email · % Durasi = rata-rata";
+      summary.innerHTML = `
+        <div class="coach-stat"><span>User</span><strong>${number.format(items.length)}</strong></div>
+        <div class="coach-stat"><span>Menit Belajar</span><strong>${formatActivityRenewalMinutes(totalMinutes)}</strong></div>
+        <div class="coach-stat"><span>Kehadiran</span><strong>${number.format(rows.length)}</strong></div>
+        <div class="coach-stat"><span>Rata-rata % Durasi</span><strong>${formatActivityRenewalPercent(averageDuration)}</strong></div>
+        <div class="coach-stat"><span>Periode</span><strong>${escapeHtml(periodLabel)}</strong></div>
+        <div class="coach-stat"><span>Email Filter</span><strong>${escapeHtml(emailFilter || "Semua email")}</strong></div>
+      `;
+
+      if (head) head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Menit Belajar</th><th class="right">Jumlah Kehadiran</th><th class="right">Rata-rata % Durasi</th></tr>`;
+      if (body) {
+        body.innerHTML = items.length ? items.map((item) => {
+          const average = item.durationCount ? item.durationSum / item.durationCount : NaN;
+          return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(item.minutes)}</td><td class="right">${number.format(item.attendance)}</td><td class="right">${formatActivityRenewalPercent(average)}</td></tr>`;
+        }).join("") : `<tr><td colspan="5" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+      }
+      if (foot) {
+        foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td><td class="right activity-revenue">${formatActivityRenewalMinutes(totalMinutes)}</td><td class="right">${number.format(rows.length)}</td><td class="right">${formatActivityRenewalPercent(averageDuration)}</td></tr>`;
+      }
+      const table = document.getElementById("activityRenewalTable");
+      if (table) table.style.minWidth = "900px";
+    }
+
     function render() {
       const data = filteredRows();
       renderKpis(data);
@@ -5505,6 +6144,26 @@
           });
         });
       });
+      ["activityRenewalMonthFilter", "activityRenewalDateFilter"].forEach((id) => {
+        document.getElementById(id).addEventListener("input", () => {
+          scheduleFilterRender("activityRenewal", () => {
+            setActivityRenewalOptions();
+            renderActivityRenewalPage();
+          });
+        });
+      });
+      const activityEmailInput = document.getElementById("activityRenewalEmailFilter");
+      activityEmailInput.addEventListener("input", () => {
+        scheduleFilterRender("activityRenewalEmail", renderActivityRenewalPage);
+      });
+      activityEmailInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        loadActivityRenewalSheet(activityEmailInput.value);
+      });
+      document.getElementById("activityRenewalLoadAllButton").addEventListener("click", () => {
+        loadActivityRenewalSheet("");
+      });
       ["callMonthFilter", "callWeekFilter", "callDateFilter", "callStatusFilter", "callCoachFilter", "callAgentFilter", "callTimeFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
           scheduleFilterRender("callTracking", () => {
@@ -5624,6 +6283,78 @@
         const agent = normalizeName(row[presentationFields.agent]);
         return agent && agent !== "nama oec";
       });
+    }
+
+    function handleActivityRenewalResponse(response, requestedEmail, requestSerial) {
+      if (requestSerial !== activityRenewalRequestSerial) return;
+      if (activityRenewalRequestTimeout) clearTimeout(activityRenewalRequestTimeout);
+      try {
+        activityRenewalRows = rowsFromActivityRenewalTable(response.table);
+        activityRenewalLoaded = true;
+        activityRenewalLoading = false;
+        if (activePageId() === "pageActivityRenewal") {
+          setActivityRenewalOptions();
+          renderActivityRenewalPage();
+        }
+      } catch (error) {
+        activityRenewalLoading = false;
+        showActivityRenewalError(error.message);
+      }
+    }
+
+    function showActivityRenewalError(message) {
+      const box = document.getElementById("activityRenewalError");
+      if (!box) return;
+      box.style.display = "block";
+      box.textContent = `Data Activity Renewal tidak bisa dibaca. Pastikan Google Sheet bisa diakses publik. Detail: ${message}`;
+      activityRenewalLoaded = false;
+      const summary = document.getElementById("activityRenewalSummary");
+      if (summary) summary.innerHTML = `<div class="coach-stat"><span>Status</span><strong>Gagal memuat data</strong></div>`;
+      if (activePageId() === "pageActivityRenewal") renderActivityRenewalPage();
+    }
+
+    function loadActivityRenewalSheet(email = "") {
+      const requestedEmail = normalizeName(email);
+      if (requestedEmail && !requestedEmail.includes("@")) {
+        showActivityRenewalError("Masukkan email yang valid lalu tekan Enter.");
+        return;
+      }
+      const requestSerial = ++activityRenewalRequestSerial;
+      activityRenewalRequestedEmail = requestedEmail;
+      activityRenewalRows = [];
+      activityRenewalLoaded = false;
+      activityRenewalLoading = true;
+      if (activePageId() === "pageActivityRenewal") renderActivityRenewalPage();
+
+      const callbackName = `handleActivityRenewalData_${requestSerial}`;
+      window[callbackName] = (response) => {
+        try {
+          handleActivityRenewalResponse(response, requestedEmail, requestSerial);
+        } finally {
+          delete window[callbackName];
+        }
+      };
+      const script = document.createElement("script");
+      const escapedEmail = requestedEmail.replace(/'/g, "''");
+      const query = requestedEmail
+        ? `&tq=${encodeURIComponent(`select A,B,C,M,N,R,S where M = '${escapedEmail}'`)}`
+        : "";
+      script.src = `https://docs.google.com/spreadsheets/d/${ACTIVITY_RENEWAL_SHEET_ID}/gviz/tq?gid=${ACTIVITY_RENEWAL_GID}&headers=1&tqx=out:json;responseHandler:${callbackName}${query}`;
+      script.onerror = () => {
+        delete window[callbackName];
+        if (requestSerial !== activityRenewalRequestSerial) return;
+        if (activityRenewalRequestTimeout) clearTimeout(activityRenewalRequestTimeout);
+        activityRenewalLoading = false;
+        showActivityRenewalError("Google Sheet tidak bisa diakses dari halaman ini.");
+      };
+      document.body.appendChild(script);
+      activityRenewalRequestTimeout = setTimeout(() => {
+        if (requestSerial !== activityRenewalRequestSerial) return;
+        delete window[callbackName];
+        activityRenewalRequestTimeout = null;
+        activityRenewalLoading = false;
+        showActivityRenewalError("Respons Google Sheet terlalu lama. Coba tekan Enter lagi atau periksa email yang ditempel.");
+      }, 90000);
     }
 
     window.handleSheetData = function(response) {

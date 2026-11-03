@@ -2398,8 +2398,86 @@
       background: #0e1d2d;
     }
   </style>
+  <style id="access-gate-style">
+    body.access-locked > *:not(#accessLock) {
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .access-lock {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #061522;
+    }
+
+    .access-lock-card {
+      width: min(420px, 100%);
+      padding: 30px;
+      border: 1px solid rgba(95, 225, 226, .28);
+      border-radius: 22px;
+      background: #0d2638;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .36);
+      text-align: center;
+    }
+
+    .access-lock-card h1 {
+      margin: 0 0 8px;
+      color: #f0fbff;
+      font-size: 28px;
+    }
+
+    .access-lock-card p {
+      margin: 0 0 20px;
+      color: #9db8c6;
+      font-size: 13px;
+    }
+
+    .access-lock-card input {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .access-lock-card button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      color: #06202b;
+      background: #78dfd9;
+      font: inherit;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .access-lock-card button:hover { background: #9af0e9; }
+
+    .access-lock-message {
+      min-height: 20px;
+      margin-top: 12px;
+      color: #ff9db2;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .access-lock.access-lock-hidden { display: none; }
+  </style>
 </head>
-<body>
+<body class="access-locked">
+  <div class="access-lock" id="accessLock">
+    <div class="access-lock-card">
+      <h1>FORTUNA CENTER</h1>
+      <p>Masukkan password untuk membuka dashboard.</p>
+      <input id="accessPasswordInput" type="password" autocomplete="off" placeholder="Password" />
+      <button type="button" id="accessPasswordButton">Masuk</button>
+      <div class="access-lock-message" id="accessLockMessage" aria-live="polite"></div>
+    </div>
+  </div>
   <header>
     <div class="header-inner">
       <div>
@@ -6836,10 +6914,63 @@
       });
     }
 
-    enhanceMultiSelects();
-    setupThemeToggle();
-    loadSheet();
-    loadDailyPresentationSheet();
+    const ACCESS_PASSWORD_HASH = "c9aacd3aeac423ca642430dae5430be0a967689a4fb9f7eb09c2bd756156c3a0";
+    const ACCESS_PASSWORD_FALLBACK = "a8135aa0";
+
+    function accessFallbackHash(value) {
+      let hash = 2166136261;
+      for (const byte of new TextEncoder().encode(value)) {
+        hash ^= byte;
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(16);
+    }
+
+    async function accessPasswordMatches(value) {
+      if (window.crypto?.subtle) {
+        const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+        const hash = Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        return hash === ACCESS_PASSWORD_HASH;
+      }
+      return accessFallbackHash(value) === ACCESS_PASSWORD_FALLBACK;
+    }
+
+    function startDashboardAfterUnlock() {
+      document.body.classList.remove("access-locked");
+      document.getElementById("accessLock")?.classList.add("access-lock-hidden");
+      enhanceMultiSelects();
+      setupThemeToggle();
+      loadSheet();
+      loadDailyPresentationSheet();
+    }
+
+    function setupAccessGate() {
+      const input = document.getElementById("accessPasswordInput");
+      const button = document.getElementById("accessPasswordButton");
+      const message = document.getElementById("accessLockMessage");
+      if (!input || !button || !message) return;
+      const submit = async () => {
+        button.disabled = true;
+        message.textContent = "Memeriksa password...";
+        const valid = await accessPasswordMatches(input.value);
+        if (valid) {
+          message.textContent = "";
+          startDashboardAfterUnlock();
+          return;
+        }
+        input.value = "";
+        input.focus();
+        message.textContent = "Password salah.";
+        button.disabled = false;
+      };
+      button.addEventListener("click", submit);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") submit();
+      });
+      input.focus();
+    }
+
+    setupAccessGate();
   </script>
 </body>
 </html>

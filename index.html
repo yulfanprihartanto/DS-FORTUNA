@@ -1460,13 +1460,15 @@
     .activity-load-button:hover { background: #d3f0f1; }
 
     #activityRenewalTable {
-      min-width: 900px;
+      width: 100%;
+      min-width: 0;
       font-size: 12px;
+      table-layout: auto;
     }
 
     #activityRenewalTable th,
     #activityRenewalTable td {
-      padding: 9px 10px;
+      padding: 8px 8px;
       white-space: nowrap;
     }
 
@@ -1475,8 +1477,21 @@
       position: sticky;
       left: 0;
       z-index: 2;
-      min-width: 190px;
+      min-width: 145px;
+      max-width: 220px;
       background: #f3f7fa;
+    }
+
+    #activityRenewalTable td:first-child {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    #activityRenewalTable th:nth-child(2),
+    #activityRenewalTable td:nth-child(2) {
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #activityRenewalTable td:first-child {
@@ -1490,6 +1505,45 @@
     }
 
     #activityRenewalTable tfoot td {
+      background: #f3f7fa;
+      color: #163e59;
+      font-weight: 850;
+    }
+
+    .tutor-session-table-wrap { max-height: 560px; margin-top: 16px; }
+
+    #tutorSessionTable {
+      width: 100%;
+      min-width: 0;
+      font-size: 12px;
+      table-layout: auto;
+    }
+
+    #tutorSessionTable th,
+    #tutorSessionTable td {
+      padding: 8px;
+      white-space: nowrap;
+    }
+
+    #tutorSessionTable th:first-child,
+    #tutorSessionTable td:first-child {
+      min-width: 145px;
+      max-width: 220px;
+    }
+
+    #tutorSessionTable td:first-child {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      color: #163e59;
+      font-weight: 750;
+    }
+
+    #tutorSessionTable td.tutor-total {
+      color: #176b79;
+      font-weight: 850;
+    }
+
+    #tutorSessionTable tfoot td {
       background: #f3f7fa;
       color: #163e59;
       font-weight: 850;
@@ -1986,6 +2040,19 @@
     }
 
     html[data-theme="dark"] #activityRenewalTable tfoot td {
+      background: #122d40;
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #tutorSessionTable td:first-child {
+      color: #e2f2f7;
+    }
+
+    html[data-theme="dark"] #tutorSessionTable td.tutor-total {
+      color: #78dfd9;
+    }
+
+    html[data-theme="dark"] #tutorSessionTable tfoot td {
       background: #122d40;
       color: #e2f2f7;
     }
@@ -3011,10 +3078,11 @@
           <label>Monthly<select id="activityRenewalMonthFilter"></select></label>
           <label>Daily<select id="activityRenewalDateFilter"></select></label>
           <label>Email Agent<input id="activityRenewalEmailFilter" type="email" placeholder="Tempel email..." /></label>
+          <label>Nomor User<input id="activityRenewalPhoneFilter" type="tel" placeholder="08... atau 628..." /></label>
         </section>
         <div class="activity-renewal-actions">
           <button type="button" class="activity-load-button" id="activityRenewalLoadAllButton">Muat semua user</button>
-          <span class="note">Untuk loading lebih cepat, tempel email terlebih dahulu. Data akan diambil hanya untuk email tersebut.</span>
+          <span class="note">Tempel email atau nomor lalu tekan Enter. Data hanya diambil untuk pencarian tersebut.</span>
         </div>
         <div class="error" id="activityRenewalError"></div>
         <div class="coach-summary" id="activityRenewalSummary"></div>
@@ -3033,6 +3101,21 @@
             </table>
           </div>
         </div>
+        <div>
+          <div class="panel-head">
+            <h2>SESI TUTOR</h2>
+            <span class="note">akumulasi Total Booking dan Total User Attend</span>
+          </div>
+          <div class="table-wrap tutor-session-table-wrap">
+            <table id="tutorSessionTable">
+              <thead id="tutorSessionHead"></thead>
+              <tbody id="tutorSessionBody">
+                <tr><td class="empty">Tempel email atau nomor lalu tekan Enter.</td></tr>
+              </tbody>
+              <tfoot id="tutorSessionFoot"></tfoot>
+            </table>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -3047,6 +3130,7 @@
     const DAILY_PRESENTATION_SHEET_ID = "1ijuubVUb6Hz49NerKKMI-8q3edCnkjOIeS3f50MSwdo";
     const ACTIVITY_RENEWAL_SHEET_ID = "1LG617KJmt_MHDWHxUylx-uovnxlSwd3wOa1eQCeoW5k";
     const ACTIVITY_RENEWAL_GID = "0";
+    const ACTIVITY_RENEWAL_TUTOR_SHEET_NAME = "SESI TUTOR";
     const DAILY_PRESENTATION_SOURCES = [
       {
         key: "pambudi",
@@ -3161,8 +3245,15 @@
     let activityRenewalLoaded = false;
     let activityRenewalLoading = false;
     let activityRenewalRequestedEmail = "";
+    let activityRenewalRequestedPhone = "";
     let activityRenewalRequestSerial = 0;
     let activityRenewalRequestTimeout = null;
+    let tutorSessionRows = [];
+    let tutorSessionLoaded = false;
+    let tutorSessionLoading = false;
+    let tutorSessionRequestSerial = 0;
+    let tutorSessionRequestTimeout = null;
+    let tutorSessionError = "";
     let dailyClosingDefaultApplied = false;
     let dailyClosingCacheSource = null;
     const dailyClosingOrgRowsCache = new Map();
@@ -5544,10 +5635,26 @@
       email: ["user_email", "user email", "email"],
       name: ["user_name", "user name", "nama user", "nama"],
       duration: ["% DURASI", "% durasi", "durasi", "duration"],
-      minutes: ["MENIT BELAJAR", "menit belajar", "learning minutes", "minutes"],
+      durationTotal: ["Total Durasi", "total duration", "sum-r"],
+      attendance: ["Kehadiran", "attendance", "count", "count-a"],
+      minutes: ["MENIT BELAJAR", "menit belajar", "learning minutes", "minutes", "sum-s"],
+      phone: ["user_cellphone_number", "user cellphone number", "cellphone number", "phone", "nomor"],
       product: ["product_type", "product type", "tipe produk"],
       baoType: ["bao_type", "bao type"],
       event: ["event_name", "event name", "nama event"]
+    };
+
+    const ACTIVITY_RENEWAL_COLUMN_NAMES = {
+      "a": "BULAN",
+      "c": "TANGGAL",
+      "m": "user_email",
+      "n": "user_name",
+      "r": "% DURASI",
+      "s": "MENIT BELAJAR",
+      "t": "user_cellphone_number",
+      "count-a": "Kehadiran",
+      "sum-s": "Menit Belajar",
+      "sum-r": "Total Durasi"
     };
 
     function activityRenewalFindHeader(headers, aliases) {
@@ -5568,9 +5675,39 @@
       return Number.isFinite(result) ? result : 0;
     }
 
+    function activityRenewalPercentNumber(value, aggregated = false) {
+      const text = clean(value);
+      const result = activityRenewalNumber(text);
+      if (aggregated || (!text.includes("%") && Math.abs(result) <= 1)) return result * 100;
+      return result;
+    }
+
+    function activityRenewalColumnHeader(column, index) {
+      const id = clean(column?.id).toLowerCase();
+      return ACTIVITY_RENEWAL_COLUMN_NAMES[id]
+        || clean(column?.label)
+        || clean(column?.id)
+        || ACTIVITY_RENEWAL_FALLBACK_HEADERS[index]
+        || `Column ${index + 1}`;
+    }
+
+    function activityRenewalMonthKey(monthValue, dateKey) {
+      const fromDate = clean(dateKey).match(/^\d{4}-(\d{2})$/);
+      if (fromDate) return `${dateKey.slice(0, 7)}`;
+      const month = Math.round(activityRenewalNumber(monthValue));
+      return month ? String(month).padStart(2, "0") : "";
+    }
+
+    function activityRenewalMonthLabel(value) {
+      const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+      const match = clean(value).match(/(?:\d{4}-)?(\d{2})$/);
+      const month = match ? Number(match[1]) : Number(value);
+      return months[month - 1] || clean(value);
+    }
+
     function rowsFromActivityRenewalTable(table) {
       const matrix = (table.rows || []).map((row) => (row.c || []).map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
-      let headers = (table.cols || []).map((col) => clean(col.label || col.id));
+      let headers = (table.cols || []).map((col, index) => activityRenewalColumnHeader(col, index));
       let startIndex = 0;
       const hasKnownHeader = headers.some((header) => normalizeHeader(header) === "user_email" || normalizeHeader(header) === "user email");
 
@@ -5598,46 +5735,245 @@
         });
         const rawDate = clean(row[header.date]);
         const dateKey = dateKeyFromValue(rawDate);
+        const monthKey = activityRenewalMonthKey(row[header.month], dateKey);
         const email = clean(row[header.email]);
+        const phone = clean(row[header.phone]);
         const userId = clean(row[header.userId]);
         const userName = clean(row[header.name]);
         const durationRaw = clean(row[header.duration]);
+        const durationTotalRaw = clean(row[header.durationTotal]);
+        const attendanceRaw = clean(row[header.attendance]);
+        const attendance = attendanceRaw ? activityRenewalNumber(attendanceRaw) : 1;
+        const isAggregated = Boolean(durationTotalRaw);
+        const durationTotal = isAggregated
+          ? activityRenewalPercentNumber(durationTotalRaw, true)
+          : activityRenewalPercentNumber(durationRaw);
+        const durationCount = isAggregated ? attendance : (durationRaw && durationRaw.toLowerCase() !== "null" ? 1 : 0);
         const userKey = normalizeName(email) || normalizeName(userId) || normalizeName(userName);
         return {
           _dateKey: dateKey,
-          _month: dateKey.match(/^\d{4}-\d{2}/)?.[0] || "",
-          _weekMonth: dateKey.match(/^\d{4}-\d{2}/)?.[0] || "",
+          _month: monthKey,
+          _weekMonth: monthKey,
           _email: email,
+          _phone: phone,
           _userId: userId,
           _userName: userName || email || userId || "Kosong",
           _userKey: userKey,
           _minutes: activityRenewalNumber(row[header.minutes]),
-          _duration: activityRenewalNumber(durationRaw),
-          _durationValid: Boolean(durationRaw) && durationRaw.toLowerCase() !== "null",
+          _attendance: attendance,
+          _durationTotal: durationTotal,
+          _durationCount: durationCount,
           _product: clean(row[header.product]) || clean(row[header.baoType]),
           _event: clean(row[header.event])
         };
       }).filter((row) => row._userKey || row._dateKey || row._event);
     }
 
+    const TUTOR_SESSION_FIELD_ALIASES = {
+      month: ["BULAN", "bulan", "month"],
+      date: ["TANGGAL", "tanggal", "date"],
+      email: ["user_email", "user email", "email"],
+      name: ["user_name", "user name", "nama user", "nama"],
+      phone: ["user_cellphone_number", "user cellphone number", "cellphone number", "phone", "nomor"],
+      booking: ["Total booking", "total booking", "booking", "sum-s"],
+      attend: ["Total User Attend", "total user attend", "user attend", "attendance", "sum-t"]
+    };
+
+    const TUTOR_SESSION_COLUMN_NAMES = {
+      "a": "BULAN",
+      "c": "TANGGAL",
+      "p": "user_email",
+      "q": "user_name",
+      "r": "user_cellphone_number",
+      "s": "Total booking",
+      "t": "Total User Attend",
+      "sum-s": "Total booking",
+      "sum-t": "Total User Attend"
+    };
+
+    function tutorSessionFindHeader(headers, aliases) {
+      const aliasSet = new Set(aliases.map(normalizeHeader));
+      return headers.find((header) => aliasSet.has(normalizeHeader(header))) || "";
+    }
+
+    function tutorSessionColumnHeader(column, index) {
+      const id = clean(column?.id).toLowerCase();
+      return TUTOR_SESSION_COLUMN_NAMES[id]
+        || clean(column?.label)
+        || clean(column?.id)
+        || `Column ${index + 1}`;
+    }
+
+    function rowsFromTutorSessionTable(table) {
+      const matrix = (table.rows || []).map((row) => (row.c || []).map((cell) => cell ? (cell.f ?? cell.v ?? "") : ""));
+      const headers = (table.cols || []).map((col, index) => tutorSessionColumnHeader(col, index));
+      const header = Object.fromEntries(Object.entries(TUTOR_SESSION_FIELD_ALIASES)
+        .map(([key, aliases]) => [key, tutorSessionFindHeader(headers, aliases)]));
+      return matrix.map((line) => {
+        const row = {};
+        headers.forEach((name, index) => {
+          if (name) row[name] = line[index] ?? "";
+        });
+        const rawDate = clean(row[header.date]);
+        const dateKey = dateKeyFromValue(rawDate);
+        const monthKey = activityRenewalMonthKey(row[header.month], dateKey);
+        const email = clean(row[header.email]);
+        const name = clean(row[header.name]);
+        const phone = clean(row[header.phone]);
+        return {
+          _dateKey: dateKey,
+          _month: monthKey,
+          _email: email,
+          _userName: name || email || "Kosong",
+          _phone: phone,
+          _userKey: normalizeName(email) || normalizeName(name),
+          _booking: activityRenewalNumber(row[header.booking]),
+          _attend: activityRenewalNumber(row[header.attend])
+        };
+      }).filter((row) => row._userKey || row._dateKey);
+    }
+
     function activityRenewalFilterValue(id) {
       return document.getElementById(id)?.value || "";
+    }
+
+    function activityRenewalNormalizePhone(value) {
+      const digits = clean(value).replace(/[^0-9]/g, "");
+      if (!digits) return "";
+      if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+      if (digits.startsWith("8")) return `62${digits}`;
+      return digits;
     }
 
     function activityRenewalFilteredRows() {
       const month = activityRenewalFilterValue("activityRenewalMonthFilter");
       const date = activityRenewalFilterValue("activityRenewalDateFilter");
-      const email = normalizeName(activityRenewalFilterValue("activityRenewalEmailFilter"));
+      const phone = activityRenewalNormalizePhone(activityRenewalFilterValue("activityRenewalPhoneFilter"));
+      const email = phone ? "" : normalizeName(activityRenewalFilterValue("activityRenewalEmailFilter"));
       return activityRenewalRows.filter((row) =>
         (!month || row._month === month)
         && (!date || row._dateKey === date)
         && (!email || normalizeName(row._email).includes(email))
+        && (!phone || activityRenewalNormalizePhone(row._phone) === phone)
       );
+    }
+
+    function tutorSessionFilteredRows() {
+      const month = activityRenewalFilterValue("activityRenewalMonthFilter");
+      const date = activityRenewalFilterValue("activityRenewalDateFilter");
+      const phone = activityRenewalNormalizePhone(activityRenewalFilterValue("activityRenewalPhoneFilter"));
+      const email = phone ? "" : normalizeName(activityRenewalFilterValue("activityRenewalEmailFilter"));
+      return tutorSessionRows.filter((row) =>
+        (!month || row._month === month)
+        && (!date || row._dateKey === date)
+        && (!email || normalizeName(row._email).includes(email))
+        && (!phone || activityRenewalNormalizePhone(row._phone) === phone)
+      );
+    }
+
+    function renderTutorSessionTable() {
+      const head = document.getElementById("tutorSessionHead");
+      const body = document.getElementById("tutorSessionBody");
+      const foot = document.getElementById("tutorSessionFoot");
+      if (!head || !body) return;
+      if (!tutorSessionLoaded) {
+        head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Total Booking</th><th class="right">Total User Attend</th></tr>`;
+        body.innerHTML = `<tr><td colspan="4" class="empty">${escapeHtml(tutorSessionError || (tutorSessionLoading ? "Memuat data SESI TUTOR..." : "Tempel email atau nomor lalu tekan Enter."))}</td></tr>`;
+        if (foot) foot.innerHTML = "";
+        return;
+      }
+
+      const rows = tutorSessionFilteredRows();
+      const grouped = new Map();
+      rows.forEach((row) => {
+        const key = row._userKey || `row-${grouped.size}`;
+        if (!grouped.has(key)) grouped.set(key, { name: row._userName, email: row._email, booking: 0, attend: 0 });
+        const item = grouped.get(key);
+        item.booking += row._booking;
+        item.attend += row._attend;
+        if (!item.email && row._email) item.email = row._email;
+      });
+      const items = [...grouped.values()].sort((a, b) => b.booking - a.booking || b.attend - a.attend || a.name.localeCompare(b.name, "id", { numeric: true }));
+      const totalBooking = rows.reduce((total, row) => total + row._booking, 0);
+      const totalAttend = rows.reduce((total, row) => total + row._attend, 0);
+      head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Total Booking</th><th class="right">Total User Attend</th></tr>`;
+      body.innerHTML = items.length ? items.map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td><td class="right tutor-total">${number.format(item.booking)}</td><td class="right tutor-total">${number.format(item.attend)}</td></tr>`).join("") : `<tr><td colspan="4" class="empty">Tidak ada data SESI TUTOR sesuai filter.</td></tr>`;
+      if (foot) foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td><td class="right tutor-total">${number.format(totalBooking)}</td><td class="right tutor-total">${number.format(totalAttend)}</td></tr>`;
+    }
+
+    function handleTutorSessionResponse(response, requestSerial) {
+      if (requestSerial !== tutorSessionRequestSerial) return;
+      if (tutorSessionRequestTimeout) clearTimeout(tutorSessionRequestTimeout);
+      try {
+        tutorSessionRows = rowsFromTutorSessionTable(response.table);
+        tutorSessionLoaded = true;
+        tutorSessionLoading = false;
+        tutorSessionError = "";
+        renderTutorSessionTable();
+      } catch (error) {
+        showTutorSessionError(error.message);
+      }
+    }
+
+    function showTutorSessionError(message) {
+      tutorSessionLoading = false;
+      tutorSessionLoaded = false;
+      tutorSessionError = `Data SESI TUTOR tidak bisa dibaca: ${message}`;
+      renderTutorSessionTable();
+    }
+
+    function loadTutorSessionSheet(email = "", phone = "") {
+      const requestedEmail = normalizeName(email);
+      const requestedPhone = activityRenewalNormalizePhone(phone);
+      const requestSerial = ++tutorSessionRequestSerial;
+      tutorSessionRows = [];
+      tutorSessionLoaded = false;
+      tutorSessionLoading = true;
+      tutorSessionError = "";
+      renderTutorSessionTable();
+
+      const callbackName = `handleTutorSessionData_${requestSerial}`;
+      window[callbackName] = (response) => {
+        try {
+          handleTutorSessionResponse(response, requestSerial);
+        } finally {
+          delete window[callbackName];
+        }
+      };
+      const escapedEmail = requestedEmail.replace(/'/g, "''");
+      const escapedPhone = requestedPhone.replace(/'/g, "''");
+      const tutorQuery = requestedPhone
+        ? `select A,C,P,Q,R,S,T where R = '${escapedPhone}' label A 'BULAN', C 'TANGGAL', P 'user_email', Q 'user_name', R 'user_cellphone_number', S 'Total booking', T 'Total User Attend'`
+        : requestedEmail
+          ? `select A,C,P,Q,R,S,T where P = '${escapedEmail}' label A 'BULAN', C 'TANGGAL', P 'user_email', Q 'user_name', R 'user_cellphone_number', S 'Total booking', T 'Total User Attend'`
+          : "select A,C,P,Q,R,sum(S),sum(T) group by A,C,P,Q,R label A 'BULAN', C 'TANGGAL', P 'user_email', Q 'user_name', R 'user_cellphone_number', sum(S) 'Total booking', sum(T) 'Total User Attend'";
+      const query = `&tq=${encodeURIComponent(tutorQuery)}`;
+      const script = document.createElement("script");
+      script.src = `https://docs.google.com/spreadsheets/d/${ACTIVITY_RENEWAL_SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(ACTIVITY_RENEWAL_TUTOR_SHEET_NAME)}&headers=1&tqx=out:json;responseHandler:${callbackName}${query}`;
+      script.onerror = () => {
+        delete window[callbackName];
+        if (requestSerial !== tutorSessionRequestSerial) return;
+        if (tutorSessionRequestTimeout) clearTimeout(tutorSessionRequestTimeout);
+        showTutorSessionError("Google Sheet SESI TUTOR tidak bisa diakses dari halaman ini.");
+      };
+      document.body.appendChild(script);
+      tutorSessionRequestTimeout = setTimeout(() => {
+        if (requestSerial !== tutorSessionRequestSerial) return;
+        delete window[callbackName];
+        tutorSessionRequestTimeout = null;
+        showTutorSessionError("Respons SESI TUTOR terlalu lama.");
+      }, 90000);
     }
 
     function setActivityRenewalOptions() {
       if (!activityRenewalRows.length) return;
-      setMonthOptions("activityRenewalMonthFilter", activityRenewalRows, "bulan");
+      const months = [...new Set(activityRenewalRows.map((row) => row._month).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+      setFilterEntries(
+        "activityRenewalMonthFilter",
+        months.map((value) => ({ value, label: activityRenewalMonthLabel(value) })),
+        "Semua bulan"
+      );
       const month = activityRenewalFilterValue("activityRenewalMonthFilter");
       const monthRows = activityRenewalRows.filter((row) => !month || row._month === month);
       const dates = [...new Set(monthRows.map((row) => row._dateKey).filter(Boolean))]
@@ -5676,10 +6012,13 @@
         if (head) head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Menit Belajar</th><th class="right">Jumlah Kehadiran</th><th class="right">Rata-rata % Durasi</th></tr>`;
         body.innerHTML = `<tr><td colspan="5" class="empty">${status}</td></tr>`;
         if (foot) foot.innerHTML = "";
+        renderTutorSessionTable();
         return;
       }
 
       const rows = activityRenewalFilteredRows();
+      const monthKeys = [...new Set(rows.map((row) => row._month).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
       const grouped = new Map();
       rows.forEach((row) => {
         const key = row._userKey || `row-${grouped.size}`;
@@ -5689,26 +6028,28 @@
             email: row._email,
             minutes: 0,
             attendance: 0,
+            months: {},
             durationSum: 0,
             durationCount: 0
           });
         }
         const item = grouped.get(key);
         item.minutes += row._minutes;
-        item.attendance += 1;
-        if (row._durationValid) {
-          item.durationSum += row._duration;
-          item.durationCount += 1;
-        }
+        item.attendance += row._attendance;
+        item.months[row._month] = (item.months[row._month] || 0) + row._attendance;
+        item.durationSum += row._durationTotal;
+        item.durationCount += row._durationCount;
         if (!item.email && row._email) item.email = row._email;
         if ((!item.name || item.name === "Kosong") && row._userName) item.name = row._userName;
       });
 
       const items = [...grouped.values()].sort((a, b) => b.minutes - a.minutes || b.attendance - a.attendance || a.name.localeCompare(b.name, "id", { numeric: true }));
       const totalMinutes = rows.reduce((total, row) => total + row._minutes, 0);
-      const durationRows = rows.filter((row) => row._durationValid);
-      const averageDuration = durationRows.length
-        ? durationRows.reduce((total, row) => total + row._duration, 0) / durationRows.length
+      const totalAttendance = rows.reduce((total, row) => total + row._attendance, 0);
+      const totalDuration = rows.reduce((total, row) => total + row._durationTotal, 0);
+      const totalDurationCount = rows.reduce((total, row) => total + row._durationCount, 0);
+      const averageDuration = totalDurationCount
+        ? totalDuration / totalDurationCount
         : NaN;
       const periodLabel = activityRenewalFilterValue("activityRenewalDateFilter")
         ? filterValueLabel("activityRenewalDateFilter", "Semua tanggal")
@@ -5716,6 +6057,7 @@
           ? filterValueLabel("activityRenewalMonthFilter", "Semua bulan")
           : "Semua periode";
       const emailFilter = activityRenewalFilterValue("activityRenewalEmailFilter");
+      const phoneFilter = activityRenewalFilterValue("activityRenewalPhoneFilter");
 
       if (error) {
         error.style.display = "none";
@@ -5726,24 +6068,27 @@
       summary.innerHTML = `
         <div class="coach-stat"><span>User</span><strong>${number.format(items.length)}</strong></div>
         <div class="coach-stat"><span>Menit Belajar</span><strong>${formatActivityRenewalMinutes(totalMinutes)}</strong></div>
-        <div class="coach-stat"><span>Kehadiran</span><strong>${number.format(rows.length)}</strong></div>
+        <div class="coach-stat"><span>Kehadiran</span><strong>${number.format(totalAttendance)}</strong></div>
         <div class="coach-stat"><span>Rata-rata % Durasi</span><strong>${formatActivityRenewalPercent(averageDuration)}</strong></div>
         <div class="coach-stat"><span>Periode</span><strong>${escapeHtml(periodLabel)}</strong></div>
-        <div class="coach-stat"><span>Email Filter</span><strong>${escapeHtml(emailFilter || "Semua email")}</strong></div>
+        <div class="coach-stat"><span>Filter</span><strong>${escapeHtml(emailFilter || phoneFilter || "Semua user")}</strong></div>
       `;
 
-      if (head) head.innerHTML = `<tr><th>User</th><th>Email</th><th class="right">Menit Belajar</th><th class="right">Jumlah Kehadiran</th><th class="right">Rata-rata % Durasi</th></tr>`;
+      if (head) head.innerHTML = `<tr><th>User</th><th>Email</th>${monthKeys.map((month) => `<th class="right">${escapeHtml(activityRenewalMonthLabel(month))}</th>`).join("")}<th class="right">Total Kehadiran</th><th class="right">Menit Belajar</th><th class="right">Rata-rata % Durasi</th></tr>`;
       if (body) {
         body.innerHTML = items.length ? items.map((item) => {
           const average = item.durationCount ? item.durationSum / item.durationCount : NaN;
-          return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(item.minutes)}</td><td class="right">${number.format(item.attendance)}</td><td class="right">${formatActivityRenewalPercent(average)}</td></tr>`;
-        }).join("") : `<tr><td colspan="5" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+          const monthlyCells = monthKeys.map((month) => `<td class="right">${number.format(item.months[month] || 0)}</td>`).join("");
+          return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td>${monthlyCells}<td class="right">${number.format(item.attendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(item.minutes)}</td><td class="right">${formatActivityRenewalPercent(average)}</td></tr>`;
+        }).join("") : `<tr><td colspan="${monthKeys.length + 5}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
       }
       if (foot) {
-        foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td><td class="right activity-revenue">${formatActivityRenewalMinutes(totalMinutes)}</td><td class="right">${number.format(rows.length)}</td><td class="right">${formatActivityRenewalPercent(averageDuration)}</td></tr>`;
+        const monthTotals = monthKeys.map((month) => `<td class="right">${number.format(rows.filter((row) => row._month === month).reduce((total, row) => total + row._attendance, 0))}</td>`).join("");
+        foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td>${monthTotals}<td class="right">${number.format(totalAttendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(totalMinutes)}</td><td class="right">${formatActivityRenewalPercent(averageDuration)}</td></tr>`;
       }
       const table = document.getElementById("activityRenewalTable");
-      if (table) table.style.minWidth = "900px";
+      if (table) table.style.minWidth = "0";
+      renderTutorSessionTable();
     }
 
     function render() {
@@ -6153,13 +6498,22 @@
         });
       });
       const activityEmailInput = document.getElementById("activityRenewalEmailFilter");
+      const activityPhoneInput = document.getElementById("activityRenewalPhoneFilter");
       activityEmailInput.addEventListener("input", () => {
         scheduleFilterRender("activityRenewalEmail", renderActivityRenewalPage);
+      });
+      activityPhoneInput.addEventListener("input", () => {
+        scheduleFilterRender("activityRenewalPhone", renderActivityRenewalPage);
       });
       activityEmailInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
         event.preventDefault();
-        loadActivityRenewalSheet(activityEmailInput.value);
+        loadActivityRenewalSheet(activityEmailInput.value, activityPhoneInput.value);
+      });
+      activityPhoneInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        loadActivityRenewalSheet(activityEmailInput.value, activityPhoneInput.value);
       });
       document.getElementById("activityRenewalLoadAllButton").addEventListener("click", () => {
         loadActivityRenewalSheet("");
@@ -6313,17 +6667,20 @@
       if (activePageId() === "pageActivityRenewal") renderActivityRenewalPage();
     }
 
-    function loadActivityRenewalSheet(email = "") {
+    function loadActivityRenewalSheet(email = "", phone = "") {
       const requestedEmail = normalizeName(email);
-      if (requestedEmail && !requestedEmail.includes("@")) {
-        showActivityRenewalError("Masukkan email yang valid lalu tekan Enter.");
+      const requestedPhone = activityRenewalNormalizePhone(phone);
+      if (requestedEmail && !requestedEmail.includes("@") && !requestedPhone) {
+        showActivityRenewalError("Masukkan email atau nomor yang valid lalu tekan Enter.");
         return;
       }
       const requestSerial = ++activityRenewalRequestSerial;
       activityRenewalRequestedEmail = requestedEmail;
+      activityRenewalRequestedPhone = requestedPhone;
       activityRenewalRows = [];
       activityRenewalLoaded = false;
       activityRenewalLoading = true;
+      loadTutorSessionSheet(requestedEmail, requestedPhone);
       if (activePageId() === "pageActivityRenewal") renderActivityRenewalPage();
 
       const callbackName = `handleActivityRenewalData_${requestSerial}`;
@@ -6336,9 +6693,13 @@
       };
       const script = document.createElement("script");
       const escapedEmail = requestedEmail.replace(/'/g, "''");
-      const query = requestedEmail
-        ? `&tq=${encodeURIComponent(`select A,B,C,M,N,R,S where M = '${escapedEmail}'`)}`
-        : "";
+      const escapedPhone = requestedPhone.replace(/'/g, "''");
+      const activityQuery = requestedPhone
+        ? `select A,C,M,N,R,S,T where T = '${escapedPhone}' label A 'BULAN', C 'TANGGAL', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number'`
+        : requestedEmail
+          ? `select A,C,M,N,R,S,T where M = '${escapedEmail}' label A 'BULAN', C 'TANGGAL', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number'`
+        : "select A,C,N,M,count(A),sum(S),sum(R) group by A,C,N,M label A 'BULAN', C 'TANGGAL', N 'user_name', M 'user_email', count(A) 'Kehadiran', sum(S) 'Menit Belajar', sum(R) 'Total Durasi'";
+      const query = `&tq=${encodeURIComponent(activityQuery)}`;
       script.src = `https://docs.google.com/spreadsheets/d/${ACTIVITY_RENEWAL_SHEET_ID}/gviz/tq?gid=${ACTIVITY_RENEWAL_GID}&headers=1&tqx=out:json;responseHandler:${callbackName}${query}`;
       script.onerror = () => {
         delete window[callbackName];

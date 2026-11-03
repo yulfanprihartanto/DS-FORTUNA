@@ -2509,16 +2509,14 @@
     <div class="team-tabs" id="teamTabs"></div>
 
     <div class="page-tabs" id="pageTabs">
-      <button type="button" class="active" data-page="pageLeader">Leader & Agent</button>
+      <button type="button" class="active" data-page="pageActivityRenewal">ACTIVITY RENEWAL</button>
+      <button type="button" data-page="pageLeader">Leader & Agent</button>
       <button type="button" data-page="pageUnit">Compare Unit</button>
-      <button type="button" data-page="pageTenure">Tenure</button>
-      <button type="button" data-page="pageProductBreakdown">Breakdown Product</button>
       <button type="button" data-page="pageAssignDate">Assigndate</button>
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
       <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
       <button type="button" data-page="pageDailyPresentation">DAILY PRESENTASI</button>
       <button type="button" data-page="pageDailyClosing">DAILY CLOSING</button>
-      <button type="button" data-page="pageActivityRenewal">ACTIVITY RENEWAL</button>
     </div>
 
     <section class="kpis">
@@ -2528,7 +2526,7 @@
       <div class="kpi"><span>Agent Terpilih</span><strong id="selectedAgent">Semua</strong></div>
     </section>
 
-    <section class="page active" id="pageLeader">
+    <section class="page" id="pageLeader">
       <section class="compare-grid">
         <div class="panel compare-panel">
           <div class="panel-head">
@@ -2690,89 +2688,6 @@
             <div class="coach-chart-title" id="unitBCampaignTitle">Belum dipilih</div>
             <div class="chart-wrap mini-chart"><canvas id="unitBCampaignChart"></canvas></div>
           </div>
-        </div>
-      </section>
-    </section>
-
-    </section>
-
-    <section class="page" id="pageTenure">
-      <section class="panel compare-panel">
-        <div class="panel-head">
-          <h2>Tenure Performance</h2>
-          <span class="note">revenue dan transaksi berdasarkan tenure</span>
-        </div>
-        <section class="filters">
-          <label>Monthly<select id="tenureMonthFilter"></select></label>
-          <label>Weekly<select id="tenureWeekFilter"></select></label>
-          <label>SPV<select id="tenureSpvFilter"></select></label>
-          <label>Coach<select id="tenureCoachFilter"></select></label>
-        </section>
-        <div class="coach-summary" id="tenureSummary"></div>
-        <div>
-          <div class="panel-head">
-            <h2>Performance Tenure</h2>
-            <span class="note">berdasarkan amount</span>
-          </div>
-          <div class="chart-wrap"><canvas id="tenureChart"></canvas></div>
-        </div>
-        <div>
-          <div class="panel-head">
-            <h2>Detail Agent Tenure</h2>
-            <span class="note">agent, coach, tenure, revenue, transaksi</span>
-          </div>
-          <div class="table-wrap compact">
-            <table>
-              <thead>
-                <tr>
-                  <th>Agent</th>
-                  <th>Coach</th>
-                  <th>SPV</th>
-                  <th>Tenure</th>
-                  <th class="right">Revenue</th>
-                  <th class="right">Transaksi</th>
-                </tr>
-              </thead>
-              <tbody id="tenureTableBody">
-                <tr><td colspan="6" class="empty">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </section>
-
-    </section>
-
-    <section class="page" id="pageProductBreakdown">
-      <section class="panel compare-panel">
-        <div class="panel-head">
-          <h2>Breakdown Product</h2>
-          <span class="note">campaign dan grade berdasarkan product type</span>
-        </div>
-        <section class="filters">
-          <label>Monthly<select id="breakdownMonthFilter"></select></label>
-          <label>Weekly<select id="breakdownWeekFilter"></select></label>
-          <label>SPV<select id="breakdownSpvFilter"></select></label>
-          <label>Coach<select id="breakdownCoachFilter"></select></label>
-          <label>Product Type<select id="breakdownProductFilter"></select></label>
-        </section>
-        <div class="coach-summary" id="breakdownSummary"></div>
-        <div>
-          <div class="panel-head">
-            <h2>Top Campaign</h2>
-            <span class="note">20 campaign tertinggi</span>
-          </div>
-          <div class="coach-chart-title" id="breakdownCampaignTitle">Pilih product type</div>
-          <div class="chart-wrap"><canvas id="breakdownCampaignChart"></canvas></div>
-        </div>
-        <div>
-          <div class="panel-head">
-            <h2>Grade</h2>
-            <span class="note">berdasarkan grade_adjust</span>
-          </div>
-          <div class="coach-chart-title" id="breakdownGradeTitle">Pilih product type</div>
-          <div class="chart-wrap"><canvas id="breakdownGradeChart"></canvas></div>
         </div>
       </section>
     </section>
@@ -3146,7 +3061,7 @@
       </section>
     </section>
 
-    <section class="page" id="pageActivityRenewal">
+    <section class="page active" id="pageActivityRenewal">
       <section class="panel compare-panel">
         <div class="panel-head">
           <h2>ACTIVITY RENEWAL</h2>
@@ -3905,14 +3820,6 @@
           setUnitOptions();
           renderUnitCompare();
           break;
-        case "pageTenure":
-          setTenureOptions();
-          renderTenurePage();
-          break;
-        case "pageProductBreakdown":
-          setBreakdownOptions();
-          renderBreakdownPage();
-          break;
         case "pageAssignDate":
           setAssignOptions();
           renderAssignDatePage();
@@ -3973,8 +3880,6 @@
         "unitACoachChart", "unitAProductChart", "unitACampaignChart",
         "unitBCoachChart", "unitBProductChart", "unitBCampaignChart"
       ],
-      pageTenure: ["tenureChart"],
-      pageProductBreakdown: ["breakdownCampaignChart", "breakdownGradeChart"],
       pageAssignDate: ["assignRevenueChart", "assignInvoiceChart"],
       pageGrowthAgent: ["growthTrendChart"],
       pageDailyPresentation: ["presentationTrendChart"]
@@ -6516,22 +6421,6 @@
           scheduleFilterRender("unitCompare", () => {
             setUnitOptions();
             renderUnitCompare();
-          });
-        });
-      });
-      ["tenureMonthFilter", "tenureWeekFilter", "tenureSpvFilter", "tenureCoachFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", () => {
-          scheduleFilterRender("tenure", () => {
-            setTenureOptions();
-            renderTenurePage();
-          });
-        });
-      });
-      ["breakdownMonthFilter", "breakdownWeekFilter", "breakdownSpvFilter", "breakdownCoachFilter", "breakdownProductFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", () => {
-          scheduleFilterRender("breakdown", () => {
-            setBreakdownOptions();
-            renderBreakdownPage();
           });
         });
       });

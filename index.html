@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FORTUNA CENTER</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     :root {
@@ -590,13 +591,13 @@
 
     body {
       background:
-        radial-gradient(circle at 12% 0%, rgba(255, 45, 172, .22), transparent 26%),
-        radial-gradient(circle at 90% 8%, rgba(40, 200, 255, .18), transparent 28%),
-        linear-gradient(180deg, #070d22 0%, #0a1028 48%, #070d22 100%);
+        radial-gradient(circle at 8% 0%, rgba(255, 166, 54, .32), transparent 27%),
+        radial-gradient(circle at 92% 8%, rgba(35, 191, 218, .34), transparent 30%),
+        linear-gradient(145deg, #f7fbff 0%, #dff5fa 34%, #b8e7f0 58%, #ffe0ad 100%);
     }
 
     header {
-      background: linear-gradient(90deg, rgba(214, 0, 82, .96), rgba(98, 20, 174, .94), rgba(8, 17, 46, .98));
+      background: linear-gradient(116deg, #075b8c 0%, #0aa8c0 52%, #f29a28 100%);
       border-bottom: 1px solid rgba(255, 255, 255, .14);
       box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
       padding-top: 36px;
@@ -1745,20 +1746,20 @@
     html[data-theme="dark"] body {
       color: var(--text);
       background:
-        radial-gradient(circle at 0% 0%, rgba(35, 116, 156, .3), transparent 31%),
-        radial-gradient(circle at 100% 5%, rgba(108, 72, 190, .22), transparent 29%),
-        linear-gradient(180deg, #07121e 0%, #0a1928 48%, #07131f 100%);
+        radial-gradient(circle at 8% 0%, rgba(255, 166, 54, .32), transparent 27%),
+        radial-gradient(circle at 92% 8%, rgba(35, 191, 218, .34), transparent 30%),
+        linear-gradient(145deg, #f7fbff 0%, #dff5fa 34%, #b8e7f0 58%, #ffe0ad 100%);
     }
 
     html[data-theme="dark"] body::before {
-      opacity: .22;
+      opacity: .2;
       background-image:
-        linear-gradient(rgba(149, 205, 224, .06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(149, 205, 224, .06) 1px, transparent 1px);
+        linear-gradient(rgba(20, 104, 142, .1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 104, 142, .1) 1px, transparent 1px);
     }
 
     html[data-theme="dark"] header {
-      background: linear-gradient(116deg, #06121f 0%, #0b304b 53%, #0b6975 100%);
+      background: linear-gradient(116deg, #075b8c 0%, #0aa8c0 52%, #f29a28 100%);
       box-shadow: 0 22px 48px rgba(0, 0, 0, .34);
     }
 
@@ -2457,6 +2458,8 @@
 
     .access-lock-card button:hover { background: #9af0e9; }
 
+    .access-remember { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px; font-size: 13px; cursor: pointer; user-select: none; }
+    .access-remember input { width: auto; margin: 0; accent-color: #0891b2; }
     .access-lock-message {
       min-height: 20px;
       margin-top: 12px;
@@ -2467,6 +2470,565 @@
 
     .access-lock.access-lock-hidden { display: none; }
   </style>
+  <style id="blue-orange-surface-theme">
+    /* Extend the blue, white, and orange treatment across the dashboard
+       surfaces so the tables and controls belong to the same visual system. */
+    html[data-theme] main > .filters,
+    html[data-theme] .team-tabs,
+    html[data-theme] .page-tabs {
+      border-color: rgba(11, 105, 136, .18);
+      background: linear-gradient(135deg, rgba(255, 255, 255, .94), rgba(231, 247, 251, .92));
+      box-shadow: 0 16px 34px rgba(28, 92, 117, .15);
+    }
+
+    html[data-theme] main > .filters::before,
+    html[data-theme] .team-tabs::before {
+      color: #3f7890;
+    }
+
+    html[data-theme] label {
+      color: #426d82;
+    }
+
+    html[data-theme] select,
+    html[data-theme] input {
+      border-color: rgba(11, 105, 136, .2);
+      background-color: rgba(255, 255, 255, .95);
+      color: #123b54;
+      box-shadow: inset 0 1px 2px rgba(20, 82, 105, .05);
+    }
+
+    html[data-theme] input::placeholder {
+      color: #7d9baa;
+    }
+
+    html[data-theme] select:hover,
+    html[data-theme] input:hover,
+    html[data-theme] select:focus,
+    html[data-theme] input:focus {
+      border-color: #18a9b9;
+    }
+
+    html[data-theme] select:focus,
+    html[data-theme] input:focus {
+      box-shadow: 0 0 0 4px rgba(24, 169, 185, .13), 0 5px 16px rgba(28, 92, 117, .12);
+    }
+
+    html[data-theme] .team-tabs button,
+    html[data-theme] .page-tabs button {
+      color: #38657a;
+      background: rgba(255, 255, 255, .7);
+      border-color: rgba(11, 105, 136, .14);
+    }
+
+    html[data-theme] .team-tabs button:hover,
+    html[data-theme] .page-tabs button:hover {
+      color: #0a526d;
+      background: #e6f7fa;
+    }
+
+    html[data-theme] .team-tabs button.active,
+    html[data-theme] .page-tabs button.active {
+      color: #fff;
+      background: linear-gradient(135deg, #087c9d 0%, #15b7bd 58%, #f29b29 100%);
+      border-color: transparent;
+      box-shadow: 0 9px 18px rgba(7, 126, 157, .22);
+    }
+
+    html[data-theme] .kpi,
+    html[data-theme] .panel {
+      border-color: rgba(11, 105, 136, .16);
+      background: linear-gradient(145deg, rgba(255, 255, 255, .96), rgba(232, 248, 252, .93));
+      color: #123b54;
+      box-shadow: 0 18px 42px rgba(28, 92, 117, .16);
+    }
+
+    html[data-theme] .panel::before {
+      background: linear-gradient(90deg, #13a9bc, #f29a28);
+    }
+
+    html[data-theme] .kpi span,
+    html[data-theme] .note,
+    html[data-theme] .coach-stat span {
+      color: #5d8192;
+    }
+
+    html[data-theme] .kpi strong,
+    html[data-theme] .panel-head h2,
+    html[data-theme] .coach-stat strong {
+      color: #123b54;
+    }
+
+    html[data-theme] .compare-panel > label,
+    html[data-theme] .panel > .filters,
+    html[data-theme] .compare-box {
+      border-color: rgba(11, 105, 136, .14);
+      background: rgba(239, 249, 252, .86);
+    }
+
+    html[data-theme] .coach-stat {
+      border-color: rgba(11, 105, 136, .14);
+      background: linear-gradient(145deg, rgba(255, 255, 255, .92), rgba(225, 245, 249, .9));
+    }
+
+    html[data-theme] .coach-stat::after {
+      border-color: rgba(242, 154, 40, .22);
+    }
+
+    html[data-theme] .panel > div:has(.chart-wrap),
+    html[data-theme] .panel > div:has(.table-wrap) {
+      border-color: rgba(11, 105, 136, .14);
+      background: rgba(255, 255, 255, .58);
+    }
+
+    html[data-theme] .table-wrap {
+      border-color: rgba(11, 105, 136, .18);
+      background: rgba(247, 252, 254, .96);
+      box-shadow: inset 0 1px 4px rgba(20, 82, 105, .06);
+    }
+
+    html[data-theme] .table-wrap::-webkit-scrollbar-track {
+      background: #e5f2f6;
+    }
+
+    html[data-theme] .table-wrap::-webkit-scrollbar-thumb {
+      border-color: #e5f2f6;
+      background: #8ebdca;
+    }
+
+    html[data-theme] table {
+      background: #fff;
+      color: #31566b;
+    }
+
+    html[data-theme] th,
+    html[data-theme] td {
+      border-bottom-color: rgba(11, 105, 136, .13);
+    }
+
+    html[data-theme] th {
+      background: linear-gradient(180deg, #e3f5f8, #f7fcfd);
+      color: #0b6b88;
+    }
+
+    html[data-theme] td {
+      color: #426d82;
+    }
+
+    html[data-theme] td:first-child {
+      color: #123b54;
+    }
+
+    html[data-theme] tbody tr:nth-child(even) {
+      background: rgba(231, 247, 251, .48);
+    }
+
+    html[data-theme] tbody tr:hover {
+      background: #fff4dc;
+    }
+
+    html[data-theme] .empty {
+      color: #6f91a0;
+    }
+
+    html[data-theme] #presentationTable tfoot td,
+    html[data-theme] #presentationProductTable tfoot td,
+    html[data-theme] #dailyClosingTable tfoot td,
+    html[data-theme] #activityRenewalTable tfoot td,
+    html[data-theme] #tutorSessionTable tfoot td {
+      background: #fff0ce;
+      color: #76501a;
+    }
+
+    html[data-theme] #dailyClosingTable th:first-child,
+    html[data-theme] #dailyClosingTable td:first-child,
+    html[data-theme] #activityRenewalTable th:first-child,
+    html[data-theme] #activityRenewalTable td:first-child {
+      background: #e5f5f8;
+    }
+
+    html[data-theme] #dailyClosingTable th:last-child,
+    html[data-theme] #dailyClosingTable td:last-child {
+      background: #fff0ce;
+    }
+
+    html[data-theme] #activityRenewalTable td.activity-revenue,
+    html[data-theme] #tutorSessionTable td.tutor-total,
+    html[data-theme] #presentationTable td.metric {
+      color: #07869a;
+      font-weight: 800;
+    }
+
+    html[data-theme] .activity-load-button {
+      border-color: #0d95ac;
+      color: #fff;
+      background: linear-gradient(135deg, #087c9d, #15b7bd);
+      box-shadow: 0 8px 16px rgba(7, 126, 157, .18);
+    }
+
+    html[data-theme] .activity-load-button:hover {
+      background: linear-gradient(135deg, #e58a1e, #f2a52f);
+    }
+
+    html[data-theme] .multi-select-trigger {
+      border-color: rgba(11, 105, 136, .2);
+      background-color: #fff;
+      color: #123b54;
+    }
+
+    html[data-theme] .multi-select-menu {
+      border-color: rgba(11, 105, 136, .2);
+      background: #fff;
+      box-shadow: 0 20px 48px rgba(28, 92, 117, .2);
+    }
+
+    html[data-theme] .multi-select-option {
+      color: #31566b;
+    }
+
+    html[data-theme] .multi-select-action {
+      background: #e9f6f9;
+      color: #1c6680;
+    }
+
+    html[data-theme] .multi-select-action:hover,
+    html[data-theme] .multi-select-option:hover {
+      background: #fff1d5;
+    }
+  </style>
+  <style id="cmp-fullwidth-style">
+    /* ===== Layout penuh (full width) ===== */
+    html body header .header-inner { max-width: none; }
+    html body main { width: calc(100% - 40px); max-width: none; margin: 20px auto 38px; }
+    body.cmp-active main > .filters,
+    body.cmp-active main > .team-tabs,
+    body.cmp-active main > .kpis { display: none !important; }
+
+    /* ===== Compare Coach & SPV ===== */
+    .cmp {
+      --c-bg: rgba(255,255,255,.88);
+      --c-bg2: rgba(236,248,252,.9);
+      --c-line: rgba(11,105,136,.2);
+      --c-text: #0f2a3d;
+      --c-muted: #5a7686;
+      --c-accent: #0891b2;
+      --c-accent2: #db2777;
+      --c-good: #059669;
+      --c-warn: #d97706;
+      --c-bad: #e11d48;
+      --c-glow: 0 10px 30px rgba(8,145,178,.12);
+      color: var(--c-text);
+      font-variant-numeric: tabular-nums;
+      display: grid;
+      gap: 16px;
+    }
+    html[data-theme="dark"] .cmp {
+      --c-bg: rgba(7,20,36,.88);
+      --c-bg2: rgba(12,34,56,.92);
+      --c-line: rgba(95,225,226,.22);
+      --c-text: #e6f4ff;
+      --c-muted: #8fb0c4;
+      --c-accent: #22d3ee;
+      --c-accent2: #f472b6;
+      --c-good: #34d399;
+      --c-warn: #fbbf24;
+      --c-bad: #fb7185;
+      --c-glow: 0 0 0 1px rgba(34,211,238,.06), 0 14px 40px rgba(0,0,0,.35);
+    }
+    .cmp * { box-sizing: border-box; }
+    .cmp-hero {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; justify-content: space-between;
+      padding: 20px 24px; border-radius: 20px; border: 1px solid var(--c-line);
+      background:
+        radial-gradient(900px 220px at 0% 0%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(700px 220px at 100% 100%, rgba(244,114,182,.16), transparent 60%),
+        var(--c-bg);
+      box-shadow: var(--c-glow);
+    }
+    .cmp-eyebrow { font-size: 11px; letter-spacing: .28em; font-weight: 800; color: var(--c-accent); }
+    .cmp-hero h2 { margin: 4px 0 4px; font-size: clamp(24px, 3vw, 36px); line-height: 1.05; color: var(--c-text); }
+    .cmp-hero p { margin: 0; color: var(--c-muted); font-size: 13px; max-width: 70ch; }
+    .cmp-source { text-align: right; font-size: 12px; color: var(--c-muted); display: grid; gap: 4px; }
+    .cmp-pill {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid var(--c-line); background: var(--c-bg2); font-size: 11px; font-weight: 700; color: var(--c-text);
+    }
+    .cmp-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--c-good); box-shadow: 0 0 8px var(--c-good); }
+    .cmp-pill.warn i { background: var(--c-warn); box-shadow: 0 0 8px var(--c-warn); }
+    .cmp-pill.bad i { background: var(--c-bad); box-shadow: 0 0 8px var(--c-bad); }
+    .cmp-controls {
+      display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; padding: 12px 16px;
+      border-radius: 16px; border: 1px solid var(--c-line); background: var(--c-bg); box-shadow: var(--c-glow);
+    }
+    .cmp-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .cmp-group > span { font-size: 10px; font-weight: 800; letter-spacing: .16em; color: var(--c-muted); text-transform: uppercase; margin-right: 2px; }
+    .cmp-chip {
+      appearance: none; cursor: pointer; padding: 6px 12px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 700;
+      border: 1px solid var(--c-line); background: var(--c-bg2); color: var(--c-text); transition: .15s;
+    }
+    .cmp-chip:hover { border-color: var(--c-accent); }
+    .cmp-chip.on {
+      color: #021018; border-color: transparent;
+      background: linear-gradient(135deg, var(--c-accent), #a3e635);
+      box-shadow: 0 0 16px rgba(34,211,238,.35);
+    }
+    .cmp-banner { padding: 11px 16px; border-radius: 14px; font-size: 13px; border: 1px solid var(--c-line); background: var(--c-bg); }
+    .cmp-banner.warn { border-color: var(--c-warn); }
+    .cmp-banner.bad { border-color: var(--c-bad); }
+    .cmp-banner:empty { display: none; }
+    .cmp-kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    .cmp-kpi {
+      padding: 14px 16px; border-radius: 16px; border: 1px solid var(--c-line); background: var(--c-bg); box-shadow: var(--c-glow);
+      position: relative; overflow: hidden;
+    }
+    .cmp-kpi::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 2px; background: linear-gradient(90deg, var(--c-accent), var(--c-accent2)); }
+    .cmp-kpi span { display: block; font-size: 10px; font-weight: 800; letter-spacing: .14em; color: var(--c-muted); text-transform: uppercase; }
+    .cmp-kpi strong { display: block; margin-top: 6px; font-size: 24px; font-weight: 800; color: var(--c-text); }
+    .cmp-kpi small { color: var(--c-muted); font-size: 11px; }
+    .cmp-board { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .cmp-card {
+      position: relative; padding: 16px; border-radius: 20px; border: 1px solid var(--c-line); background: var(--c-bg);
+      box-shadow: var(--c-glow); overflow: hidden; display: grid; gap: 12px;
+    }
+    .cmp-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--ec, var(--c-accent)); box-shadow: 0 0 18px var(--ec, var(--c-accent)); }
+    .cmp-card-top { display: flex; gap: 14px; align-items: center; }
+    .cmp-rank { font-size: 12px; font-weight: 800; color: var(--c-muted); letter-spacing: .1em; }
+    .cmp-name { font-size: 17px; font-weight: 800; line-height: 1.15; color: var(--c-text); }
+    .cmp-sub { font-size: 11px; color: var(--c-muted); }
+    .cmp-ring {
+      --p: 0; flex: 0 0 86px; width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center;
+      background: conic-gradient(var(--ec, var(--c-accent)) calc(var(--p) * 1%), rgba(127,160,180,.22) 0);
+      position: relative;
+    }
+    .cmp-ring::before { content: ""; position: absolute; inset: 8px; border-radius: 50%; background: var(--c-bg2); }
+    .cmp-ring b { position: relative; font-size: 17px; font-weight: 800; color: var(--c-text); }
+    .cmp-ring em { position: relative; font-style: normal; font-size: 9px; letter-spacing: .1em; color: var(--c-muted); margin-top: -18px; }
+    .cmp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .cmp-stat { padding: 8px 10px; border-radius: 12px; background: var(--c-bg2); border: 1px solid var(--c-line); }
+    .cmp-stat span { display: block; font-size: 9px; font-weight: 800; letter-spacing: .12em; color: var(--c-muted); text-transform: uppercase; }
+    .cmp-stat strong { display: block; font-size: 14px; margin-top: 3px; color: var(--c-text); }
+    .cmp-bar { height: 8px; border-radius: 99px; background: rgba(127,160,180,.22); position: relative; overflow: hidden; }
+    .cmp-bar > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--ec, var(--c-accent)); box-shadow: 0 0 12px var(--ec, var(--c-accent)); }
+    .cmp-bar > u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--c-bg2); opacity: .9; }
+    .cmp-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--c-muted); margin-top: 3px; }
+    .cmp-line { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--c-muted); }
+    .cmp-line b { color: var(--c-text); }
+    .cmp-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; border: 1px solid var(--c-line); background: var(--c-bg2); }
+    .cmp-good { color: var(--c-good) !important; }
+    .cmp-warnc { color: var(--c-warn) !important; }
+    .cmp-bad { color: var(--c-bad) !important; }
+    .cmp-grid3 { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+    .cmp-grid2 { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); }
+    .cmp-panel {
+      padding: 16px 18px; border-radius: 20px; border: 1px solid var(--c-line); background: var(--c-bg);
+      box-shadow: var(--c-glow); min-width: 0;
+    }
+    .cmp-panel h3 { margin: 0 0 2px; font-size: 14px; font-weight: 800; letter-spacing: .04em; color: var(--c-text); }
+    .cmp-panel > p { margin: 0 0 10px; font-size: 11px; color: var(--c-muted); }
+    .cmp-chart { position: relative; height: 300px; }
+    .cmp-chart.tall { height: 340px; }
+    .cmp-table-wrap { overflow-x: auto; }
+    table.cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 980px; }
+    .cmp-table th {
+      text-align: right; padding: 8px 10px; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--c-muted);
+      border-bottom: 1px solid var(--c-line); cursor: pointer; white-space: nowrap; user-select: none;
+    }
+    .cmp-table th:first-child, .cmp-table td:first-child, .cmp-table th:nth-child(2), .cmp-table td:nth-child(2) { text-align: left; }
+    .cmp-table th.sorted { color: var(--c-accent); }
+    .cmp-table td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--c-line); color: var(--c-text); white-space: nowrap; }
+    .cmp-table tr:hover td { background: rgba(34,211,238,.06); }
+    .cmp-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+    .cmp-heat { display: inline-block; height: 6px; border-radius: 4px; vertical-align: middle; margin-right: 6px; background: var(--ec, var(--c-accent)); opacity: .85; }
+    .cmp-pick { appearance: none; cursor: pointer; border: 1px solid var(--c-line); background: var(--c-bg2); color: var(--c-text); border-radius: 6px; padding: 1px 7px; font: inherit; font-size: 10px; font-weight: 800; margin-left: 3px; }
+    .cmp-pick.on { background: var(--c-accent); color: #021018; border-color: transparent; }
+    .cmp-h2h-head { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; margin-bottom: 8px; }
+    .cmp-h2h-head > div { font-size: 20px; font-weight: 800; }
+    .cmp-h2h-head > div:last-child { text-align: right; }
+    .cmp-vs { font-size: 11px; font-weight: 800; letter-spacing: .3em; color: var(--c-muted); }
+    .cmp-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--c-line); font-size: 13px; }
+    .cmp-row > .l { text-align: left; font-weight: 700; }
+    .cmp-row > .r { text-align: right; font-weight: 700; }
+    .cmp-row > .m { display: grid; gap: 3px; text-align: center; }
+    .cmp-row > .m span { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--c-muted); }
+    .cmp-split { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: rgba(127,160,180,.2); }
+    .cmp-split i { display: block; height: 100%; }
+    .cmp-win { color: var(--c-good); }
+    .cmp-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+    .cmp-list h4 { margin: 0 0 6px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--c-muted); }
+    .cmp-li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--c-line); font-size: 12px; }
+    .cmp-li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cmp-li b { white-space: nowrap; }
+    .cmp-insights { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .cmp-insights li { padding: 10px 12px; border-radius: 12px; background: var(--c-bg2); border: 1px solid var(--c-line); font-size: 13px; line-height: 1.45; }
+    .cmp-insights li.k-good { border-left: 3px solid var(--c-good); }
+    .cmp-insights li.k-warn { border-left: 3px solid var(--c-warn); }
+    .cmp-insights li.k-bad { border-left: 3px solid var(--c-bad); }
+    table.ut-table { min-width: 0 !important; width: 100%; }
+    .ut-table td, .ut-table th { font-size: 14px; padding: 9px 4px; letter-spacing: 0; }
+    .ut-table th { font-size: 12px; }
+    .ut-total td { background: var(--sc, #16a34a); color: #fff !important; font-weight: 800; border-bottom-color: transparent; }
+    .ut-total td * { color: #fff; }
+    .ut-pk { width: 100%; min-width: 0 !important; table-layout: fixed; }
+    .ut-pk th:nth-child(1){width:25%} .ut-pk th:nth-child(2){width:38%} .ut-pk th:nth-child(3){width:17%} .ut-pk th:nth-child(4){width:6%} .ut-pk th:nth-child(5){width:14%}
+    .ut-pk td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+    .ut-pk th { letter-spacing: 0; padding: 5px 8px; }
+    .ut-pk td, .ut-pk th { font-size: 14px; padding: 5px 8px; text-align: left; color: #0f172a; }
+    .ut-pk th.ut-pk-n, .ut-pk td.ut-pk-n, .ut-pk th:nth-child(n+4) { text-align: right; }
+    .ut-pk td.ut-pk-coach { font-weight: 700; }
+    .ut-pk td.ut-pk-purple { background: #c4b5fd; }
+    .ut-pk td.ut-pk-amber { background: #fde68a; }
+    .ut-pk td.ut-pk-green { background: #86efac; }
+    .ut-pk tr.ut-pk-sub td { background: #e2e8f0; font-weight: 800; }
+    .ut-pk tr.ut-pk-grand td { background: #0f172a; color: #fff; font-weight: 800; }
+    .ut-pk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .ut-pk-stack { display: grid; gap: 14px; }
+    @media (max-width: 1100px) { .ut-pk-grid { grid-template-columns: 1fr; } }
+    #utOverview .ut-table th, #utOverview .ut-table td { text-align: center !important; }
+    #utOverview .ut-table th:nth-child(-n+2), #utOverview .ut-table td:nth-child(-n+2) { text-align: left !important; }
+    #utOverview .ut-table th:not(.ut-ct):not(.ut-cs), #utLayerDiff .ut-table th, #utCoachL1 .ut-table th, #utCoachL2 .ut-table th { background: #0f2744 !important; color: #ffffff !important; font-size: 13px !important; font-weight: 800; padding: 12px 6px !important; letter-spacing: .05em; border-bottom: 3px solid #22d3ee; }
+    #utOverview .ut-table th { font-size: 12px !important; letter-spacing: .02em !important; padding: 12px 3px !important; }
+    #utOverview .ut-table td { padding-left: 2px; padding-right: 2px; }
+    #utOverview .ut-table th.ut-ct, #utOverview .ut-table th.ut-cs { border-bottom: 3px solid #fff; }
+    #utLayerDiff h3 { display: inline-block; margin: 4px 0 8px; padding: 6px 16px; border-radius: 8px; color: #fff; font-size: 15px; letter-spacing: .06em; background: linear-gradient(90deg,#2563eb,#06b6d4); }
+    #utLayerDiff > div:nth-child(2) h3 { background: linear-gradient(90deg,#7c3aed,#db2777); }
+    #utLayerDiff .ut-table tr.ut-mine td, #utCoachL1 .ut-table tr.ut-mine td, #utCoachL2 .ut-table tr.ut-mine td { background: #ddd6fe !important; }
+    #utLayerDiff .ut-table tr.ut-mine td:first-child, #utCoachL1 .ut-table tr.ut-mine td:first-child, #utCoachL2 .ut-table tr.ut-mine td:first-child { box-shadow: inset 5px 0 0 #7c3aed; font-weight: 800; }
+    #utLayerDiff .ut-table td, #utCoachL1 .ut-table td, #utCoachL2 .ut-table td { border-bottom: 1px solid #cbd5e1; color: #0f172a; }
+    #utLayerDiff .ut-table td b, #utCoachL1 .ut-table td b, #utCoachL2 .ut-table td b { color: #0f172a; }
+    .ut-pk th { background: #0f2744 !important; color: #fff !important; font-size: 13px !important; font-weight: 800; padding: 11px 8px !important; letter-spacing: .05em; border-bottom: 3px solid #22d3ee; }
+    .ut-pk-title { display: inline-block; padding: 5px 14px; border-radius: 8px; color: #fff; background: linear-gradient(90deg,#2563eb,#06b6d4); font-size: 14px; letter-spacing: .06em; }
+    @media (max-width: 1680px) {
+      main { width: calc(100% - 16px) !important; }
+      .cmp-panel { padding: 12px 10px; }
+      #utOverview .ut-table td { font-size: 12px; padding: 7px 1px; }
+      #utOverview .ut-table th:not(.ut-ct):not(.ut-cs), #utOverview .ut-table th { font-size: 10.5px !important; letter-spacing: 0 !important; padding: 8px 1px !important; white-space: normal; line-height: 1.15; }
+      #utOverview .ut-table td:first-child { white-space: normal; line-height: 1.15; }
+      #utOverview .ut-table .cmp-dot { margin-right: 3px; }
+    }
+    #utLayerDiff .ut-table tr.ut-sumrow td, #utCoachL1 .ut-table tr.ut-sumrow td, #utCoachL2 .ut-table tr.ut-sumrow td { background: #0f2744 !important; color: #fff !important; font-weight: 800; border-top: 3px solid #22d3ee; border-bottom: 0; }
+    #utLayerDiff .ut-table th.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utLayerDiff .ut-table tr td.ut-ct, #utLayerDiff .ut-table tr.ut-mine td.ut-ct { background: #fde68a !important; color: #7c2d12 !important; font-weight: 800; border-left: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+    #utLayerDiff .ut-table tr.ut-sumrow td.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utCoachL1 .ut-table th.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utCoachL1 .ut-table tr td.ut-ct, #utCoachL1 .ut-table tr.ut-mine td.ut-ct { background: #fde68a !important; color: #7c2d12 !important; font-weight: 800; border-left: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+    #utCoachL1 .ut-table tr.ut-sumrow td.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utCoachL2 .ut-table th.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utCoachL2 .ut-table tr td.ut-ct, #utCoachL2 .ut-table tr.ut-mine td.ut-ct { background: #fde68a !important; color: #7c2d12 !important; font-weight: 800; border-left: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+    #utCoachL2 .ut-table tr.ut-sumrow td.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    #utLayerDiff .ut-table th, #utLayerDiff .ut-table td, #utCoachL1 .ut-table th, #utCoachL1 .ut-table td, #utCoachL2 .ut-table th, #utCoachL2 .ut-table td { text-align: center !important; }
+    #utLayerDiff .ut-table th:first-child, #utLayerDiff .ut-table td:first-child, #utCoachL1 .ut-table th:nth-child(-n+2), #utCoachL1 .ut-table td:nth-child(-n+2), #utCoachL2 .ut-table th:nth-child(-n+2), #utCoachL2 .ut-table td:nth-child(-n+2) { text-align: left !important; }
+    body.report-mode .ut-shot-btn, body.report-mode [data-ut="copy"] { display: none !important; }
+    .ut-an-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: 8px 0 14px; }
+    .ut-an-stat { border-radius: 12px; padding: 10px 12px; background: rgba(37,99,235,.10); border: 1px solid rgba(37,99,235,.28); display: grid; gap: 2px; }
+    .ut-an-stat.hot { background: #fde68a; border-color: #f59e0b; }
+    .ut-an-stat.hot span, .ut-an-stat.hot b, .ut-an-stat.hot small { color: #7c2d12; }
+    .ut-an-stat span { font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--c-muted); }
+    .ut-an-stat b { font-size: 20px; line-height: 1.15; }
+    .ut-an-stat small { font-size: 12px; color: var(--c-muted); }
+    .ut-an-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+    .ut-an-list li { border-left: 5px solid var(--tc); padding: 7px 10px; background: rgba(120,140,160,.10); border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.4; }
+    #utAnPlan .ut-table th { background: #0f2744 !important; color: #fff !important; font-size: 12px !important; padding: 10px 6px !important; border-bottom: 3px solid #22d3ee; }
+    #utAnPlan .ut-table td { font-size: 13px; padding: 8px 6px; color: #0f172a; text-align: center; border-bottom: 1px solid #cbd5e1; }
+    #utAnPlan .ut-table td.ut-ct { background: #fde68a !important; font-weight: 800; color: #7c2d12; }
+    #utAnPlan .ut-table th.ut-ct { background: #f59e0b !important; }
+    @media (max-width: 1100px) { .ut-an-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .ct-check input[type=checkbox] { width: 16px; height: 16px; padding: 0; margin: 0; }
+    .ct-check { text-transform: none; letter-spacing: 0; }
+    .ct-sel { font: inherit; padding: 5px 8px; border-radius: 8px; }
+    .call-compare-panel > .filters { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    #callCompareASummary, #callCompareBSummary { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); min-height: 0 !important; }
+    #callCompareASummary .coach-stat, #callCompareBSummary .coach-stat { min-width: 0 !important; padding: 8px 10px !important; }
+    .ct-kpi.ct-win strong { color: #16a34a; } .ct-kpi.ct-lose strong { color: #dc2626; }
+    .ct-strip { display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: rgba(120,140,160,.2); margin-top: 6px; }
+    .ct-strip i { display: block; height: 100%; }
+    .ct-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; margin-top: 6px; }
+    .ct-legend u { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; text-decoration: none; }
+    /* Call Tracking: ikut gaya Update Today (header tegas, font lebih besar, compact) */
+    .ct-block .panel-head h2, .call-compare-panel > .panel-head h2 { display: inline-block; padding: 5px 14px; border-radius: 8px; color: #fff !important; background: linear-gradient(90deg,#2563eb,#06b6d4); font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+    .ct-block .panel-head .note { font-size: 12.5px; font-weight: 600; }
+    .ct-table { table-layout: auto; width: 100%; min-width: 0 !important; }
+    .ct-table th { background: #0f2744 !important; color: #fff !important; font-size: 12.5px !important; font-weight: 800; padding: 11px 4px !important; letter-spacing: .02em; border-bottom: 3px solid #22d3ee; white-space: normal; line-height: 1.2; text-align: center !important; }
+    .ct-table th small { font-size: 10.5px; font-weight: 700; opacity: .85; letter-spacing: 0; }
+    .ct-table td { font-size: 15px; padding: 9px 4px !important; color: #0f172a; border-bottom: 1px solid #cbd5e1; text-align: center; }
+    .ct-table td b { color: #0f172a; }
+    .ct-table .ct-first, .ct-table th.ct-first { text-align: left !important; white-space: normal; padding-left: 8px !important; font-size: 15px; }
+    .ct-table th.ct-first { font-size: 12.5px; }
+    .ct-table .ct-key { background: #fde68a !important; color: #7c2d12 !important; font-weight: 800; border-left: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+    .ct-table th.ct-key { background: #f59e0b !important; color: #fff !important; border-bottom-color: #fff; }
+    .ct-table tr.ct-total td { background: #0f2744 !important; color: #fff !important; font-weight: 800; border-top: 3px solid #22d3ee; border-bottom: 0; }
+    .ct-table tr.ct-total td.ct-key { background: #f59e0b !important; color: #fff !important; }
+    .ct-table tr.ct-own td { background: transparent; }
+    .ct-table tbody tr:nth-child(even):not(.ct-total) td:not(.ct-key) { background: #f1f5f9; }
+    .ct-bar { min-width: 60px; height: 26px; }
+    .ct-bar span { line-height: 26px; font-size: 14.5px; font-weight: 800; color: #0f172a; }
+    .ct-pill { font-size: 12.5px; padding: 4px 10px; }
+    .ct-ref { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+    #callCompareASummary .coach-stat span, #callCompareBSummary .coach-stat span { font-size: 12px; font-weight: 800; }
+    #callCompareASummary .coach-stat strong, #callCompareBSummary .coach-stat strong { font-size: 21px; }
+    .ct-legend { font-size: 14px; font-weight: 600; }
+    .ct-strip { height: 20px; }
+    @media (max-width: 1680px) { .ct-table td { font-size: 13.5px; } .ct-table th { font-size: 11.5px !important; } .ct-table .ct-first { font-size: 13.5px; } }
+    .ct-table th.ct-off { background: #7c3aed !important; color: #fff !important; border-bottom-color: #fff; }
+    .ct-table td.ct-off { background: #ede9fe !important; color: #4c1d95 !important; font-weight: 800; border-left: 2px solid #7c3aed; border-right: 2px solid #7c3aed; }
+    .ct-table td.ct-off small { font-weight: 700; opacity: .85; font-size: 11.5px; }
+    .ct-table tr.ct-total td.ct-off { background: #7c3aed !important; color: #fff !important; }
+    .ct-click { cursor: pointer; user-select: none; }
+    .ct-click:hover { text-decoration: underline; }
+    .ct-caret { display: inline-block; width: 14px; color: #2563eb; font-weight: 900; }
+    .ct-arow.open td { background: #e0f2fe !important; }
+    .ct-table tr.ct-drow td { background: #f8fafc !important; text-align: left; padding: 12px 14px !important; border-bottom: 3px solid #22d3ee; }
+    .ct-adv { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .ct-adv h5 { margin: 0 0 6px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #0f2744; }
+    .ct-adv ul { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: 14px; line-height: 1.4; color: #0f172a; font-weight: 500; }
+    .ct-adv li b { font-weight: 800; }
+    .ct-table td.ct-best { background: #dcfce7 !important; color: #14532d !important; font-weight: 800; border-left: 2px solid #16a34a; border-right: 2px solid #16a34a; font-size: 13px; line-height: 1.2; }
+    .ct-table td.ct-best small { font-weight: 700; font-size: 11.5px; }
+    .ct-table th.ct-bestth { background: #16a34a !important; color: #fff !important; border-bottom-color: #fff; }
+    @media (max-width: 1100px) { .ct-adv { grid-template-columns: 1fr; } }
+    .ct-block { display: grid; gap: 8px; margin: 10px 0 18px; }
+    .ct-check { margin-left: auto; font-size: 12px; display: flex; gap: 6px; align-items: center; }
+    .ct-wrap { overflow-x: auto; }
+    .ct-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ct-table th { background: #0f2747; color: #fff; padding: 8px 8px; text-align: center; font-size: 12px; white-space: normal; line-height: 1.2; }
+    .ct-table td { padding: 7px 8px; text-align: center; border-bottom: 1px solid rgba(120,140,160,.25); }
+    .ct-table .ct-first { text-align: left; font-weight: 700; white-space: nowrap; }
+    .ct-table .ct-first small { font-size: 10px; opacity: .7; }
+    .ct-table tr.ct-own td { background: rgba(37,99,235,.07); }
+    .ct-table tr.ct-total td { background: #fde68a; color: #7c2d12; font-weight: 800; }
+    .ct-bar { position: relative; min-width: 90px; height: 22px; border-radius: 5px; background: rgba(120,140,160,.15); overflow: hidden; }
+    .ct-bar i { position: absolute; inset: 0 auto 0 0; background: rgba(37,99,235,.40); }
+    .ct-bar.dur i { background: rgba(245,158,11,.45); }
+    .ct-bar span { position: relative; line-height: 22px; font-weight: 700; }
+    .ct-up { color: #16a34a; } .ct-down { color: #dc2626; } .ct-table td.ct-key.ct-up { color: #15803d !important; } .ct-table td.ct-key.ct-down { color: #b91c1c !important; }
+    .ct-ref { font-size: 12.5px; padding: 8px 10px; border-left: 4px solid #2563eb; background: rgba(120,140,160,.10); border-radius: 0 8px 8px 0; }
+    .ct-pill { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+    .ct-pill.good { background: #bbf7d0; color: #14532d; } .ct-pill.warn { background: #fde68a; color: #78350f; }
+    .ct-pill.bad { background: #fecaca; color: #7f1d1d; } .ct-pill.mute { background: #e2e8f0; color: #334155; }
+    .ut-stack1 { grid-template-columns: minmax(0, 1fr) !important; }
+    #utAnalysis, #utAnalysis .cmp-grid2 > div, #utAnalysis .cmp-chart { min-width: 0; max-width: 100%; }
+    #utAnalysis .cmp-chart { overflow: hidden; }
+    #utAnPlan { overflow-x: auto; max-width: 100%; }
+    .ut-plan th, .ut-plan td { white-space: normal; padding: 6px 8px; }
+    .ut-plan td:last-child { min-width: 260px; text-align: left; font-size: 13px; }
+    .ut-shot-btn { float: right; background: linear-gradient(90deg,#22d3ee,#a3e635); color: #06222b; border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: 12px; cursor: pointer; }
+    .ut-shot-btn:disabled { opacity: .6; cursor: wait; }
+    .ut-pk-title { margin: 0 0 6px; font-size: 13px; }
+
+    .ut-table th.ut-ct, .ut-table td.ut-ct { background: #fde68a !important; color: #7c2d12 !important; font-weight: 800; border-left: 2px solid #f59e0b; border-right: 2px solid #f59e0b; }
+    .ut-table th.ut-cs, .ut-table td.ut-cs { background: #bfdbfe !important; color: #1e3a8a !important; font-weight: 800; border-left: 2px solid #2563eb; border-right: 2px solid #2563eb; }
+    .ut-table th.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    .ut-table th.ut-cs { background: #2563eb !important; color: #fff !important; }
+    .ut-table td.ut-ct b, .ut-table td.ut-cs b { color: inherit; }
+    .ut-total td.ut-ct { background: #f59e0b !important; color: #fff !important; }
+    .ut-total td.ut-cs { background: #2563eb !important; color: #fff !important; }
+    .cmp-empty { padding: 28px; text-align: center; color: var(--c-muted); font-size: 13px; }
+    @media (max-width: 900px) {
+      html body main { width: calc(100% - 20px); }
+      .cmp-grid3, .cmp-grid2 { grid-template-columns: 1fr; }
+      .cmp-lists { grid-template-columns: 1fr; }
+      .cmp-hero { padding: 16px; }
+    }
+  </style>
 </head>
 <body class="access-locked">
   <div class="access-lock" id="accessLock">
@@ -2474,6 +3036,7 @@
       <h1>FORTUNA CENTER</h1>
       <p>Masukkan password untuk membuka dashboard.</p>
       <input id="accessPasswordInput" type="password" autocomplete="off" placeholder="Password" />
+      <label class="access-remember"><input type="checkbox" id="accessRememberCheck" checked /> Ingat saya di perangkat ini (30 hari)</label>
       <button type="button" id="accessPasswordButton">Masuk</button>
       <div class="access-lock-message" id="accessLockMessage" aria-live="polite"></div>
     </div>
@@ -2510,9 +3073,8 @@
 
     <div class="page-tabs" id="pageTabs">
       <button type="button" class="active" data-page="pageActivityRenewal">ACTIVITY RENEWAL</button>
-      <button type="button" data-page="pageLeader">Leader & Agent</button>
-      <button type="button" data-page="pageUnit">Compare Unit</button>
-      <button type="button" data-page="pageAssignDate">Assigndate</button>
+      <button type="button" data-page="pageLeader">COMPARE COACH &amp; SPV</button>
+      <button type="button" data-page="pageUpdateToday">UPDATE TODAY</button>
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
       <button type="button" data-page="pageGrowthAgent">Growth Agent</button>
       <button type="button" data-page="pageDailyPresentation">DAILY PRESENTASI</button>
@@ -2527,202 +3089,77 @@
     </section>
 
     <section class="page" id="pageLeader">
-      <section class="compare-grid">
-        <div class="panel compare-panel">
-          <div class="panel-head">
-            <h2>Leader A</h2>
-            <span class="note">coach, agent, produk</span>
-          </div>
-          <label>Coach<select id="compareLeaderAFilter"></select></label>
-          <div class="compare-box">
-            <label>Monthly<select id="leaderAMonthFilter"></select></label>
-            <label>Weekly<select id="leaderAWeekFilter"></select></label>
-            <label>Daily<select id="leaderADateFilter"></select></label>
-            <label>Product<select id="leaderAProductFilter"></select></label>
-          </div>
-          <div class="coach-summary" id="leaderASummary"></div>
+      <div class="cmp" id="cmpRoot">
+        <div class="cmp-hero">
           <div>
-            <div class="panel-head">
-              <h2>Agent</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderAAgentTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderAAgentChart"></canvas></div>
+            <span class="cmp-eyebrow">COMMAND CENTER</span>
+            <h2>Compare Coach &amp; SPV</h2>
+            <p id="cmpSubtitle">Bandingkan SPV vs SPV atau coach vs coach: revenue, target, % achievement, transaksi, ARPU, produk, grade, dan agent teratas.</p>
           </div>
-          <div>
-            <div class="panel-head">
-              <h2>Product</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderAProductTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderAProductChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Campaign</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderACampaignTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderACampaignChart"></canvas></div>
-          </div>
+          <div class="cmp-source" id="cmpSource"></div>
         </div>
-        <div class="panel compare-panel">
-          <div class="panel-head">
-            <h2>Leader B</h2>
-            <span class="note">coach, agent, produk</span>
-          </div>
-          <label>Coach<select id="compareLeaderBFilter"></select></label>
-          <div class="compare-box">
-            <label>Monthly<select id="leaderBMonthFilter"></select></label>
-            <label>Weekly<select id="leaderBWeekFilter"></select></label>
-            <label>Daily<select id="leaderBDateFilter"></select></label>
-            <label>Product<select id="leaderBProductFilter"></select></label>
-          </div>
-          <div class="coach-summary" id="leaderBSummary"></div>
-          <div>
-            <div class="panel-head">
-              <h2>Agent</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderBAgentTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderBAgentChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Product</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderBProductTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderBProductChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Campaign</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="leaderBCampaignTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="leaderBCampaignChart"></canvas></div>
-          </div>
+        <div class="cmp-controls" id="cmpControls"></div>
+        <div class="cmp-banner" id="cmpBanner"></div>
+        <div class="cmp-kpis" id="cmpKpis"></div>
+        <div class="cmp-board" id="cmpBoard"></div>
+        <div class="cmp-grid3">
+          <div class="cmp-panel"><h3>Revenue vs Target</h3><p>Batang terang = revenue, batang redup = target periode terpilih.</p><div class="cmp-chart"><canvas id="cmpTargetChart"></canvas></div></div>
+          <div class="cmp-panel"><h3>Balapan Harian</h3><p>Revenue kumulatif per hari kerja pada minggu terbaru yang dipilih.</p><div class="cmp-chart"><canvas id="cmpRaceChart"></canvas></div></div>
+          <div class="cmp-panel"><h3>Tren Mingguan</h3><p>Revenue per minggu, 8 minggu terakhir.</p><div class="cmp-chart"><canvas id="cmpTrendChart"></canvas></div></div>
         </div>
-      </section>
+        <div class="cmp-panel">
+          <h3>Matriks Perbandingan</h3>
+          <p>Klik judul kolom untuk mengurutkan. Tombol A / B memilih dua pihak untuk Head-to-Head di bawah.</p>
+          <div class="cmp-table-wrap" id="cmpTableWrap"></div>
+        </div>
+        <div class="cmp-panel" id="cmpH2H"></div>
+        <div class="cmp-grid2">
+          <div class="cmp-panel"><h3>Komposisi Produk</h3><p>Porsi revenue per tipe produk.</p><div class="cmp-chart"><canvas id="cmpProductChart"></canvas></div></div>
+          <div class="cmp-panel"><h3>Komposisi Grade</h3><p>Porsi revenue per grade (SD / SMP / SMA / UTBK).</p><div class="cmp-chart"><canvas id="cmpGradeChart"></canvas></div></div>
+        </div>
+        <div class="cmp-grid2">
+          <div class="cmp-panel"><h3>Top Agent</h3><p>Peringkat revenue agent pada cakupan terpilih.</p><div id="cmpTopAgents"></div></div>
+          <div class="cmp-panel"><h3>Perlu Perhatian</h3><p>Agent dengan pace di bawah 60% dari target berjalan.</p><div id="cmpWatch"></div></div>
+        </div>
+        <div class="cmp-panel"><h3>Insight Otomatis</h3><p>Dibuat dari data yang sedang tampil.</p><ul class="cmp-insights" id="cmpInsights"></ul></div>
+      </div>
     </section>
 
-    <section class="page" id="pageUnit">
-      <section class="compare-grid">
-        <div class="panel compare-panel">
-          <div class="panel-head">
-            <h2>Unit A</h2>
-            <span class="note">layer, SPV, agent, coach</span>
-          </div>
-          <div class="compare-box">
-            <label>Layer<select id="unitALayerFilter"></select></label>
-            <label>SPV<select id="unitASpvFilter"></select></label>
-            <label>Monthly<select id="unitAMonthFilter"></select></label>
-            <label>Weekly<select id="unitAWeekFilter"></select></label>
-            <label>Daily<select id="unitADateFilter"></select></label>
-            <label>Agent<select id="unitAAgentFilter"></select></label>
-            <label>Product<select id="unitAProductFilter"></select></label>
-          </div>
-          <div class="coach-summary" id="unitASummary"></div>
+    <section class="page" id="pageUpdateToday">
+      <div class="cmp" id="utRoot">
+        <div class="cmp-hero">
           <div>
-            <div class="panel-head">
-              <h2>Coach</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitACoachTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitACoachChart"></canvas></div>
+            <span class="cmp-eyebrow">UPDATE TODAY</span>
+            <h2 id="utTitle">Update Harian</h2>
+            <p>Tampilan seperti Paid Predictor: kemarin dari DS, hari ini dari UPDATE REALTIME (timmu) dan dodolan TIM LAIN (tim lain). Siap di-screenshot.</p>
           </div>
-          <div>
-            <div class="panel-head">
-              <h2>Product</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitAProductTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitAProductChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Campaign</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitACampaignTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitACampaignChart"></canvas></div>
-          </div>
+          <div class="cmp-source" id="utSource"></div>
         </div>
-        <div class="panel compare-panel">
-          <div class="panel-head">
-            <h2>Unit B</h2>
-            <span class="note">layer, SPV, agent, coach</span>
-          </div>
-          <div class="compare-box">
-            <label>Layer<select id="unitBLayerFilter"></select></label>
-            <label>SPV<select id="unitBSpvFilter"></select></label>
-            <label>Monthly<select id="unitBMonthFilter"></select></label>
-            <label>Weekly<select id="unitBWeekFilter"></select></label>
-            <label>Daily<select id="unitBDateFilter"></select></label>
-            <label>Agent<select id="unitBAgentFilter"></select></label>
-            <label>Product<select id="unitBProductFilter"></select></label>
-          </div>
-          <div class="coach-summary" id="unitBSummary"></div>
-          <div>
-            <div class="panel-head">
-              <h2>Coach</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitBCoachTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitBCoachChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Product</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitBProductTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitBProductChart"></canvas></div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Campaign</h2>
-              <span class="note">berdasarkan amount</span>
-            </div>
-            <div class="coach-chart-title" id="unitBCampaignTitle">Belum dipilih</div>
-            <div class="chart-wrap mini-chart"><canvas id="unitBCampaignChart"></canvas></div>
-          </div>
+        <div class="cmp-controls" id="utControls">
+          <div class="cmp-group"><button type="button" class="cmp-chip on" data-ut="refresh">⟳ Muat ulang data hari ini</button><button type="button" class="cmp-chip" data-ut="copy">Salin teks untuk Telegram</button><span id="utCopyNote" style="letter-spacing:0;text-transform:none"></span></div>
         </div>
-      </section>
-    </section>
-
-    </section>
-
-    <section class="page" id="pageAssignDate">
-      <section class="panel compare-panel">
-        <div class="panel-head">
-          <h2>Assigndate</h2>
-          <span class="note">revenue dan invoice berdasarkan assigned date</span>
+        <div class="cmp-banner" id="utBanner"></div>
+        <div class="cmp-panel"><h3>Overview Tim</h3><p>Seperti tabel Paid Predictor. Rev total = revenue kemarin (DS, minggu berjalan) + hari ini. Kolom 125% / 100% / 75% / 50% = selisih rev total terhadap target.</p><div class="cmp-table-wrap" id="utOverview"></div></div>
+        <div class="cmp-panel"><h3>Selisih Antar SPV per Layer</h3><p>Layer 1 dan Layer 2, dibandingkan antar SPV.</p><div id="utLayerDiff" style="display:grid;gap:14px;grid-template-columns:1fr"></div></div>
+        <div class="cmp-grid2 ut-stack1">
+          <div class="cmp-panel"><h3>Coach Layer 1</h3><p>Peringkat rev total semua SPV.</p><div class="cmp-table-wrap" id="utCoachL1"></div></div>
+          <div class="cmp-panel"><h3>Coach Layer 2</h3><p>Peringkat rev total semua SPV.</p><div class="cmp-table-wrap" id="utCoachL2"></div></div>
         </div>
-        <section class="filters">
-          <label>Monthly<select id="assignMonthFilter"></select></label>
-          <label>Weekly<select id="assignWeekFilter"></select></label>
-          <label>SPV<select id="assignSpvFilter"></select></label>
-          <label>Leader<select id="assignLeaderFilter"></select></label>
-          <label>Campaign<select id="assignCampaignFilter"></select></label>
-        </section>
-        <div class="coach-summary" id="assignSummary"></div>
-        <div>
-          <div class="panel-head">
-            <h2>Revenue by Assigned Date</h2>
-            <span class="note">urut dari penjualan tertinggi</span>
+        <div class="cmp-panel"><h3>Paket Berjalan Hari Ini</h3><p>Per coach: paket, agent, txn dan revenue. Kiri FORTUNA, kanan DETI dan MARK; coach diurutkan dari revenue tertinggi. Ungu = Privat, hijau = ruangbelajar/Bogor/TKA, kuning = Brain Academy/Perpanjang.</p><div id="utPackages"></div></div>
+        <div class="cmp-panel" id="utAnalysis">
+          <h3>Analisa Hari Ini</h3>
+          <p>Dibuat otomatis dari data hari ini dan posisi minggu berjalan. Tanda ★ = coach timmu.</p>
+          <div class="ut-an-stats" id="utAnStats"></div>
+          <div class="cmp-grid2 ut-stack1">
+            <div><h4 class="ut-pk-title">POSISI TIER MINGGU INI</h4><div class="cmp-chart" style="height:420px"><canvas id="utChTier"></canvas></div></div>
           </div>
-          <div class="chart-wrap"><canvas id="assignRevenueChart"></canvas></div>
-        </div>
-        <div>
-          <div class="panel-head">
-            <h2>Invoice by Assigned Date</h2>
-            <span class="note">jumlah invoice unik</span>
+          <div class="cmp-grid2 ut-stack1" style="margin-top:12px">
+            <div><h4 class="ut-pk-title">KOMPOSISI PAKET HARI INI</h4><div class="cmp-chart" style="height:260px"><canvas id="utChKind"></canvas></div></div>
+            <div><h4 class="ut-pk-title">TEMUAN</h4><ul class="ut-an-list" id="utAnInsights"></ul></div>
           </div>
-          <div class="chart-wrap"><canvas id="assignInvoiceChart"></canvas></div>
+          <div id="utAnPlan"></div>
         </div>
-      </section>
+      </div>
     </section>
 
     <section class="page" id="pageCallTracking">
@@ -2741,61 +3178,15 @@
           <label>Waktu<select id="callTimeFilter"></select></label>
         </section>
         <div class="coach-summary" id="callSummary"></div>
-        <div>
-          <div class="panel-head">
-            <h2>Jumlah Call</h2>
-            <span class="note">agent sebagai baris, bucket jam sebagai kolom</span>
-          </div>
-          <div class="table-wrap">
-            <table id="callCountTable">
-              <thead id="callCountHead"></thead>
-              <tbody id="callCountBody">
-                <tr><td class="empty">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="ct-block">
+          <div class="panel-head"><h2>Ringkasan per Coach</h2><span class="note">dial = jumlah call, terhubung = call berdurasi 2 menit ke atas · ikut filter bulan, minggu, hari, status, waktu</span>
+            <label class="ct-check"><input type="checkbox" id="ctShowAll"> tampilkan coach lain</label></div>
+          <div id="callCoachOverview"><div class="empty">Memuat data...</div></div>
         </div>
-        <div>
-          <div class="panel-head">
-            <h2>Durasi Call</h2>
-            <span class="note">total durasi call per agent</span>
-          </div>
-          <div class="table-wrap">
-            <table id="callDurationTable">
-              <thead id="callDurationHead"></thead>
-              <tbody id="callDurationBody">
-                <tr><td class="empty">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div>
-          <div class="panel-head">
-            <h2>Bucket Durasi Call</h2>
-            <span class="note">jumlah call berdasarkan rentang durasi</span>
-          </div>
-          <div class="table-wrap">
-            <table id="callDurationBucketTable">
-              <thead id="callDurationBucketHead"></thead>
-              <tbody id="callDurationBucketBody">
-                <tr><td class="empty">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div>
-          <div class="panel-head">
-            <h2>Call Attempt</h2>
-            <span class="note">unique number, total call, dan persentase attempt</span>
-          </div>
-          <div class="table-wrap">
-            <table id="callAttemptTable">
-              <thead id="callAttemptHead"></thead>
-              <tbody id="callAttemptBody">
-                <tr><td class="empty">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="ct-block">
+          <div class="panel-head"><h2>Detail Agent per Coach</h2><span class="note">pilih satu coach, agent di bawahnya dinilai terhadap median tim</span>
+            <label class="ct-check">Coach <select class="ct-sel"></select></label></div>
+          <div id="callAgentDetail"><div class="empty">Memuat data...</div></div>
         </div>
       </section>
 
@@ -2813,54 +3204,7 @@
             <label>Status<select id="callCompareAStatusFilter"></select></label>
           </section>
           <div class="coach-summary" id="callCompareASummary"></div>
-          <div>
-            <div class="panel-head">
-              <h2>Jumlah Call</h2>
-              <span class="note">ringkas biar mudah dibandingkan</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareACountHead"></thead>
-                <tbody id="callCompareACountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Durasi Call</h2>
-              <span class="note">ringkas biar mudah dibandingkan</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareADurationHead"></thead>
-                <tbody id="callCompareADurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Bucket Durasi</h2>
-              <span class="note">di bawah dan di atas 3 menit</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareABucketHead"></thead>
-                <tbody id="callCompareABucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Call Attempt</h2>
-              <span class="note">unique number dibanding total call</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareAAttemptHead"></thead>
-                <tbody id="callCompareAAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="ct-cmp" id="callCompareAView"></div>
         </div>
 
         <div class="panel compare-panel call-compare-panel">
@@ -2876,54 +3220,7 @@
             <label>Status<select id="callCompareBStatusFilter"></select></label>
           </section>
           <div class="coach-summary" id="callCompareBSummary"></div>
-          <div>
-            <div class="panel-head">
-              <h2>Jumlah Call</h2>
-              <span class="note">ringkas biar mudah dibandingkan</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareBCountHead"></thead>
-                <tbody id="callCompareBCountBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Durasi Call</h2>
-              <span class="note">ringkas biar mudah dibandingkan</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareBDurationHead"></thead>
-                <tbody id="callCompareBDurationBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Bucket Durasi</h2>
-              <span class="note">di bawah dan di atas 3 menit</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareBBucketHead"></thead>
-                <tbody id="callCompareBBucketBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
-          <div>
-            <div class="panel-head">
-              <h2>Call Attempt</h2>
-              <span class="note">unique number dibanding total call</span>
-            </div>
-            <div class="table-wrap fit">
-              <table>
-                <thead id="callCompareBAttemptHead"></thead>
-                <tbody id="callCompareBAttemptBody"><tr><td class="empty">Memuat data...</td></tr></tbody>
-              </table>
-            </div>
-          </div>
+          <div class="ct-cmp" id="callCompareBView"></div>
         </div>
       </section>
     </section>
@@ -3229,6 +3526,8 @@
       "Lainnya"
     ];
     let allRows = [];
+    let dashboardInitialized = false;
+    let dashboardDataTimeout = null;
     let callRows = [];
     let callSheetLoading = false;
     let callSheetLoaded = false;
@@ -3247,6 +3546,7 @@
     let tutorSessionRequestSerial = 0;
     let tutorSessionRequestTimeout = null;
     let tutorSessionError = "";
+    let dailyPresentationLoadingStarted = false;
     let dailyClosingDefaultApplied = false;
     let dailyClosingCacheSource = null;
     const dailyClosingOrgRowsCache = new Map();
@@ -3309,7 +3609,7 @@
       }
       if (icon) icon.textContent = dark ? "☀" : "☾";
       if (text) text.textContent = dark ? "Normal mode" : "Dark mode";
-      if (rerender && allRows.length) render();
+      if (rerender && (allRows.length || cmpState.achieve.status === "ok")) render();
     }
 
     function setupThemeToggle() {
@@ -3808,21 +4108,13 @@
     }
 
     function renderPage(pageId = activePageId(), dashboardData = null) {
+      document.body.classList.toggle("cmp-active", pageId === "pageLeader" || pageId === "pageUpdateToday");
       switch (pageId) {
-        case "pageLeader": {
-          const data = dashboardData || filteredRows();
-          renderTeamCharts(data);
-          setCompareOptions();
-          renderRankCharts(data);
+        case "pageLeader":
+          cmpRender();
           break;
-        }
-        case "pageUnit":
-          setUnitOptions();
-          renderUnitCompare();
-          break;
-        case "pageAssignDate":
-          setAssignOptions();
-          renderAssignDatePage();
+        case "pageUpdateToday":
+          utShow();
           break;
         case "pageCallTracking":
           loadCallSheet();
@@ -3839,6 +4131,7 @@
           renderGrowthAgentPage();
           break;
         case "pageDailyPresentation":
+          loadDailyPresentationSheet();
           setPresentationOptions();
           renderPresentationPage();
           break;
@@ -3871,16 +4164,8 @@
     }
 
     const PAGE_CHART_IDS = {
-      pageLeader: [
-        "teamAmountChart", "teamTxnChart",
-        "leaderAAgentChart", "leaderAProductChart", "leaderACampaignChart",
-        "leaderBAgentChart", "leaderBProductChart", "leaderBCampaignChart"
-      ],
-      pageUnit: [
-        "unitACoachChart", "unitAProductChart", "unitACampaignChart",
-        "unitBCoachChart", "unitBProductChart", "unitBCampaignChart"
-      ],
-      pageAssignDate: ["assignRevenueChart", "assignInvoiceChart"],
+      pageLeader: ["cmpTargetChart", "cmpRaceChart", "cmpTrendChart", "cmpProductChart", "cmpGradeChart"],
+      pageUpdateToday: ["utChTier", "utChKind"],
       pageGrowthAgent: ["growthTrendChart"],
       pageDailyPresentation: ["presentationTrendChart"]
     };
@@ -6083,7 +6368,7 @@
     function callDate(value) {
       const text = clean(value);
       const match = text.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+(\d{1,2})\.(\d{2})\.(\d{2})/);
-      if (!match) return { date: text, hour: -1 };
+      if (!match) return { date: text, hour: -1, minute: 0 };
       const months = {
         jan: "01", january: "01", januari: "01",
         feb: "02", february: "02", februari: "02",
@@ -6100,7 +6385,7 @@
       };
       const day = match[1].padStart(2, "0");
       const month = months[match[2].toLowerCase()] || "01";
-      return { date: `${match[3]}-${month}-${day}`, hour: Number(match[4]) };
+      return { date: `${match[3]}-${month}-${day}`, hour: Number(match[4]), minute: Number(match[5]) };
     }
 
     function durationSeconds(value) {
@@ -6339,31 +6624,172 @@
       );
     }
 
-    function renderCallCompareSide(prefix) {
-      setCallCompareOptions(prefix);
-      const rows = filteredCallCompareRows(prefix);
-      const matrix = callMatrix(rows);
-      const uniqueNumbers = new Set(rows.map((row) => clean(row.Destination)).filter(Boolean)).size;
-      const attempt = uniqueNumbers ? (rows.length / uniqueNumbers) * 100 : 0;
-      document.getElementById(`${prefix}Summary`).innerHTML = `
-        <div class="coach-stat"><span>Total Call</span><strong>${number.format(rows.length)}</strong></div>
-        <div class="coach-stat"><span>Total Durasi</span><strong>${formatDuration(rows.reduce((sum, row) => sum + row._duration, 0))}</strong></div>
-        <div class="coach-stat"><span>Unique Number</span><strong>${number.format(uniqueNumbers)}</strong></div>
-        <div class="coach-stat"><span>Attempt</span><strong>${attempt.toFixed(1)}%</strong></div>
-      `;
-      renderCallCompareTotalTable(`${prefix}CountHead`, `${prefix}CountBody`, matrix, "count");
-      renderCallCompareTotalTable(`${prefix}DurationHead`, `${prefix}DurationBody`, [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
-      renderCallCompareDurationBucketTable(`${prefix}BucketHead`, `${prefix}BucketBody`, matrix);
-      renderCallAttemptTable(`${prefix}AttemptHead`, `${prefix}AttemptBody`, matrix);
-    }
-
     function renderCallCompare() {
-      renderCallCompareSide("callCompareA");
-      renderCallCompareSide("callCompareB");
+      const aggs = ["callCompareA", "callCompareB"].map((p) => { setCallCompareOptions(p); return ctAgg(filteredCallCompareRows(p)); });
+      const metrics = [
+        ["Dial", (a) => a.dial, (v) => number.format(v), 1],
+        ["Terhubung", (a) => a.conn, (v) => number.format(v), 1],
+        ["% Terhubung", (a) => a.rate, ctPct, 1],
+        ["Luar jam kerja", (a) => a.off, (v) => number.format(v), 0],
+        ["Talk time", (a) => a.dur, (v) => formatDuration(v), 1],
+        ["Attempt", (a) => (a.unique.size ? a.dial / a.unique.size : 0), (v) => v.toFixed(2).replace(".", ",") + "x", 0]
+      ];
+      ["callCompareA", "callCompareB"].forEach((p, i) => {
+        const a = aggs[i], o = aggs[1 - i];
+        document.getElementById(`${p}Summary`).innerHTML = metrics.map(([label, f, fmt, cmp]) => {
+          const v = f(a), w = f(o); const cls = cmp && a.dial && o.dial && v !== w ? (v > w ? " ct-win" : " ct-lose") : "";
+          return `<div class="coach-stat ct-kpi${cls}"><span>${label}</span><strong>${fmt(v)}</strong></div>`;
+        }).join("");
+        const parts = [["&lt; 1 mnt", a.u1, "#94a3b8"], ["1-3 mnt", a.m13, "#60a5fa"], ["3 mnt (3-&lt;5)", a.m35, "#f59e0b"], ["5 mnt (5-&lt;10)", a.m510, "#16a34a"], ["10 mnt (≥10)", a.o10, "#7c3aed"]];
+        const tot = a.dial || 1;
+        const bestB = Object.entries(a.byBucket).filter(([, b]) => b.dial >= 5).sort((x, y) => y[1].conn / y[1].dial - x[1].conn / x[1].dial)[0];
+        document.getElementById(`${p}View`).innerHTML = a.dial ? `<div class="ct-strip">${parts.map(([, n, c]) => `<i style="width:${n / tot * 100}%;background:${c}"></i>`).join("")}</div><div class="ct-legend">${parts.map(([l, n, c]) => `<span><u style="background:${c}"></u>${l} <b>${number.format(n)}</b></span>`).join("")}</div>${bestB ? `<div class="ct-legend"><span>Jam terbaik terhubung <b>${bestB[0]}</b> (${ctPct(bestB[1].conn / bestB[1].dial)})</span></div>` : ""}` : `<div class="empty">Tidak ada data sesuai filter.</div>`;
+      });
     }
 
+
+    /* ---------- CALL TRACKING: ringkasan coach + detail agent ---------- */
+    const CT_WORK_START = 8 * 60, CT_WORK_END = 17 * 60 + 30; /* jam kerja 08.00 - 17.30 */
+    const CT_CONN_SEC = 120; /* terhubung = durasi call minimal 2 menit */
+    const CT_COACHES = [
+      { key: "faizal", re: /faizal/i, label: "Faizal Fahmi Arridai", layer: "L1" },
+      { key: "arif", re: /arif|pambudi/i, label: "Arif Pambudi", layer: "L1" },
+      { key: "yuliani", re: /yuliani|musfikoh/i, label: "Yuliani Musfikoh", layer: "L2" },
+      { key: "yosua", re: /yosua\s+adh?i|adhi\s+surya|surya\s+wijaya/i, label: "Yosua Adhi Surya Wijaya", layer: "L2" }
+    ];
+    function ctCoachOf(name) { return CT_COACHES.find((c) => c.re.test(clean(name))) || null; }
+    function ctRows(opts = {}) {
+      const g = (id) => document.getElementById(id)?.value || "";
+      const month = g("callMonthFilter"), week = g("callWeekFilter"), date = g("callDateFilter"), status = g("callStatusFilter"), bucket = g("callTimeFilter");
+      return callRows.filter((r) => filterMatches(month, r._weekMonth) && filterMatches(week, r._week) && filterMatches(date, r._date) && filterMatches(status, r.Status) && filterMatches(bucket, r._bucket));
+    }
+    function ctAgg(rows) {
+      const a = { dial: rows.length, conn: 0, dur: 0, durConn: 0, u1: 0, m13: 0, m35: 0, m510: 0, off: 0, ans: 0, short: 0, days: new Set(), o3: 0, o5: 0, o10: 0, unique: new Set(), agents: new Set(), byBucket: {} };
+      rows.forEach((r) => {
+        const d = r._duration; a.agents.add(clean(r["Agent Name"])); a.days.add(r._date);
+        if (d > 0) { a.ans++; if (d < 120) a.short++; }
+        if (r._hour >= 0) { const mm = r._hour * 60 + (r._min || 0); if (mm < CT_WORK_START || mm > CT_WORK_END) a.off++; }
+        if (clean(r.Destination)) a.unique.add(clean(r.Destination));
+        const b = a.byBucket[r._bucket] || (a.byBucket[r._bucket] = { dial: 0, conn: 0 }); b.dial++;
+        a.dur += d; if (d >= CT_CONN_SEC) { a.conn++; b.conn++; a.durConn += d; }
+        if (d < 60) a.u1++; else if (d < 180) a.m13++; else if (d < 300) a.m35++;
+        if (d >= 180) a.o3++; if (d >= 300) a.o5++; if (d >= 600) a.o10++; if (d >= 300 && d < 600) a.m510++;
+      });
+      a.rate = a.dial ? a.conn / a.dial : 0; a.offRate = a.dial ? a.off / a.dial : 0; a.shortShare = a.ans ? a.short / a.ans : 0;
+      a.tpc = a.conn ? a.durConn / a.conn : 0;
+      a.longShare = a.conn ? a.o3 / a.conn : 0;
+      return a;
+    }
+    const ctPct = (v) => `${(v * 100).toFixed(1).replace(".", ",")}%`;
+    const ctMin = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+    const ctMed = (arr) => { const a = arr.filter((x) => Number.isFinite(x)).sort((x, y) => x - y); if (!a.length) return 0; const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; };
+    function ctBar(v, max, cls) { return `<div class="ct-bar ${cls || ""}"><i style="width:${max ? Math.min(100, v / max * 100) : 0}%"></i><span>${number.format(v)}</span></div>`; }
+    const ctOff = (a) => `${number.format(a.off)} <small>(${ctPct(a.offRate)})</small>`;
+    function ctCoachOverviewHtml(rows) {
+      const showAll = document.getElementById("ctShowAll")?.checked;
+      const groups = new Map();
+      rows.forEach((r) => { const c = ctCoachOf(r.COACH); const k = c ? c.key : (showAll ? `x:${clean(r.COACH) || "Tanpa coach"}` : null); if (!k) return; if (!groups.has(k)) groups.set(k, { coach: c, name: c ? c.label : (clean(r.COACH) || "Tanpa coach"), rows: [] }); groups.get(k).rows.push(r); });
+      const list = [...groups.values()].map((g) => ({ ...g, a: ctAgg(g.rows) })).sort((x, y) => (y.coach ? 1 : 0) - (x.coach ? 1 : 0) || (x.coach && y.coach ? CT_COACHES.indexOf(x.coach) - CT_COACHES.indexOf(y.coach) : y.a.dial - x.a.dial));
+      if (!list.length) return `<div class="empty">Tidak ada data call untuk coach timmu pada filter ini.</div>`;
+      const own = list.filter((g) => g.coach);
+      const tot = ctAgg(own.flatMap((g) => g.rows));
+      const maxDial = Math.max(...list.map((g) => g.a.dial)), maxDur = Math.max(...list.map((g) => g.a.dur));
+      const line = (g) => { const a = g.a; return `<tr class="${g.coach ? "ct-own" : ""}"><td class="ct-first">${escapeHtml(g.name)}${g.coach ? ` <small>${g.coach.layer}</small>` : ""}</td><td>${a.agents.size}</td><td>${ctBar(a.dial, maxDial)}</td><td class="ct-key">${number.format(a.conn)}</td><td class="ct-key">${ctPct(a.rate)}</td><td>${ctBar(a.dur / 3600, maxDur / 3600, "dur").replace(/<span>[^<]*<\/span>/, `<span>${formatDuration(a.dur)}</span>`)}</td><td>${number.format(a.u1)}</td><td>${number.format(a.m13)}</td><td>${number.format(a.m35)}</td><td>${number.format(a.m510)}</td><td>${number.format(a.o10)}</td><td>${a.unique.size ? (a.dial / a.unique.size).toFixed(2).replace(".", ",") + "x" : "-"}</td><td class="ct-off">${ctOff(a)}</td></tr>`; };
+      const totRow = own.length > 1 ? `<tr class="ct-total"><td class="ct-first">TOTAL TIM</td><td>${tot.agents.size}</td><td>${number.format(tot.dial)}</td><td class="ct-key">${number.format(tot.conn)}</td><td class="ct-key">${ctPct(tot.rate)}</td><td>${formatDuration(tot.dur)}</td><td>${number.format(tot.u1)}</td><td>${number.format(tot.m13)}</td><td>${number.format(tot.m35)}</td><td>${number.format(tot.m510)}</td><td>${number.format(tot.o10)}</td><td>${tot.unique.size ? (tot.dial / tot.unique.size).toFixed(2).replace(".", ",") + "x" : "-"}</td><td class="ct-off">${ctOff(tot)}</td></tr>` : "";
+      return `<div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Coach</th><th>Agent</th><th>Dial</th><th class="ct-key">Terhubung</th><th class="ct-key">% Terhubung</th><th>Talk time</th><th>&lt; 1 mnt</th><th>1-3 mnt</th><th>3 mnt<br><small>3 - &lt;5</small></th><th>5 mnt<br><small>5 - &lt;10</small></th><th>10 mnt<br><small>≥ 10</small></th><th>Attempt</th><th class="ct-off">Luar jam kerja<br><small>&lt; 08.00 / &gt; 17.30</small></th></tr></thead><tbody>${list.map(line).join("")}${totRow}</tbody></table></div>`;
+    }
+    const CT_DIAL_OK = 200, CT_DIAL_HIGH = 300; /* patokan dial per hari aktif: 200-300 cukup, di atas 300 banyak */
+    const ctExpanded = new Set();
+    function ctDpd(a) { return a.days.size ? a.dial / a.days.size : 0; }
+    function ctRef(agents) {
+      const v = agents.filter((x) => x.a.dial >= 5);
+      return { rate: ctMed(v.map((x) => x.a.rate)), tpd: ctMed(v.map((x) => (x.a.days.size ? x.a.dur / x.a.days.size : 0))), short: ctMed(v.map((x) => x.a.shortShare)), att: ctMed(v.map((x) => (x.a.unique.size ? x.a.dial / x.a.unique.size : 0))), n: v.length };
+    }
+    function ctVerdict(a, ref) {
+      if (a.dial < 5) return { t: "Data sedikit", c: "mute", level: "-", rate: "-", talk: "-" };
+      const dpd = ctDpd(a), tpd = a.days.size ? a.dur / a.days.size : 0;
+      const dial = dpd > CT_DIAL_HIGH ? "banyak" : dpd >= CT_DIAL_OK ? "cukup" : "kecil";
+      const rate = a.rate >= ref.rate * 1.1 ? "tinggi" : a.rate < ref.rate * 0.8 ? "rendah" : "cukup";
+      const talk = tpd >= ref.tpd * 1.1 ? "tinggi" : tpd < ref.tpd * 0.8 ? "rendah" : "cukup";
+      let t, c;
+      if (dial === "kecil") {
+        if (rate !== "rendah" && talk !== "rendah" && (rate === "tinggi" || talk === "tinggi")) { t = "Efisien, tapi dial kurang"; c = "warn"; }
+        else if (rate === "rendah") { t = "Dial kecil, terhubung rendah"; c = "bad"; }
+        else { t = "Dial kecil"; c = "warn"; }
+      } else if (rate === "rendah") { t = dial === "banyak" ? "Dial banyak, jarang terhubung" : "Dial cukup, terhubung rendah"; c = "bad"; }
+      else if (talk === "rendah") { t = "Terhubung, talk time rendah"; c = "warn"; }
+      else if (rate !== "rendah" && talk !== "rendah" && (rate === "tinggi" || talk === "tinggi" || dial === "banyak")) { t = "Sehat"; c = "good"; }
+      else { t = "Cukup"; c = "mute"; }
+      return { t, c, level: dial, rate, talk };
+    }
+    function ctHours(a) {
+      const out = Object.entries(a.byBucket).filter(([k]) => k !== "Di luar bucket").map(([k, b]) => ({ k, dial: b.dial, rate: b.dial ? b.conn / b.dial : 0 }));
+      const ok = out.filter((x) => x.dial >= 5);
+      const best = ok.slice().sort((x, y) => y.rate - x.rate)[0] || null;
+      const worst = ok.filter((x) => x.dial >= a.dial * 0.2).sort((x, y) => x.rate - y.rate)[0] || null;
+      const work = out.filter((x) => /^(09|12|15)\./.test(x.k));
+      const thin = work.filter((x) => x.dial < a.dial * 0.15).map((x) => x.k);
+      return { best, worst, thin };
+    }
+    function ctAdvice(a, ref, v) {
+      const dpd = ctDpd(a), tpd = a.days.size ? a.dur / a.days.size : 0;
+      const h = ctHours(a);
+      const f = (n) => number.format(Math.round(n));
+      const facts = [
+        `Dial <b>${f(dpd)}</b> per hari aktif (${a.days.size} hari) → <b>${v.level}</b> (patokan ${CT_DIAL_OK}-${CT_DIAL_HIGH} cukup, di atas ${CT_DIAL_HIGH} banyak)`,
+        `Terhubung <b>${ctPct(a.rate)}</b> (${number.format(a.conn)} dari ${number.format(a.dial)} dial) → <b>${v.rate}</b> dibanding median tim ${ctPct(ref.rate)}`,
+        `Talk time <b>${ctMin(tpd)}</b> per hari → <b>${v.talk}</b> (median tim ${ctMin(ref.tpd)})`,
+        `Call berdurasi 0-2 menit: <b>${ctPct(a.shortShare)}</b> dari call yang tersambung${a.shortShare >= Math.max(0.5, ref.short + 0.1) ? " → <b>terlalu menumpuk</b>" : ""}`,
+        `Attempt <b>${a.unique.size ? (a.dial / a.unique.size).toFixed(2).replace(".", ",") : "-"}x</b> per nomor (median tim ${ref.att.toFixed(2).replace(".", ",")}x)`,
+        `Jam terbaik terhubung: <b>${h.best ? `${h.best.k} (${ctPct(h.best.rate)})` : "-"}</b>${h.worst && h.best && h.worst.k !== h.best.k ? ` · terendah ${h.worst.k} (${ctPct(h.worst.rate)})` : ""}`,
+        `Call luar jam kerja: <b>${number.format(a.off)}</b> (${ctPct(a.offRate)})`
+      ];
+      const tips = [];
+      if (a.dial < 5) tips.push("Data call belum cukup (kurang dari 5 dial) untuk dinilai.");
+      else {
+        if (v.level === "kecil") tips.push(`Dial masih ${f(dpd)} per hari, di bawah ${CT_DIAL_OK}. Naikkan volume dulu${h.thin.length ? `, terutama di jam ${h.thin.join(" dan ")} yang sepi` : ""}.`);
+        if (v.level === "banyak" && v.rate === "rendah") tips.push(`Dial sudah banyak (${f(dpd)} per hari) tapi jarang terhubung. Tambah dial tidak akan membantu; evaluasi kualitas kontak, source, dan varian kontak yang dipakai.`);
+        else if (v.rate === "rendah") tips.push("Tingkat terhubung rendah. Cek kualitas kontak dan pilih jam yang lebih sering diangkat.");
+        if (h.best && h.worst && h.best.k !== h.worst.k && h.best.rate - h.worst.rate >= 0.1) tips.push(`Pindahkan lebih banyak dial ke ${h.best.k} (terhubung ${ctPct(h.best.rate)}), kurangi di ${h.worst.k} (${ctPct(h.worst.rate)}).`);
+        if (h.thin.length && v.level !== "kecil" && h.best && h.thin.includes(h.best.k)) tips.push(`Jam terbaik ${h.best.k} justru sedikit dipakai. Perbanyak call di jam itu.`);
+        if (v.talk === "rendah" && v.rate !== "rendah") tips.push("Sudah terhubung tapi percakapan pendek. Review opening dan cara menggali kebutuhan supaya call bertahan lebih dari 2 menit.");
+        if (a.shortShare >= Math.max(0.5, ref.short + 0.1)) tips.push(`Banyak percakapan berhenti di bawah 2 menit (${ctPct(a.shortShare)}). Evaluasi pembukaan call, timing, dan kecocokan kontak.`);
+        if (ref.att && a.unique.size && a.dial / a.unique.size >= ref.att * 1.3 && v.rate !== "tinggi") tips.push("Attempt per nomor tinggi tapi hasilnya belum menonjol. Variasikan kontak, jangan terlalu sering mengulang nomor yang sama.");
+        if (a.offRate >= 0.15) tips.push(`Ada ${ctPct(a.offRate)} call di luar jam kerja. Pastikan call diatur di jam kerja supaya lebih sering terhubung.`);
+        if (v.c === "good") tips.push("Pertahankan ritme ini. Dial, terhubung, dan talk time sudah sama-sama baik.");
+        if (v.t === "Efisien, tapi dial kurang") tips.push("Kualitas call bagus. Peluang terbesar ada di menambah volume dial.");
+      }
+      return `<div class="ct-adv"><div><h5>Diagnosis</h5><ul>${facts.map((x) => `<li>${x}</li>`).join("")}</ul></div><div><h5>Saran</h5><ul>${(tips.length ? tips : ["Belum ada temuan khusus. Pertahankan."]).map((x) => `<li>${x}</li>`).join("")}</ul></div></div>`;
+    }
+    function ctAgentDetailHtml(rows, coachKey) {
+      const mineRows = rows.filter((r) => ctCoachOf(r.COACH));
+      const byAgent = (rs) => { const m = new Map(); rs.forEach((r) => { const k = clean(r["Agent Name"]); if (!m.has(k)) m.set(k, []); m.get(k).push(r); }); return [...m.entries()].map(([agent, rr]) => ({ agent, a: ctAgg(rr) })); };
+      const ref = ctRef(byAgent(mineRows));
+      const list = byAgent(mineRows.filter((r) => ctCoachOf(r.COACH)?.key === coachKey)).sort((x, y) => y.a.dial - x.a.dial);
+      if (!list.length) return `<div class="empty">Belum ada call untuk coach ini pada filter yang dipilih.</div>`;
+      const maxDial = Math.max(...list.map((x) => x.a.dial)), maxDur = Math.max(...list.map((x) => x.a.dur));
+      const ind = (v, r) => (r ? (v >= r * 1.1 ? "ct-up" : v <= r * 0.9 ? "ct-down" : "") : "");
+      const COLS = 14;
+      const body = list.map((x, i) => {
+        const a = x.a, v = ctVerdict(a, ref), h = ctHours(a), dpd = ctDpd(a);
+        const open = ctExpanded.has(x.agent);
+        const dcls = dpd > CT_DIAL_HIGH ? "ct-up" : dpd >= CT_DIAL_OK ? "" : "ct-down";
+        return `<tr class="ct-arow${open ? " open" : ""}" data-agent="${escapeHtml(x.agent)}"><td class="ct-first ct-click"><span class="ct-caret">${open ? "▾" : "▸"}</span> ${escapeHtml(x.agent)}</td><td>${ctBar(a.dial, maxDial)}</td><td class="${dcls}"><b>${number.format(Math.round(dpd))}</b></td><td class="ct-key">${number.format(a.conn)}</td><td class="ct-key ${ind(a.rate, ref.rate)}">${ctPct(a.rate)}</td><td>${ctBar(a.dur / 3600, maxDur / 3600, "dur").replace(/<span>[^<]*<\/span>/, `<span>${formatDuration(a.dur)}</span>`)}</td><td>${ctPct(a.shortShare)}</td><td>${number.format(a.m35)}</td><td>${number.format(a.m510)}</td><td>${number.format(a.o10)}</td><td>${a.unique.size ? (a.dial / a.unique.size).toFixed(2).replace(".", ",") + "x" : "-"}</td><td class="ct-best">${h.best ? `${escapeHtml(h.best.k)}<br><small>${ctPct(h.best.rate)}</small>` : "-"}</td><td class="ct-off">${ctOff(a)}</td><td class="ct-lbl-cell"><span class="ct-pill ${v.c}">${v.t}</span></td></tr><tr class="ct-drow"${open ? "" : " hidden"}><td colspan="${COLS}">${ctAdvice(a, ref, v)}</td></tr>`;
+      }).join("");
+      return `<div class="ct-ref">Patokan dial per hari aktif: <b>${CT_DIAL_OK}-${CT_DIAL_HIGH}</b> cukup, di atas <b>${CT_DIAL_HIGH}</b> banyak, di bawah ${CT_DIAL_OK} kecil. Terhubung dan talk time dibanding median agent timmu (minimal 5 dial): terhubung <b>${ctPct(ref.rate)}</b>, talk time <b>${ctMin(ref.tpd)}</b> per hari. <b>Klik nama agent</b> untuk diagnosis dan saran.</div><div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Agent</th><th>Dial</th><th>Dial / hari</th><th class="ct-key">Terhubung</th><th class="ct-key">% Terhubung</th><th>Talk time</th><th>Call 0-2 mnt<br><small>% dari tersambung</small></th><th>3 mnt<br><small>3 - &lt;5</small></th><th>5 mnt<br><small>5 - &lt;10</small></th><th>10 mnt<br><small>≥ 10</small></th><th>Attempt</th><th class="ct-bestth">Jam terbaik terhubung</th><th class="ct-off">Luar jam kerja<br><small>&lt; 08.00 / &gt; 17.30</small></th><th>Penilaian</th></tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+    function renderCallCoachSection() {
+      const wrap = document.getElementById("callCoachOverview");
+      if (!wrap) return;
+      const rows = ctRows();
+      wrap.innerHTML = ctCoachOverviewHtml(rows);
+      const sel = document.querySelector(".ct-sel");
+      if (sel && !sel.options.length) sel.innerHTML = CT_COACHES.map((c) => `<option value="${c.key}">${c.label} (${c.layer})</option>`).join("");
+      document.getElementById("callAgentDetail").innerHTML = ctAgentDetailHtml(rows, sel?.value || CT_COACHES[0].key);
+    }
 
     function renderCallTrackingPage() {
+      renderCallCoachSection();
       const rows = filteredCallRows();
       const matrix = callMatrix(rows);
       document.getElementById("callSummary").innerHTML = `
@@ -6372,10 +6798,6 @@
         <div class="coach-stat"><span>Agent</span><strong>${number.format(new Set(rows.map((row) => clean(row["Agent Name"])).filter(Boolean)).size)}</strong></div>
         <div class="coach-stat"><span>Coach</span><strong>${number.format(new Set(rows.map((row) => clean(row.COACH)).filter(Boolean)).size)}</strong></div>
       `;
-      renderCallTable("callCountHead", "callCountBody", matrix, "count");
-      renderCallTable("callDurationHead", "callDurationBody", [...matrix].sort((a, b) => b.totalDuration - a.totalDuration), "duration");
-      renderCallDurationBucketTable("callDurationBucketHead", "callDurationBucketBody", matrix);
-      renderCallAttemptTable("callAttemptHead", "callAttemptBody", matrix);
       renderCallCompare();
     }
 
@@ -6391,6 +6813,1405 @@
       filterRenderTimers.set(key, timer);
     }
 
+    /* =====================================================================
+       COMPARE COACH & SPV  (menggantikan halaman Leader & Agent + Compare Unit)
+       Sumber utama : sheet Achieve (tab DS) + target (tab Target) via gviz.
+       Cadangan     : data DS FORTUNA yang sudah dimuat dashboard + snapshot target.
+       ===================================================================== */
+    const CMP_ACHIEVE_ID = "1NGHVSg2qjThy7QkeYsg9jhV7CMLoxqdlXrG_Ke_R6_E";
+    const CMP_HISTORY_DAYS = 56;
+    const CMP_L1_COACH_TARGET = 110400000;
+    const CMP_COLORS = ["#22d3ee", "#f472b6", "#a3e635", "#fbbf24", "#a78bfa", "#fb7185", "#60a5fa", "#34d399", "#fb923c", "#e879f9", "#2dd4bf", "#facc15"];
+    const CMP_TIERS = [50, 75, 100, 125];
+    const CMP_GRADES = ["SD", "SMP", "SMA", "UTBK"];
+    const CMP_LAYERS = { "LAYER 1": ["LAYER 1"], "LAYER 2": ["LAYER 2"], "L12": ["LAYER 1", "LAYER 2"] };
+    const CMP_TARGET_SNAPSHOT = {"base":43,"a":["Girna Ramadhani","Ignasius Gensario Pratama","Novia Fitriyanti","Oktaviola Putri Ananda","Priska Widyaningrum Setiyarso","Puji Astuti","Rachmat Faisal Wibayanto","Avia Prima Pramudita","Triana Novita Antari","Virgiawan Listyanto","Fitri NuurAinii","Wildan Karuniatama","Doortje Gres Songjanan","Risa Listiani Putri","Ayu Apriliani Pramuningtyas","Yohanes Roi Panglipur","Imas Ayu Anggraeni","Desi Handayani","Rahma Anisa Banowati","Denada Isgarnela","Ella Elistiani","Tito Narisworo","Fajar Intan Kumala Dewi","Fairuz","Briliana Amelia Silvi","Wita Ardini Utami","Dara Ferlliza Permata Rahman","Elisa Cahya Saputri","Nur Poniawati","Inda Fitriani","Dini Nurmalasari","Khalis Afif","Rokhimah Binti Husen","Salisa Solikhah","Lisa Nofiyanti","Devan Dekarnata","Dwi Indriyani","Maria Claudia Golu Kelen","Hermin Purwatiningsih","Lianita Devi Putri Ariyadhie","Muh Isro Dulharomad Lesta","Putri Niscayasakti","Ramadhan Dwi Purwanto","Tyas Alfianti","Rizqi Nafiah","Juminingsih","Badrus septiyan","Eva Haryati","Heni Setiyawati","Isnaeni Ridha","Mia Charesti","Neng Lisma","Putri Wahyuningtias","Karina Dewi Priyatningrum","Iman Santoso","Elok Diyah Ayu Larasati","Nabyla Hamdani Putri","Mustakim","Ifka Mervinda Diktasari","Firdha Pebrian Nissa","Yunita Debora Naibaho","Lusiana Rahmawati, S.Pd.I","Muhammad Koko Mahardi","Fitri Sunarti","Ati Nuratikah","Maylisa Fitriani","Imam Nurhudha","Parti Septiyaningsih","Anisa Dwi Kurniawati","Aprianus Gusti Yanto Serang","Vani Amelia Febrianti","Ilham Hamad Zhafran","Danang Hari Kristiyanto","Yuda Prasetia","Rebeca Silviana","Syifa Haulina Izzah","Sari Rahma Puspitaningrum","Erika Fitriningsih","Auliana Indah Sari","Muhammad Husain Ramadhan","Latifa Regita Cahyani","Muhamad Imam Mutaqin","Aisyah Amini","Ika Dewi Wulandari","Arina Sofiatul Farda","Vitalia Dyah Utami","Nailiy Ulya Ulin Ni'mah","Venesia Veliana","Wiwin Widianingsih","Rizki Dwiyanti","Sri Wahyuni","Habibah Solehatun Nisa","Meri Meriana","Kartika Nur Cahyanti","Zudhy Nur Alfian","Arina Roikhatun Nisa","Prita Fitriana hapsari","Sella Indah Wahyunika","Nur Fatimah","Shivania Nuralita Putri","Maria Stefania Paja Kelen","Diva Wilasa Naranatha","Anzavia Putri","Ana Purwanti","Septia Dwi Jayanti","Ikhsania Nikmatul Jannah","Tasnima Ladyana","Iin Tyas Pramudhita","Eviliana Feby Anggita","Wahyu Yuliani","Voni Anggraeni","Alda Tanpa Lesi","Donita Septiana","Githa Angghini","Khoirul Afifah","Ria Ermayana","Hani Fatu Nisa","Difany Muthmainnah","Zalfa Putri Nisrina","Diah Nuraini","Dwi Agustin Setyaningrum","Peni Rahmawati","Dhian Catur Rini","Rita Diana","Yani Sahendra","Fina Nur aryanti","Muhammad Agung Ahimsa Saputro","Ayu Mela Kurniasari","Fitri Noer Hayati Maulidina","Fajriatul Maimunah","Asri Refael Naibaho","Latifah Khusnulia","Gabriel Parondiaken Purba","Fiky Azhari Bachruddin","Berlian Nur Baeti","Ratna Fitriyani","Anastasia Desy Kristiyani","Arti Noorlaily","Astri Kaniasari","Laudya Rahma Putri","Tri Sapto Saputro","Nata Kinwara"],"c":["Wahyu Oktavia Widiasari","Danu Arri Pramudya","Wildan Adiwena","Yosua Sitorus","Akhmad Lutfi Khoerudin","Rizha Faturahman","Imam Nugroho","Amin Rosidi","Aris Riski Fauzi","Arif Pambudi","Faizal Fahmi Arridai","Yuliani Musfikoh","Sri Wiwara","Erna Erviana Purnamasari","Muhammad Bill Fadli","Yosua Adhi Surya Wijaya","Satyadi Ambia","Mark Johannes Hilman"],"s":["Deti Laharwati","Mark Johannes Hilman","Fajar Cita Wibowo","Yulfan Prihartanto"],"t":["LAYER 1","LAYER 2","Prompter Inbound"],"r":"0,0,0,0,0,8800;0,1,0,0,0,8800;0,2,0,0,0,8800;0,3,0,0,0,8800;0,4,1,0,1,5100;0,5,0,0,0,8800;0,6,0,0,0,8800;0,7,2,0,0,8800;0,8,0,0,0,8800;0,9,3,0,0,8800;0,10,2,0,0,8800;0,11,3,0,0,8800;0,12,3,0,0,8800;0,13,3,0,0,8800;0,14,3,0,0,8800;0,15,1,0,1,5100;0,16,3,0,0,8800;0,17,3,0,0,8800;0,18,3,0,0,8800;0,19,4,1,0,8800;0,20,4,1,0,8800;0,21,4,1,0,8800;0,22,4,1,0,8800;0,23,4,1,0,8800;0,24,4,1,0,8800;0,25,4,1,0,8800;0,26,5,1,1,5100;0,27,6,2,2,41000;0,28,7,1,0,8800;0,29,7,1,0,8800;0,30,7,1,0,8800;0,31,8,1,1,5100;0,32,7,1,0,8800;0,33,4,1,0,8800;0,34,7,1,0,8800;0,35,7,1,0,8800;0,36,7,1,0,8800;0,37,9,3,0,8800;0,38,9,3,0,8800;0,39,9,3,0,8800;0,40,9,3,0,8800;0,41,9,3,0,8800;0,42,9,3,0,8800;0,43,9,3,0,8800;0,44,9,3,0,8800;0,45,10,3,0,8800;0,46,10,3,0,8800;0,47,10,3,0,8800;0,48,10,3,0,8800;0,49,10,3,0,8800;0,50,10,3,0,8800;0,51,10,3,0,8800;0,52,10,3,0,8800;0,53,10,3,0,8800;0,54,10,3,0,8800;0,55,3,0,0,8800;0,56,11,3,1,5100;0,57,3,0,0,8800;0,58,12,0,1,5100;0,59,3,0,0,8800;0,60,2,0,0,8800;0,61,2,0,0,8800;0,62,13,2,2,41000;0,63,14,1,1,5100;0,64,0,0,0,8800;0,65,0,0,0,8800;0,66,12,0,1,5100;0,67,0,0,0,8800;0,68,4,1,0,8800;0,69,7,1,0,8800;0,70,4,1,0,8800;0,71,4,1,0,8800;0,72,7,1,0,8800;0,73,14,1,1,5100;0,74,7,1,0,8800;0,75,7,1,0,8800;0,76,14,1,1,5100;0,77,7,1,0,8800;0,78,15,3,1,5100;0,79,11,3,1,5100;0,80,15,3,1,5100;0,81,6,2,2,41000;0,82,10,3,0,8800;0,83,11,3,1,5100;0,84,10,3,0,8800;0,85,9,3,0,8800;0,86,11,3,1,5100;0,87,1,0,1,5100;0,88,1,0,1,5100;0,89,2,0,0,8800;0,90,2,0,0,8800;0,91,2,0,0,8800;0,92,3,0,0,8800;0,93,2,0,0,8800;0,94,5,1,1,5100;0,95,5,1,1,5100;0,96,4,1,0,8800;0,97,15,3,1,5100;0,98,15,3,1,5100;0,99,15,3,1,5100;0,100,11,3,1,5100;0,101,15,3,1,5100;0,102,13,2,2,41000;0,103,13,2,2,41000;0,104,13,2,2,41000;0,105,13,2,2,41000;0,106,13,2,2,41000;0,107,6,2,2,41000;0,108,16,2,2,41000;0,109,13,2,2,41000;0,110,16,2,2,41000;0,111,16,2,2,41000;0,112,16,2,2,41000;0,113,16,2,2,41000;0,114,16,2,2,41000;0,115,16,2,2,41000;0,116,6,2,2,41000;0,117,9,3,0,8800;0,118,11,3,1,5100;0,119,2,0,0,8800;0,120,1,0,1,5100;0,121,9,3,0,8800;0,122,9,3,0,8800;0,123,11,3,1,5100;0,124,8,1,1,5100;0,125,2,0,0,8800;0,126,12,0,1,5100;0,127,17,1,1,5100;0,128,15,3,1,5100;0,129,14,1,1,5100;0,130,11,3,1,5100;0,131,2,0,0,8800;0,132,0,0,0,8800;0,133,2,0,0,8800;0,134,14,1,1,5100;0,135,0,0,0,8800;1,0,0,0,0,8800;1,1,0,0,0,8800;1,2,0,0,0,8800;1,3,0,0,0,8800;1,4,1,0,1,5100;1,5,0,0,0,8800;1,6,0,0,0,8800;1,7,2,0,0,8800;1,8,0,0,0,8800;1,9,3,0,0,8800;1,10,2,0,0,8800;1,11,3,0,0,8800;1,12,3,0,0,8800;1,13,3,0,0,8800;1,14,3,0,0,8800;1,15,1,0,1,5100;1,16,3,0,0,8800;1,17,3,0,0,8800;1,18,3,0,0,8800;1,19,4,1,0,8800;1,20,4,1,0,8800;1,22,4,1,0,8800;1,23,4,1,0,8800;1,24,4,1,0,8800;1,25,4,1,0,8800;1,26,5,1,1,5100;1,27,6,2,2,41000;1,28,7,1,0,8800;1,29,7,1,0,8800;1,30,7,1,0,8800;1,31,8,1,1,5100;1,32,7,1,0,8800;1,33,4,1,0,8800;1,34,7,1,0,8800;1,35,7,1,0,8800;1,36,7,1,0,8800;1,37,9,3,0,8800;1,38,9,3,0,8800;1,39,9,3,0,8800;1,40,9,3,0,8800;1,41,9,3,0,8800;1,42,9,3,0,8800;1,43,9,3,0,8800;1,44,9,3,0,8800;1,45,10,3,0,8800;1,46,10,3,0,8800;1,48,10,3,0,8800;1,49,10,3,0,8800;1,50,10,3,0,8800;1,51,10,3,0,8800;1,52,10,3,0,8800;1,53,10,3,0,8800;1,54,10,3,0,8800;1,55,3,0,0,8800;1,56,11,3,1,5100;1,57,3,0,0,8800;1,58,12,0,1,5100;1,59,3,0,0,8800;1,60,2,0,0,8800;1,61,2,0,0,8800;1,62,13,2,2,41000;1,63,14,1,1,5100;1,64,0,0,0,8800;1,65,0,0,0,8800;1,66,12,0,1,5100;1,67,0,0,0,8800;1,68,4,1,0,8800;1,69,7,1,0,8800;1,70,4,1,0,8800;1,71,4,1,0,8800;1,72,7,1,0,8800;1,73,14,1,1,5100;1,74,7,1,0,8800;1,75,7,1,0,8800;1,76,14,1,1,5100;1,77,7,1,0,8800;1,78,15,3,1,5100;1,79,11,3,1,5100;1,80,15,3,1,5100;1,81,6,2,2,41000;1,82,10,3,0,8800;1,83,11,3,1,5100;1,84,10,3,0,8800;1,85,9,3,0,8800;1,86,11,3,1,5100;1,87,1,0,1,5100;1,88,1,0,1,5100;1,89,2,0,0,8800;1,90,2,0,0,8800;1,91,2,0,0,8800;1,92,3,0,0,8800;1,93,2,0,0,8800;1,95,5,1,1,5100;1,96,4,1,0,8800;1,97,15,3,1,5100;1,98,15,3,1,5100;1,99,15,3,1,5100;1,100,11,3,1,5100;1,101,15,3,1,5100;1,102,13,2,2,41000;1,103,13,2,2,41000;1,104,13,2,2,41000;1,105,13,2,2,41000;1,107,6,2,2,41000;1,108,16,2,2,41000;1,109,13,2,2,41000;1,110,16,2,2,41000;1,111,16,2,2,41000;1,112,16,2,2,41000;1,113,16,2,2,41000;1,114,16,2,2,41000;1,115,16,2,2,41000;1,116,6,2,2,41000;1,117,9,3,0,8800;1,118,11,3,1,5100;1,119,2,0,0,8800;1,120,1,0,1,5100;1,121,9,3,0,8800;1,122,9,3,0,8800;1,123,11,3,1,5100;1,124,8,1,1,5100;1,125,2,0,0,8800;1,126,12,0,1,5100;1,127,17,1,1,5100;1,128,15,3,1,5100;1,129,14,1,1,5100;1,130,11,3,1,5100;1,131,2,0,0,8800;1,132,0,0,0,8800;1,133,2,0,0,8800;1,134,14,1,1,5100;1,135,0,0,0,8800;2,4,1,0,1,4900;2,15,1,0,1,4900;2,26,5,1,1,4900;2,31,8,1,1,4900;2,56,11,3,1,4900;2,58,12,0,1,4900;2,63,14,1,1,4900;2,66,12,0,1,4900;2,73,14,1,1,4900;2,76,14,1,1,4900;2,78,15,3,1,4900;2,79,11,3,1,4900;2,80,15,3,1,4900;2,136,15,3,1,4900;2,83,11,3,1,4900;2,86,11,3,1,4900;2,87,1,0,1,4900;2,88,1,0,1,4900;2,94,5,1,1,4900;2,95,5,1,1,4900;2,97,15,3,1,4900;2,98,15,3,1,4900;2,99,15,3,1,0.98;2,100,11,3,1,4900;2,101,15,3,1,4900;2,118,11,3,1,4900;2,120,1,0,1,4900;2,123,11,3,1,4900;2,124,8,1,1,4900;2,126,12,0,1,4900;2,127,17,1,1,4900;2,128,15,3,1,4900;2,129,14,1,1,4900;2,130,11,3,1,4900;2,134,14,1,1,4900;2,137,11,3,1,4900;2,138,12,0,1,4900;2,139,1,0,1,4900;2,140,15,3,1,4900;2,141,5,1,1,4900"};
+    const cmpState = {
+      mode: "spv", layer: "LAYER 1", weeks: [], basis: "rev", spvScope: "ALL", a: "", b: "",
+      sort: "val", dir: -1, inited: false,
+      achieve: { status: "idle", rows: [], error: "", timer: null },
+      target: { status: "snapshot", rows: null, version: 0, timer: null }
+    };
+    const cmpColorMap = new Map();
+    let cmpFallbackCache = { src: null, len: -1, rows: [] };
+    let cmpSnapshotRows = null;
+    const cmpResolvedCache = new Map();
+
+    function cmpClean(value) { return String(value == null ? "" : value).replace(/\s+/g, " ").trim(); }
+    function cmpKey(value) { return cmpClean(value).toLowerCase(); }
+    function cmpPad(n) { return String(n).padStart(2, "0"); }
+    function cmpDateKey(y, m, d) { return `${y}-${cmpPad(m)}-${cmpPad(d)}`; }
+    function cmpDow(dk) {
+      const [y, m, d] = dk.split("-").map(Number);
+      const w = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+      return w === 0 ? 7 : w;
+    }
+    function cmpIsoWeek(dk) {
+      const [y, m, d] = dk.split("-").map(Number);
+      const date = new Date(Date.UTC(y, m - 1, d));
+      const day = date.getUTCDay() || 7;
+      date.setUTCDate(date.getUTCDate() + 4 - day);
+      const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+      return Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+    }
+    function cmpFmtDate(dk) {
+      if (!dk) return "-";
+      const [, m, d] = dk.split("-").map(Number);
+      return `${d} ${["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"][m - 1]}`;
+    }
+    function cmpTodayKey() {
+      const t = new Date();
+      return cmpDateKey(t.getFullYear(), t.getMonth() + 1, t.getDate());
+    }
+    function cmpMoney(value) {
+      const v = Number(value) || 0;
+      const a = Math.abs(v);
+      const s = v < 0 ? "-" : "";
+      if (a >= 1e9) return `${s}Rp${(a / 1e9).toFixed(2).replace(".", ",")} M`;
+      if (a >= 1e6) return `${s}Rp${(a / 1e6).toFixed(1).replace(".", ",")} jt`;
+      if (a >= 1e3) return `${s}Rp${Math.round(a / 1e3)} rb`;
+      return `${s}Rp${Math.round(a)}`;
+    }
+    function cmpPct(value, digits = 1) {
+      if (value == null || !Number.isFinite(value)) return "–";
+      return `${(value * 100).toFixed(digits).replace(".", ",")}%`;
+    }
+    function cmpShort(name) {
+      const w = cmpClean(name).split(" ");
+      return w.length > 1 ? `${w[0]} ${w[1][0]}.` : w[0] || "-";
+    }
+    function cmpGrade(value) {
+      const g = cmpClean(value).toUpperCase();
+      return CMP_GRADES.includes(g) ? g : "Lainnya";
+    }
+    function cmpIsExt(campaign, pkg) { return /\[EXTEND\]/i.test(campaign) || /perpanjang/i.test(pkg); }
+    function cmpColor(key) {
+      if (!cmpColorMap.has(key)) cmpColorMap.set(key, CMP_COLORS[cmpColorMap.size % CMP_COLORS.length]);
+      return cmpColorMap.get(key);
+    }
+    function cmpParseGvizDate(cell) {
+      if (!cell) return "";
+      const v = cell.v;
+      if (typeof v === "string") {
+        const m = v.match(/^Date\((\d+),(\d+),(\d+)/);
+        if (m) return cmpDateKey(Number(m[1]), Number(m[2]) + 1, Number(m[3]));
+      }
+      return "";
+    }
+
+    /* ---------- pemuatan data ---------- */
+    function cmpLoadAchieve() {
+      if (cmpState.achieve.status === "loading" || cmpState.achieve.status === "ok") return;
+      cmpState.achieve.status = "loading";
+      const start = new Date(Date.now() - CMP_HISTORY_DAYS * 86400000);
+      const startKey = cmpDateKey(start.getFullYear(), start.getMonth() + 1, start.getDate());
+      const query = `select B,C,F,G,H,J,L,N,P,Q,R,X,AD,AE where C >= date '${startKey}' and B is not null`;
+      const script = document.createElement("script");
+      script.src = `https://docs.google.com/spreadsheets/d/${CMP_ACHIEVE_ID}/gviz/tq?sheet=DS&headers=0&tqx=out:json;responseHandler:handleCmpAchieveData&tq=${encodeURIComponent(query)}`;
+      script.onerror = () => cmpAchieveFail("sheet tidak bisa diakses dari halaman ini");
+      document.body.appendChild(script);
+      cmpState.achieve.timer = setTimeout(() => {
+        if (cmpState.achieve.status === "loading") cmpAchieveFail("waktu tunggu habis (sheet belum dibagikan publik?)");
+      }, 25000);
+    }
+    function cmpAchieveFail(message) {
+      clearTimeout(cmpState.achieve.timer);
+      cmpState.achieve.status = "error";
+      cmpState.achieve.error = message;
+      if (activePageId() === "pageLeader") cmpRender();
+    }
+    window.handleCmpAchieveData = function (response) {
+      try {
+        if (!response || response.status !== "ok") throw new Error("respons tidak valid");
+        const rows = [];
+        response.table.rows.forEach((row) => {
+          const c = row.c || [];
+          const val = (i) => (c[i] ? c[i].v : null);
+          const dk = cmpParseGvizDate(c[1]);
+          if (!dk) return;
+          const agent = cmpClean(val(4));
+          const spv = cmpClean(val(6));
+          if (!agent && !spv) return;
+          const campaign = cmpClean(val(7));
+          const pkg = cmpClean(val(3));
+          rows.push({
+            w: Number(val(0)) || cmpIsoWeek(dk), dk,
+            product: cmpClean(val(2)) || "Lainnya", pkg, agent,
+            coach: cmpClean(val(5)), spv, campaign,
+            gross: Number(val(8)) || 0, rev: Number(val(8)) || 0, txn: Number(val(10)) || 0,
+            grade: cmpGrade(val(12) || val(11)), team: cmpClean(val(13)),
+            ext: cmpIsExt(campaign, pkg)
+          });
+        });
+        clearTimeout(cmpState.achieve.timer);
+        cmpState.achieve.rows = rows;
+        cmpState.achieve.status = rows.length ? "ok" : "error";
+        cmpState.achieve.error = rows.length ? "" : "tidak ada baris";
+      } catch (error) {
+        clearTimeout(cmpState.achieve.timer);
+        cmpState.achieve.status = "error";
+        cmpState.achieve.error = error.message;
+      }
+      if (activePageId() === "pageLeader") cmpRender();
+    };
+    function cmpLoadTarget() {
+      const week = cmpIsoWeek(cmpTodayKey());
+      const from = Math.max(1, week - 6);
+      const query = `select A,B,E,F,G,I where A >= ${from} and B is not null`;
+      const script = document.createElement("script");
+      script.src = `https://docs.google.com/spreadsheets/d/${CMP_ACHIEVE_ID}/gviz/tq?sheet=Target&headers=0&tqx=out:json;responseHandler:handleCmpTargetData&tq=${encodeURIComponent(query)}`;
+      script.onerror = () => { cmpState.target.status = "snapshot"; };
+      document.body.appendChild(script);
+    }
+    window.handleCmpTargetData = function (response) {
+      try {
+        if (!response || response.status !== "ok") return;
+        const rows = [];
+        response.table.rows.forEach((row) => {
+          const c = row.c || [];
+          const val = (i) => (c[i] ? c[i].v : null);
+          const team = cmpClean(val(4));
+          const target = Number(val(5)) || 0;
+          const agent = cmpClean(val(1));
+          if (!agent || !CMP_LAYERS.L12.concat(["Prompter Inbound"]).includes(team) || target <= 0) return;
+          rows.push({ w: Number(val(0)) || 0, agent, agentK: cmpKey(agent), coach: cmpClean(val(2)), spv: cmpClean(val(3)), team, target });
+        });
+        if (rows.length) {
+          cmpState.target.rows = rows;
+          cmpState.target.status = "live";
+          cmpState.target.version += 1;
+          cmpResolvedCache.clear();
+          if (activePageId() === "pageLeader") cmpRender();
+        }
+      } catch (error) {
+        cmpState.target.status = "snapshot";
+      }
+    };
+    function cmpTargets() {
+      if (cmpState.target.rows) return cmpState.target.rows;
+      if (!cmpSnapshotRows) {
+        const S = CMP_TARGET_SNAPSHOT;
+        cmpSnapshotRows = S.r.split(";").map((item) => {
+          const p = item.split(",");
+          const agent = S.a[Number(p[1])];
+          return { w: S.base + Number(p[0]), agent, agentK: cmpKey(agent), coach: S.c[Number(p[2])], spv: S.s[Number(p[3])], team: S.t[Number(p[4])], target: Math.round(parseFloat(p[5]) * 1000) };
+        });
+      }
+      return cmpSnapshotRows;
+    }
+    /* target per agent untuk minggu w; bila minggu itu belum terisi, pakai minggu terakhir yang ada (maks 4 minggu ke belakang) */
+    function cmpResolved(w) {
+      const cacheKey = `${cmpState.target.version}|${w}`;
+      if (cmpResolvedCache.has(cacheKey)) return cmpResolvedCache.get(cacheKey);
+      const byAgent = new Map();
+      cmpTargets().forEach((t) => {
+        if (t.w > w) return;
+        let weeks = byAgent.get(t.agentK);
+        if (!weeks) { weeks = new Map(); byAgent.set(t.agentK, weeks); }
+        if (!weeks.has(t.w)) weeks.set(t.w, []);
+        weeks.get(t.w).push(t);
+      });
+      const out = [];
+      byAgent.forEach((weeks) => {
+        let best = -1;
+        weeks.forEach((list, wk) => { if (wk > best) best = wk; });
+        if (w - best > 4) return;
+        weeks.get(best).forEach((t) => out.push(Object.assign({}, t, { from: best, fb: best !== w })));
+      });
+      /* Paid Predictor: target Layer 1 = Rp110,4 jt per coach. Bila minggu ini belum ada baris L1 di tab Target, skala target agent (minggu lalu) ke angka itu. */
+      const byCoach = new Map();
+      out.forEach((t) => { if (t.team === "LAYER 1" && t.fb) byCoach.set(t.coach, (byCoach.get(t.coach) || 0) + t.target); });
+      if (byCoach.size) out.forEach((t) => { if (t.team === "LAYER 1" && t.fb) { t.target = Math.round(t.target * CMP_L1_COACH_TARGET / byCoach.get(t.coach)); t.scaled = true; } });
+      cmpResolvedCache.set(cacheKey, out);
+      return out;
+    }
+    /* Seperti Paid Predictor: revenue dikelompokkan lewat agent -> coach/SPV/layer di tab Target (bukan label di tab DS). */
+    function cmpAttr(r) {
+      const key = `${cmpState.target.version}|${r.w}`;
+      let map = cmpResolvedCache.get(`map|${key}`);
+      if (!map) {
+        map = new Map();
+        cmpResolved(r.w).forEach((t) => map.set(t.agentK, t));
+        cmpResolvedCache.set(`map|${key}`, map);
+      }
+      const t = map.get(cmpKey(r.agent));
+      return t ? { coach: t.coach, spv: t.spv, team: t.team } : { coach: r.coach, spv: r.spv, team: r.team };
+    }
+    function cmpFallbackRows() {
+      if (cmpFallbackCache.src === allRows && cmpFallbackCache.len === allRows.length) return cmpFallbackCache.rows;
+      const rows = [];
+      allRows.forEach((r) => {
+        const dk = dateKeyFromValue(r[fields.date]);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dk)) return;
+        const gross = toNumber(r[fields.amount]);
+        const campaign = cmpClean(r[fields.campaign]);
+        const pkg = cmpClean(r["Package Name"]);
+        rows.push({
+          w: cmpIsoWeek(dk), dk, product: cmpClean(r[fields.product]) || "Lainnya", pkg,
+          agent: cmpClean(r[fields.agent]), coach: cmpClean(r[fields.leader]), spv: cmpClean(r[fields.spv]),
+          campaign, gross, rev: gross, txn: toNumber(r[fields.txn]) || 1, grade: cmpGrade(r[fields.grade]),
+          team: cmpClean(r._team), ext: cmpIsExt(campaign, pkg)
+        });
+      });
+      cmpFallbackCache = { src: allRows, len: allRows.length, rows };
+      return rows;
+    }
+    function cmpSourceInfo() {
+      if (cmpState.achieve.status === "ok") return { kind: "achieve", rows: cmpState.achieve.rows, adjusted: false };
+      return { kind: "fallback", rows: cmpFallbackRows(), adjusted: false };
+    }
+
+    /* ---------- perhitungan ---------- */
+    function cmpMeta(rows) {
+      const map = new Map();
+      let last = "";
+      rows.forEach((r) => {
+        const m = map.get(r.w);
+        if (!m) map.set(r.w, { w: r.w, min: r.dk, max: r.dk });
+        else { if (r.dk < m.min) m.min = r.dk; if (r.dk > m.max) m.max = r.dk; }
+        if (r.dk > last) last = r.dk;
+      });
+      const weeks = [...map.values()].sort((a, b) => (a.min < b.min ? -1 : 1));
+      return { weeks, last };
+    }
+    function cmpCompute() {
+      const source = cmpSourceInfo();
+      const rows = source.rows;
+      const meta = cmpMeta(rows);
+      const result = { source, meta, entities: [], agents: [], selected: [], latestWeek: null, empty: !rows.length };
+      if (!rows.length) return result;
+      const latest = meta.weeks[meta.weeks.length - 1];
+      result.latestWeek = latest;
+      let selected = cmpState.weeks.filter((w) => meta.weeks.some((m) => m.w === w));
+      if (!selected.length) selected = [latest.w];
+      cmpState.weeks = selected;
+      result.selected = selected;
+      const sel = new Set(selected);
+      const mode = cmpState.mode;
+      const teams = CMP_LAYERS[cmpState.layer];
+      const teamOk = (t) => teams.includes(t);
+      const spvOk = (spv) => mode !== "coach" || cmpState.spvScope === "ALL" || cmpKey(spv) === cmpKey(cmpState.spvScope);
+      const entKey = (at) => (mode === "spv" ? at.spv : at.coach);
+      const basisVal = (r) => (cmpState.basis === "gross" ? r.gross : r.rev);
+      const frac = (w) => {
+        if (w !== latest.w) return 1;
+        return Math.min(5, cmpDow(latest.max) > 5 ? 5 : cmpDow(latest.max)) / 5;
+      };
+      const entities = new Map();
+      const agents = new Map();
+      const raceWeek = selected.map((w) => meta.weeks.find((m) => m.w === w)).sort((a, b) => (a.min < b.min ? -1 : 1)).pop();
+      const race = new Map();
+      const getEnt = (key) => {
+        let e = entities.get(key);
+        if (!e) {
+          e = { key, spvs: new Map(), val: 0, gross: 0, txn: 0, extVal: 0, extTxn: 0, agents: new Map(), products: new Map(), grades: new Map(), pkgs: new Map(), days: new Map(), target: 0, expected: 0, fb: false, tAgents: 0 };
+          entities.set(key, e);
+        }
+        return e;
+      };
+      const getAgent = (key, name) => {
+        let a = agents.get(key);
+        if (!a) { a = { key, name, ent: new Map(), val: 0, txn: 0, ext: 0, target: 0, expected: 0 }; agents.set(key, a); }
+        return a;
+      };
+      rows.forEach((r) => {
+        if (!sel.has(r.w)) return;
+        const at = cmpAttr(r);
+        if (!teamOk(at.team) || !spvOk(at.spv)) return;
+        const k = entKey(at);
+        if (!k) return;
+        const v = basisVal(r);
+        const e = getEnt(k);
+        e.val += v; e.gross += r.gross; e.txn += r.txn;
+        if (r.ext) { e.extVal += v; e.extTxn += r.txn; }
+        if (at.spv) e.spvs.set(at.spv, (e.spvs.get(at.spv) || 0) + v);
+        const ag = e.agents.get(r.agent) || { val: 0, txn: 0 };
+        ag.val += v; ag.txn += r.txn; e.agents.set(r.agent, ag);
+        e.products.set(r.product, (e.products.get(r.product) || 0) + v);
+        e.grades.set(r.grade, (e.grades.get(r.grade) || 0) + v);
+        const pk = e.pkgs.get(r.pkg) || { val: 0, txn: 0 };
+        pk.val += v; pk.txn += r.txn; e.pkgs.set(r.pkg, pk);
+        e.days.set(r.dk, (e.days.get(r.dk) || 0) + v);
+        if (r.agent) {
+          const a = getAgent(cmpKey(r.agent), r.agent);
+          a.val += v; a.txn += r.txn; if (r.ext) a.ext += v;
+          a.ent.set(k, (a.ent.get(k) || 0) + v);
+        }
+        if (raceWeek && r.w === raceWeek.w) {
+          let arr = race.get(k);
+          if (!arr) { arr = [0, 0, 0, 0, 0]; race.set(k, arr); }
+          arr[Math.min(cmpDow(r.dk), 5) - 1] += v;
+        }
+      });
+      /* target */
+      selected.forEach((w) => {
+        const f = frac(w);
+        cmpResolved(w).forEach((t) => {
+          if (!teamOk(t.team) || !spvOk(t.spv)) return;
+          const k = mode === "spv" ? t.spv : t.coach;
+          if (!k) return;
+          const e = getEnt(k);
+          e.target += t.target; e.expected += t.target * f; e.tAgents += 1;
+          if (t.fb) e.fb = true;
+          const a = getAgent(t.agentK, t.agent);
+          a.target += t.target; a.expected += t.target * f;
+          if (!a.ent.size) a.ent.set(k, 0);
+        });
+      });
+      /* turunan */
+      const singleLatest = selected.length === 1 && selected[0] === latest.w;
+      const dowLast = cmpDow(latest.max);
+      const list = [];
+      entities.forEach((e) => {
+        if (e.val <= 0 && e.target <= 0) return;
+        e.ach = e.target ? e.val / e.target : null;
+        e.gap = e.val - e.target;
+        e.pace = e.expected ? e.val / e.expected : null;
+        e.arpu = e.txn ? e.val / e.txn : 0;
+        e.extPct = e.val ? e.extVal / e.val : 0;
+        e.activeAgents = [...e.agents.entries()].filter(([name, a]) => name && a.val > 0).length;
+        e.rpa = e.activeAgents ? e.val / e.activeAgents : 0;
+        e.gp = {};
+        [...CMP_GRADES, "Lainnya"].forEach((g) => { e.gp[g] = e.val ? (e.grades.get(g) || 0) / e.val : 0; });
+        e.spvLabel = [...e.spvs.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0])[0] || "";
+        e.tier = null;
+        if (e.ach != null) CMP_TIERS.forEach((t) => { if (e.ach * 100 >= t) e.tier = t; });
+        e.nextTier = null;
+        if (e.ach != null) {
+          const next = CMP_TIERS.find((t) => e.ach * 100 < t);
+          if (next) e.nextTier = { tier: next, need: e.target * next / 100 - e.val };
+        }
+        e.proj = null;
+        if (singleLatest && dowLast < 5) e.proj = e.val / dowLast * 5;
+        e.today = null;
+        if (singleLatest && e.target) {
+          /* data DS = s/d kemarin; revenue hari ini ada di data real-time. Target hari ini = sisa target / sisa hari kerja (termasuk hari ini). */
+          const todayDow = cmpDow(cmpTodayKey());
+          if (cmpIsoWeek(cmpTodayKey()) === latest.w && todayDow <= 5) {
+            e.today = { need: Math.max(0, e.target - e.val) / (6 - todayDow) };
+          }
+        }
+        e.color = cmpColor(e.key);
+        e.race = race.get(e.key) || [0, 0, 0, 0, 0];
+        list.push(e);
+      });
+      list.sort((a, b) => b.val - a.val);
+      if (list.length) {
+        const top = list[0].val;
+        for (let i = list.length - 1; i >= 0; i--) if (list[i].target <= 0 && list[i].val < top * 0.05) list.splice(i, 1);
+      }
+      list.forEach((e, i) => { e.rank = i + 1; e.diffAbove = i ? list[i - 1].val - e.val : 0; });
+      result.entities = list;
+      const inList = new Set(list.map((e) => e.key));
+      agents.forEach((a) => {
+        let best = ""; let bestVal = -1;
+        a.ent.forEach((v, k) => { if (v > bestVal) { bestVal = v; best = k; } });
+        a.entKey = best;
+        a.ach = a.target ? a.val / a.target : null;
+        a.pace = a.expected ? a.val / a.expected : null;
+        if (inList.has(best)) result.agents.push(a);
+      });
+      result.raceWeek = raceWeek;
+      result.singleLatest = singleLatest;
+      result.dowLast = dowLast;
+      return result;
+    }
+
+    /* ---------- tampilan ---------- */
+    function cmpEsc(value) { return escapeHtml(value); }
+    function cmpControlsHtml(res) {
+      const chip = (act, val, label, on) => `<button type="button" class="cmp-chip${on ? " on" : ""}" data-act="${act}" data-val="${cmpEsc(val)}">${cmpEsc(label)}</button>`;
+      const weeks = res.meta.weeks.slice(-8);
+      let html = "";
+      html += `<div class="cmp-group"><span>Bandingkan</span>${chip("mode", "spv", "SPV vs SPV", cmpState.mode === "spv")}${chip("mode", "coach", "Coach vs Coach", cmpState.mode === "coach")}</div>`;
+      html += `<div class="cmp-group"><span>Layer</span>${chip("layer", "LAYER 1", "Layer 1", cmpState.layer === "LAYER 1")}${chip("layer", "LAYER 2", "Layer 2", cmpState.layer === "LAYER 2")}${chip("layer", "L12", "L1 + L2", cmpState.layer === "L12")}</div>`;
+      html += `<div class="cmp-group"><span>Nilai</span>${chip("basis", "rev", "Revenue (amount)", cmpState.basis === "rev")}${res.source.adjusted ? chip("basis", "gross", "Gross", cmpState.basis === "gross") : ""}</div>`;
+      html += `<div class="cmp-group"><span>Minggu</span>${weeks.map((m) => chip("week", m.w, `W${m.w}`, cmpState.weeks.includes(m.w))).join("")}${chip("wk-latest", "1", "Terbaru", false)}${chip("wk-4", "4", "4 minggu", false)}</div>`;
+      if (cmpState.mode === "coach") {
+        const spvs = [...new Set(res.source.rows.map((r) => cmpAttr(r)).filter((a) => CMP_LAYERS[cmpState.layer].includes(a.team)).map((a) => a.spv).filter(Boolean))].sort();
+        html += `<div class="cmp-group"><span>SPV</span>${chip("spv", "ALL", "Semua", cmpState.spvScope === "ALL")}${spvs.map((s) => chip("spv", s, cmpShort(s), cmpKey(cmpState.spvScope) === cmpKey(s))).join("")}</div>`;
+      }
+      return html;
+    }
+    function cmpSourceHtml(res) {
+      const pills = [];
+      if (res.source.kind === "achieve") pills.push(`<span class="cmp-pill"><i></i>Sumber: Achieve (DS)</span>`);
+      else pills.push(`<span class="cmp-pill warn"><i></i>Sumber: DS FORTUNA</span>`);
+      pills.push(`<span class="cmp-pill ${cmpState.target.status === "live" ? "" : "warn"}"><i></i>Target: ${cmpState.target.status === "live" ? "live" : "snapshot"}</span>`);
+      const last = res.meta.last ? `Data terakhir: <b>${cmpFmtDate(res.meta.last)}</b>` : "";
+      return `<div>${pills.join(" ")}</div><div>${last} · revenue s/d kemarin (hari ini belum termasuk)</div>`;
+    }
+    function cmpWorkdaysAfter(dk) {
+      const [y, m, d] = dk.split("-").map(Number);
+      const cur = new Date(y, m - 1, d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let n = 0;
+      while (cur < today) {
+        cur.setDate(cur.getDate() + 1);
+        const wd = cur.getDay();
+        if (wd !== 0 && wd !== 6) n += 1;
+      }
+      return n;
+    }
+    function cmpBannerHtml(res) {
+      const msgs = [];
+      let level = "";
+      if (cmpState.achieve.status === "error") {
+        msgs.push(`Sheet Achieve belum bisa dibaca dari halaman ini (${cmpEsc(cmpState.achieve.error)}). Memakai data DS FORTUNA (data bisa lebih lama).`);
+        level = "warn";
+      }
+      if (res.meta.last) {
+        const late = cmpWorkdaysAfter(res.meta.last);
+        if (late >= 2) {
+          msgs.push(`Data terakhir ${cmpFmtDate(res.meta.last)} — tertinggal ${late} hari kerja. Angka mungkin belum mencerminkan kondisi terkini.`);
+          level = "bad";
+        }
+      }
+      if (res.entities.some((e) => e.fb)) {
+        const wk = res.selected.length ? Math.max(...res.selected) : "";
+        msgs.push(`Target W${wk} belum terisi penuh di tab Target; bagian yang kosong memakai target minggu sebelumnya (Layer 1 = Rp110,4 jt per coach, sesuai Paid Predictor).`);
+        if (!level) level = "warn";
+      }
+      return { html: msgs.map((m) => `<div>${m}</div>`).join(""), level };
+    }
+    function cmpKpisHtml(res) {
+      const E = res.entities;
+      const val = E.reduce((s, e) => s + e.val, 0);
+      const target = E.reduce((s, e) => s + e.target, 0);
+      const txn = E.reduce((s, e) => s + e.txn, 0);
+      const ext = E.reduce((s, e) => s + e.extVal, 0);
+      const agents = new Set();
+      E.forEach((e) => e.agents.forEach((a, name) => { if (name && a.val > 0) agents.add(name); }));
+      const kpi = (label, value, note) => `<div class="cmp-kpi"><span>${label}</span><strong>${value}</strong><small>${note || "&nbsp;"}</small></div>`;
+      const ach = target ? val / target : null;
+      const leader = E[0];
+      return [
+        kpi("Revenue", cmpMoney(val), `${E.length} ${cmpState.mode === "spv" ? "SPV" : "coach"} dibandingkan`),
+        kpi("Target", cmpMoney(target), target ? `Gap ${cmpMoney(val - target)}` : "target belum tersedia"),
+        kpi("% Achievement", cmpPct(ach), ach == null ? "" : ach >= 1 ? "target tercapai" : `kurang ${cmpMoney(target - val)}`),
+        kpi("Transaksi", number.format(txn), `ARPU ${cmpMoney(txn ? val / txn : 0)}`),
+        kpi("Porsi Extend", cmpPct(val ? ext / val : 0), `${cmpMoney(ext)} dari extend`),
+        kpi("Agent Aktif", number.format(agents.size), `Rev/agent ${cmpMoney(agents.size ? val / agents.size : 0)}`),
+        kpi("Pemimpin", leader ? cmpEsc(cmpShort(leader.key)) : "–", leader ? `${cmpMoney(leader.val)}${E[1] ? ` · unggul ${cmpMoney(leader.val - E[1].val)}` : ""}` : "")
+      ].join("");
+    }
+    function cmpAchClass(ach) {
+      if (ach == null) return "";
+      if (ach >= 1) return "cmp-good";
+      if (ach >= 0.75) return "cmp-warnc";
+      return "cmp-bad";
+    }
+    function cmpCardHtml(e, res) {
+      const ring = e.ach == null ? 0 : Math.min(100, e.ach * 100);
+      const barW = e.ach == null ? 0 : Math.min(100, (e.ach * 100) / 125 * 100);
+      const topAgent = [...e.agents.entries()].filter(([n]) => n).sort((a, b) => b[1].val - a[1].val)[0];
+      const stat = (label, value, cls) => `<div class="cmp-stat"><span>${label}</span><strong class="${cls || ""}">${value}</strong></div>`;
+      const lines = [];
+      if (e.pace != null) lines.push(`<div class="cmp-line"><span>Pace vs target berjalan</span><b class="${cmpAchClass(e.pace)}">${cmpPct(e.pace, 0)}</b></div>`);
+      if (e.proj != null) lines.push(`<div class="cmp-line"><span>Proyeksi akhir minggu</span><b>${cmpMoney(e.proj)}${e.target ? ` (${cmpPct(e.proj / e.target, 0)})` : ""}</b></div>`);
+      if (e.today) lines.push(`<div class="cmp-line"><span>Target hari ini (sisa target ÷ sisa hari)</span><b>${cmpMoney(e.today.need)}</b></div>`);
+      if (e.nextTier) lines.push(`<div class="cmp-line"><span>Ke tier ${e.nextTier.tier}%</span><b>butuh ${cmpMoney(e.nextTier.need)}</b></div>`);
+      lines.push(`<div class="cmp-line"><span>Agent aktif · rev/agent</span><b>${e.activeAgents} · ${cmpMoney(e.rpa)}</b></div>`);
+      if (e.rank > 1) lines.push(`<div class="cmp-line"><span>Selisih ke #${e.rank - 1}</span><b class="cmp-bad">-${cmpMoney(e.diffAbove)}</b></div>`);
+      if (topAgent) lines.push(`<div class="cmp-line"><span>Top agent</span><b>${cmpEsc(cmpShort(topAgent[0]))} · ${cmpMoney(topAgent[1].val)}</b></div>`);
+      const sub = cmpState.mode === "coach" ? `SPV ${cmpEsc(e.spvLabel)}` : `${e.tAgents} agent bertarget`;
+      return `<div class="cmp-card" style="--ec:${e.color}">
+        <div class="cmp-card-top">
+          <div class="cmp-ring" style="--p:${ring.toFixed(1)}"><b class="${cmpAchClass(e.ach)}">${e.ach == null ? "–" : `${Math.round(e.ach * 100)}%`}</b></div>
+          <div style="min-width:0"><div class="cmp-rank">#${e.rank} · ${cmpState.mode === "spv" ? "SPV" : "COACH"}${e.tier ? ` · <span class="cmp-tag">tier ${e.tier}%</span>` : ""}</div><div class="cmp-name">${cmpEsc(e.key)}</div><div class="cmp-sub">${sub}</div></div>
+        </div>
+        <div class="cmp-stats">
+          ${stat("Revenue", cmpMoney(e.val))}${stat("Target", e.target ? cmpMoney(e.target) : "–")}${stat("Gap", e.target ? cmpMoney(e.gap) : "–", e.target ? (e.gap >= 0 ? "cmp-good" : "cmp-bad") : "")}
+          ${stat("Transaksi", number.format(e.txn))}${stat("ARPU", cmpMoney(e.arpu))}${stat("Extend", cmpPct(e.extPct, 0))}
+        </div>
+        <div><div class="cmp-bar"><i style="width:${barW.toFixed(1)}%"></i><u style="left:40%"></u><u style="left:60%"></u><u style="left:80%"></u></div><div class="cmp-ticks"><span>0</span><span>50%</span><span>75%</span><span>100%</span><span>125%</span></div></div>
+        ${lines.join("")}
+      </div>`;
+    }
+    function cmpSorted(res) {
+      const key = cmpState.sort;
+      const get = (e) => {
+        if (key === "name") return e.key.toLowerCase();
+        if (CMP_GRADES.includes(key)) return e.gp[key];
+        if (key === "agents") return e.activeAgents;
+        const v = e[key];
+        return v == null ? -Infinity : v;
+      };
+      return [...res.entities].sort((a, b) => {
+        const x = get(a); const y = get(b);
+        if (x < y) return -1 * cmpState.dir;
+        if (x > y) return 1 * cmpState.dir;
+        return 0;
+      });
+    }
+    function cmpTableHtml(res) {
+      const cols = [["name", "Nama"], ["val", "Revenue"], ["target", "Target"], ["ach", "% Ach"], ["gap", "Gap"], ["pace", "Pace"], ["txn", "Txn"], ["arpu", "ARPU"], ["extPct", "Extend"], ["agents", "Agent"], ["rpa", "Rev/Agent"], ["SD", "SD"], ["SMP", "SMP"], ["SMA", "SMA"], ["UTBK", "UTBK"]];
+      const maxVal = Math.max(1, ...res.entities.map((e) => e.val));
+      const head = `<tr><th>#</th>${cols.map(([k, l]) => `<th data-act="sort" data-val="${k}" class="${cmpState.sort === k ? "sorted" : ""}">${l}${cmpState.sort === k ? (cmpState.dir < 0 ? " ▼" : " ▲") : ""}</th>`).join("")}<th>Pilih</th></tr>`;
+      const body = cmpSorted(res).map((e) => `<tr>
+        <td>${e.rank}</td>
+        <td><span class="cmp-dot" style="background:${e.color}"></span>${cmpEsc(e.key)}</td>
+        <td><span class="cmp-heat" style="--ec:${e.color};width:${Math.max(3, e.val / maxVal * 70).toFixed(0)}px"></span>${cmpMoney(e.val)}</td>
+        <td>${e.target ? cmpMoney(e.target) : "–"}</td>
+        <td class="${cmpAchClass(e.ach)}"><b>${cmpPct(e.ach)}</b></td>
+        <td class="${e.target ? (e.gap >= 0 ? "cmp-good" : "cmp-bad") : ""}">${e.target ? cmpMoney(e.gap) : "–"}</td>
+        <td class="${cmpAchClass(e.pace)}">${cmpPct(e.pace, 0)}</td>
+        <td>${number.format(e.txn)}</td><td>${cmpMoney(e.arpu)}</td><td>${cmpPct(e.extPct, 0)}</td>
+        <td>${e.activeAgents}</td><td>${cmpMoney(e.rpa)}</td>
+        ${CMP_GRADES.map((g) => `<td>${cmpPct(e.gp[g], 0)}</td>`).join("")}
+        <td><button type="button" class="cmp-pick${cmpState.a === e.key ? " on" : ""}" data-act="pick" data-side="a" data-val="${cmpEsc(e.key)}">A</button><button type="button" class="cmp-pick${cmpState.b === e.key ? " on" : ""}" data-act="pick" data-side="b" data-val="${cmpEsc(e.key)}">B</button></td>
+      </tr>`).join("");
+      return `<table class="cmp-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+    }
+    function cmpPickAB(res) {
+      const keys = res.entities.map((e) => e.key);
+      if (!keys.includes(cmpState.a)) cmpState.a = keys[0] || "";
+      if (!keys.includes(cmpState.b) || cmpState.b === cmpState.a) cmpState.b = keys.find((k) => k !== cmpState.a) || "";
+      return [res.entities.find((e) => e.key === cmpState.a), res.entities.find((e) => e.key === cmpState.b)];
+    }
+    function cmpTopList(e, n) {
+      return [...e.agents.entries()].filter(([name]) => name).sort((a, b) => b[1].val - a[1].val).slice(0, n);
+    }
+    function cmpH2HHtml(res) {
+      const [A, B] = cmpPickAB(res);
+      if (!A || !B) return `<h3>Head-to-Head</h3><div class="cmp-empty">Butuh minimal dua ${cmpState.mode === "spv" ? "SPV" : "coach"} pada cakupan ini.</div>`;
+      const metrics = [
+        ["Revenue", (e) => e.val, cmpMoney], ["Target", (e) => e.target, cmpMoney, true], ["% Achievement", (e) => (e.ach == null ? 0 : e.ach), (v) => cmpPct(v)],
+        ["Transaksi", (e) => e.txn, (v) => number.format(v)], ["ARPU", (e) => e.arpu, cmpMoney], ["Porsi Extend", (e) => e.extPct, (v) => cmpPct(v, 0)],
+        ["Agent aktif", (e) => e.activeAgents, (v) => number.format(v)], ["Rev / agent", (e) => e.rpa, cmpMoney], ["Pace", (e) => (e.pace == null ? 0 : e.pace), (v) => cmpPct(v, 0)]
+      ];
+      const rows = metrics.map(([label, get, fmt, neutral]) => {
+        const a = get(A); const b = get(B);
+        const total = Math.abs(a) + Math.abs(b);
+        const pa = total ? Math.abs(a) / total * 100 : 50;
+        const winA = !neutral && a > b; const winB = !neutral && b > a;
+        return `<div class="cmp-row"><div class="l ${winA ? "cmp-win" : ""}">${fmt(a)}</div><div class="m"><span>${label}</span><div class="cmp-split"><i style="width:${pa.toFixed(1)}%;background:${A.color}"></i><i style="width:${(100 - pa).toFixed(1)}%;background:${B.color}"></i></div></div><div class="r ${winB ? "cmp-win" : ""}">${fmt(b)}</div></div>`;
+      }).join("");
+      const agentsList = (e) => cmpTopList(e, 5).map(([name, a]) => {
+        const ag = res.agents.find((x) => x.key === cmpKey(name));
+        return `<div class="cmp-li"><span>${cmpEsc(name)}</span><b>${cmpMoney(a.val)}${ag && ag.ach != null ? ` · ${cmpPct(ag.ach, 0)}` : ""}</b></div>`;
+      }).join("") || `<div class="cmp-empty">–</div>`;
+      const pkgList = (e) => [...e.pkgs.entries()].filter(([n]) => n).sort((a, b) => b[1].val - a[1].val).slice(0, 5).map(([name, p]) => `<div class="cmp-li" title="${cmpEsc(name)}"><span>${cmpEsc(name)}</span><b>${cmpMoney(p.val)} · ${p.txn}x</b></div>`).join("") || `<div class="cmp-empty">–</div>`;
+      const mix = (e) => [...e.products.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4).map(([n, v]) => `<div class="cmp-li"><span>${cmpEsc(n)}</span><b>${cmpPct(e.val ? v / e.val : 0, 0)}</b></div>`).join("");
+      const col = (e, fn, title) => `<div class="cmp-list"><h4>${title} · ${cmpEsc(cmpShort(e.key))}</h4>${fn(e)}</div>`;
+      return `<h3>Head-to-Head</h3><p>Pilih pihak lewat tombol A / B pada matriks. Hijau menandai nilai yang lebih unggul.</p>
+        <div class="cmp-h2h-head"><div style="color:${A.color}">${cmpEsc(A.key)}</div><div class="cmp-vs">VS</div><div style="color:${B.color}">${cmpEsc(B.key)}</div></div>
+        ${rows}
+        <div class="cmp-lists">${col(A, agentsList, "Top agent")}${col(B, agentsList, "Top agent")}${col(A, pkgList, "Top paket")}${col(B, pkgList, "Top paket")}${col(A, mix, "Produk")}${col(B, mix, "Produk")}</div>`;
+    }
+    function cmpAgentsHtml(res) {
+      const list = [...res.agents].filter((a) => a.val > 0).sort((a, b) => b.val - a.val).slice(0, 12);
+      if (!list.length) return `<div class="cmp-empty">Belum ada data agent.</div>`;
+      return list.map((a, i) => `<div class="cmp-li"><span><span class="cmp-dot" style="background:${cmpColor(a.entKey)}"></span>${i + 1}. ${cmpEsc(a.name)} <small style="color:var(--c-muted)">· ${cmpEsc(cmpShort(a.entKey))}</small></span><b>${cmpMoney(a.val)} · ${a.txn}x${a.ach != null ? ` · <span class="${cmpAchClass(a.ach)}">${cmpPct(a.ach, 0)}</span>` : ""}</b></div>`).join("");
+    }
+    function cmpWatchHtml(res) {
+      const list = res.agents.filter((a) => a.expected > 0 && a.val / a.expected < 0.6).sort((a, b) => a.val / a.expected - b.val / b.expected).slice(0, 12);
+      if (!list.length) return `<div class="cmp-empty">Tidak ada agent di bawah 60% pace. 🎯</div>`;
+      return list.map((a) => `<div class="cmp-li"><span><span class="cmp-dot" style="background:${cmpColor(a.entKey)}"></span>${cmpEsc(a.name)} <small style="color:var(--c-muted)">· ${cmpEsc(cmpShort(a.entKey))}</small></span><b>${cmpMoney(a.val)} / ${cmpMoney(a.expected)} · <span class="cmp-bad">${cmpPct(a.val / a.expected, 0)}</span></b></div>`).join("");
+    }
+    function cmpInsightsHtml(res) {
+      const E = res.entities;
+      const out = [];
+      const word = cmpState.mode === "spv" ? "SPV" : "coach";
+      const add = (kind, text) => out.push(`<li class="k-${kind}">${text}</li>`);
+      if (E.length >= 2) {
+        add("good", `<b>${cmpEsc(E[0].key)}</b> memimpin revenue ${cmpMoney(E[0].val)}, unggul ${cmpMoney(E[0].val - E[1].val)} dari ${cmpEsc(E[1].key)}.`);
+      }
+      const withT = E.filter((e) => e.ach != null);
+      if (withT.length >= 2) {
+        const best = [...withT].sort((a, b) => b.ach - a.ach)[0];
+        const worst = [...withT].sort((a, b) => a.ach - b.ach)[0];
+        add(best.ach >= 1 ? "good" : "warn", `Achievement tertinggi: <b>${cmpEsc(best.key)}</b> ${cmpPct(best.ach)}; terendah: ${cmpEsc(worst.key)} ${cmpPct(worst.ach)}.`);
+      }
+      E.forEach((e) => {
+        if (e.nextTier && e.nextTier.need > 0 && e.nextTier.need < e.target * 0.12) add("warn", `<b>${cmpEsc(e.key)}</b> tinggal ${cmpMoney(e.nextTier.need)} lagi menuju tier ${e.nextTier.tier}%.`);
+      });
+      if (E.length >= 2) {
+        const hiTxn = [...E].sort((a, b) => b.txn - a.txn)[0];
+        const hiArpu = [...E].sort((a, b) => b.arpu - a.arpu)[0];
+        if (hiTxn.key !== hiArpu.key) add("warn", `${cmpEsc(hiTxn.key)} unggul volume (${number.format(hiTxn.txn)} txn) tetapi ARPU tertinggi dipegang ${cmpEsc(hiArpu.key)} (${cmpMoney(hiArpu.arpu)}). Peluang: naikkan ARPU lewat paket bernilai lebih tinggi atau upsell.`);
+        else add("good", `${cmpEsc(hiTxn.key)} unggul di volume sekaligus ARPU (${number.format(hiTxn.txn)} txn · ${cmpMoney(hiTxn.arpu)}).`);
+        const hiExt = [...E].sort((a, b) => b.extPct - a.extPct)[0];
+        add("good", `Porsi extend terbesar: ${cmpEsc(hiExt.key)} (${cmpPct(hiExt.extPct, 0)} dari revenue).`);
+      }
+      E.forEach((e) => {
+        const top = cmpTopList(e, 1)[0];
+        if (top && e.val && top[1].val / e.val > 0.25 && e.activeAgents > 3) add("warn", `${cmpEsc(e.key)}: ${cmpEsc(top[0])} menyumbang ${cmpPct(top[1].val / e.val, 0)} revenue — ketergantungan pada satu agent cukup tinggi.`);
+      });
+      const weak = res.agents.filter((a) => a.expected > 0 && a.val / a.expected < 0.6).length;
+      if (weak) add("bad", `${weak} agent berada di bawah 60% pace target (lihat daftar Perlu Perhatian).`);
+      return out.slice(0, 8).join("") || `<li>Belum ada insight untuk cakupan ini.</li>`;
+    }
+
+    /* ---------- grafik ---------- */
+    function cmpAxisOptions(opts = {}) {
+      const th = chartTheme();
+      return {
+        responsive: true, maintainAspectRatio: false,
+        indexAxis: opts.horizontal ? "y" : "x",
+        animation: { duration: 220 },
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: opts.legend !== false, labels: { color: th.legend, boxWidth: 10, boxHeight: 10, font: { size: 11 } } },
+          tooltip: { backgroundColor: th.tooltipBackground, borderColor: th.tooltipBorder, borderWidth: 1, callbacks: opts.tooltip || {} },
+          datalabels: opts.datalabels || { display: false }
+        },
+        scales: {
+          x: { stacked: !!opts.stacked, ticks: Object.assign({ color: th.axis, font: { size: 11 } }, opts.xTick ? { callback: opts.xTick } : {}), grid: { color: th.grid }, max: opts.xMax },
+          y: { stacked: !!opts.stacked, beginAtZero: true, ticks: Object.assign({ color: th.axisValue, font: { size: 11 } }, opts.yTick ? { callback: opts.yTick } : {}), grid: { color: th.grid } }
+        }
+      };
+    }
+    function cmpDestroyCharts() {
+      ["cmpTargetChart", "cmpRaceChart", "cmpTrendChart", "cmpProductChart", "cmpGradeChart"].forEach((id) => {
+        if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+      });
+    }
+    function cmpDrawCharts(res) {
+      const E = res.entities.slice(0, 12);
+      const th = chartTheme();
+      const money = (v) => cmpMoney(v);
+      makeChart("cmpTargetChart", {
+        type: "bar",
+        data: {
+          labels: E.map((e) => cmpShort(e.key)),
+          datasets: [
+            { label: "Revenue", data: E.map((e) => e.val), backgroundColor: E.map((e) => e.color), borderRadius: 6 },
+            { label: "Target", data: E.map((e) => e.target), backgroundColor: E.map((e) => `${e.color}44`), borderColor: E.map((e) => e.color), borderWidth: 1, borderRadius: 6 }
+          ]
+        },
+        options: cmpAxisOptions({
+          yTick: money,
+          tooltip: { label: (c) => `${c.dataset.label}: ${cmpMoney(c.parsed.y)}` },
+          datalabels: { display: (c) => c.datasetIndex === 0, anchor: "end", align: "end", color: th.datalabelOutside, font: { size: 10, weight: "700" }, formatter: (v) => cmpMoney(v) }
+        })
+      });
+      const days = ["Sen", "Sel", "Rab", "Kam", "Jum"];
+      const raceMax = res.raceWeek ? Math.min(5, cmpDow(res.raceWeek.max) > 5 ? 5 : cmpDow(res.raceWeek.max)) : 5;
+      makeChart("cmpRaceChart", {
+        type: "line",
+        data: {
+          labels: days,
+          datasets: E.map((e) => {
+            let acc = 0;
+            return { label: cmpShort(e.key), borderColor: e.color, backgroundColor: e.color, tension: 0.3, pointRadius: 3, borderWidth: 2, data: e.race.map((v, i) => { acc += v; return i < raceMax ? acc : null; }) };
+          })
+        },
+        options: cmpAxisOptions({ yTick: money, tooltip: { label: (c) => `${c.dataset.label}: ${cmpMoney(c.parsed.y)}` } })
+      });
+      /* tren mingguan */
+      const weeks = res.meta.weeks.slice(-8);
+      const trend = new Map();
+      const teams = CMP_LAYERS[cmpState.layer];
+      const keys = new Set(E.map((e) => e.key));
+      res.source.rows.forEach((r) => {
+        const at = cmpAttr(r);
+        if (!teams.includes(at.team)) return;
+        if (cmpState.mode === "coach" && cmpState.spvScope !== "ALL" && cmpKey(at.spv) !== cmpKey(cmpState.spvScope)) return;
+        const k = cmpState.mode === "spv" ? at.spv : at.coach;
+        if (!keys.has(k)) return;
+        const m = trend.get(k) || new Map();
+        m.set(r.w, (m.get(r.w) || 0) + (cmpState.basis === "gross" ? r.gross : r.rev));
+        trend.set(k, m);
+      });
+      makeChart("cmpTrendChart", {
+        type: "line",
+        data: {
+          labels: weeks.map((m) => `W${m.w}`),
+          datasets: E.map((e) => ({ label: cmpShort(e.key), borderColor: e.color, backgroundColor: e.color, tension: 0.3, pointRadius: 3, borderWidth: 2, data: weeks.map((m) => (trend.get(e.key) || new Map()).get(m.w) || 0) }))
+        },
+        options: cmpAxisOptions({ yTick: money, tooltip: { label: (c) => `${c.dataset.label}: ${cmpMoney(c.parsed.y)}` } })
+      });
+      /* komposisi produk & grade (stacked 100%) */
+      const stack = (id, categories, getShare, colorOf) => {
+        makeChart(id, {
+          type: "bar",
+          data: {
+            labels: E.map((e) => cmpShort(e.key)),
+            datasets: categories.map((cat, i) => ({ label: cat, data: E.map((e) => getShare(e, cat) * 100), backgroundColor: colorOf(cat, i), borderWidth: 0 }))
+          },
+          options: cmpAxisOptions({
+            horizontal: true, stacked: true, xMax: 100,
+            xTick: (v) => `${v}%`,
+            tooltip: { label: (c) => `${c.dataset.label}: ${c.parsed.x.toFixed(1).replace(".", ",")}%` },
+            datalabels: { display: (c) => c.dataset.data[c.dataIndex] >= 9, color: "#021018", font: { size: 10, weight: "700" }, formatter: (v) => `${Math.round(v)}%` }
+          })
+        });
+      };
+      const totals = new Map();
+      E.forEach((e) => e.products.forEach((v, k) => totals.set(k, (totals.get(k) || 0) + v)));
+      const topProducts = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map((x) => x[0]);
+      const shareProduct = (e, cat) => {
+        if (!e.val) return 0;
+        if (cat === "Lainnya") return [...e.products.entries()].filter(([k]) => !topProducts.includes(k)).reduce((s, [, v]) => s + v, 0) / e.val;
+        return (e.products.get(cat) || 0) / e.val;
+      };
+      stack("cmpProductChart", [...topProducts, "Lainnya"], shareProduct, (cat, i) => CMP_COLORS[(i + 3) % CMP_COLORS.length]);
+      const gradeCats = [...CMP_GRADES, "Lainnya"];
+      const gradeColors = { SD: "#22d3ee", SMP: "#a3e635", SMA: "#fbbf24", UTBK: "#f472b6", Lainnya: "#94a3b8" };
+      stack("cmpGradeChart", gradeCats, (e, cat) => (e.val ? (e.grades.get(cat) || 0) / e.val : 0), (cat) => gradeColors[cat]);
+    }
+
+    /* ---------- render utama ---------- */
+    function cmpRender() {
+      const root = document.getElementById("cmpRoot");
+      if (!root) return;
+      const res = cmpCompute();
+      if (res.empty) {
+        const loading = cmpState.achieve.status === "loading" || (cmpState.achieve.status === "idle");
+        document.getElementById("cmpControls").innerHTML = "";
+        document.getElementById("cmpSource").innerHTML = "";
+        document.getElementById("cmpKpis").innerHTML = "";
+        document.getElementById("cmpBanner").innerHTML = "";
+        document.getElementById("cmpBoard").innerHTML = `<div class="cmp-empty" style="grid-column:1/-1">${loading || !allRows.length ? "Memuat data penjualan..." : "Belum ada data penjualan."}</div>`;
+        ["cmpTableWrap", "cmpH2H", "cmpTopAgents", "cmpWatch", "cmpInsights"].forEach((id) => { document.getElementById(id).innerHTML = ""; });
+        cmpDestroyCharts();
+        return;
+      }
+      document.getElementById("cmpControls").innerHTML = cmpControlsHtml(res);
+      document.getElementById("cmpSource").innerHTML = cmpSourceHtml(res);
+      const banner = cmpBannerHtml(res);
+      const bannerEl = document.getElementById("cmpBanner");
+      bannerEl.className = `cmp-banner ${banner.level}`;
+      bannerEl.innerHTML = banner.html;
+      if (!res.entities.length) {
+        document.getElementById("cmpKpis").innerHTML = "";
+        document.getElementById("cmpBoard").innerHTML = `<div class="cmp-empty" style="grid-column:1/-1">Tidak ada data untuk kombinasi filter ini.</div>`;
+        ["cmpTableWrap", "cmpH2H", "cmpTopAgents", "cmpWatch", "cmpInsights"].forEach((id) => { document.getElementById(id).innerHTML = ""; });
+        cmpDestroyCharts();
+        return;
+      }
+      document.getElementById("cmpKpis").innerHTML = cmpKpisHtml(res);
+      document.getElementById("cmpBoard").innerHTML = res.entities.slice(0, 12).map((e) => cmpCardHtml(e, res)).join("");
+      document.getElementById("cmpTableWrap").innerHTML = cmpTableHtml(res);
+      document.getElementById("cmpH2H").innerHTML = cmpH2HHtml(res);
+      document.getElementById("cmpTopAgents").innerHTML = cmpAgentsHtml(res);
+      document.getElementById("cmpWatch").innerHTML = cmpWatchHtml(res);
+      document.getElementById("cmpInsights").innerHTML = cmpInsightsHtml(res);
+      document.getElementById("cmpSubtitle").textContent = `${cmpState.mode === "spv" ? "SPV vs SPV" : "Coach vs Coach"} · ${CMP_LAYERS[cmpState.layer].map((l) => l.replace("LAYER ", "Layer ")).join(" + ")} · ${res.selected.map((w) => `W${w}`).join(", ")} · revenue = amount (kolom P)`;
+      cmpDrawCharts(res);
+    }
+    function cmpInit() {
+      if (cmpState.inited) return;
+      cmpState.inited = true;
+      const root = document.getElementById("cmpRoot");
+      root.addEventListener("click", (event) => {
+        const el = event.target.closest("[data-act]");
+        if (!el) return;
+        const act = el.dataset.act;
+        const val = el.dataset.val;
+        if (act === "mode") { cmpState.mode = val; cmpState.a = ""; cmpState.b = ""; }
+        else if (act === "layer") cmpState.layer = val;
+        else if (act === "basis") cmpState.basis = val;
+        else if (act === "spv") cmpState.spvScope = val;
+        else if (act === "week") {
+          const w = Number(val);
+          const i = cmpState.weeks.indexOf(w);
+          if (i >= 0) { if (cmpState.weeks.length > 1) cmpState.weeks.splice(i, 1); }
+          else cmpState.weeks.push(w);
+        } else if (act === "wk-latest") cmpState.weeks = [];
+        else if (act === "wk-4") {
+          const meta = cmpMeta(cmpSourceInfo().rows);
+          cmpState.weeks = meta.weeks.slice(-4).map((m) => m.w);
+        } else if (act === "sort") {
+          if (cmpState.sort === val) cmpState.dir *= -1; else { cmpState.sort = val; cmpState.dir = val === "name" ? 1 : -1; }
+        } else if (act === "pick") {
+          cmpState[el.dataset.side] = val;
+        }
+        cmpRender();
+      });
+      cmpLoadAchieve();
+      cmpLoadTarget();
+    }
+
+    /* =====================================================================
+       UPDATE TODAY (menggantikan tab Assigndate)
+       Kemarin : tab DS (sudah dimuat halaman Compare), minggu berjalan, tanggal < hari ini
+       Hari ini: UPDATE REALTIME (timmu) + dodolan TIM LAIN (tim lain), tanggal = hari ini
+       Hanya kolom angka/paket/agent/coach yang dibaca; tidak ada nama atau kontak pelanggan.
+       ===================================================================== */
+    const UT_MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, mei: 5, may: 5, jun: 6, jul: 7, agu: 8, aug: 8, ags: 8, sep: 9, okt: 10, oct: 10, nov: 11, des: 12, dec: 12 };
+    const UT_MONTH_NAMES = { 1: ["Jan"], 2: ["Feb"], 3: ["Mar"], 4: ["Apr"], 5: ["Mei", "May"], 6: ["Jun"], 7: ["Jul"], 8: ["Agu", "Aug"], 9: ["Sep"], 10: ["Okt", "Oct"], 11: ["Nov"], 12: ["Des", "Dec"] };
+    const UT_LAYERS = ["LAYER 1", "LAYER 2"];
+    const UT_DAILY_AGENT = { "LAYER 1": 9200000 / 5, "LAYER 2": 4900000 / 5 };
+    const UT_SPV_COLORS = { "yulfan prihartanto": "#16a34a", "deti laharwati": "#2563eb", "mark johannes hilman": "#ca8a04" };
+    const UT_SPV_LABELS = { "yulfan prihartanto": "FORTUNA", "deti laharwati": "DETI", "mark johannes hilman": "MARK" };
+    const UT_SPV_ORDER = ["yulfan prihartanto", "deti laharwati", "mark johannes hilman"];
+    const utState = {
+      rt: { rows: [], status: "idle", at: null, error: "", total: 0, latest: "" },
+      other: { rows: [], status: "idle", at: null, error: "", total: 0 },
+      timer: null, interval: null, inited: false, lastTexts: "", tried: 0
+    };
+
+    function utAmount(value) {
+      if (typeof value === "number") return value;
+      const digits = String(value == null ? "" : value).replace(/[^0-9-]/g, "");
+      return Number(digits) || 0;
+    }
+    function utParse(text, mode) {
+      const re = mode === "rt" ? /(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s*\|\s*(\d{1,2}):(\d{2})/ : /(\d{1,2})\s+([A-Za-z]+)\s+(\d{4}),\s*(\d{1,2})[.:](\d{2})/;
+      const m = String(text == null ? "" : text).match(re);
+      if (!m) return null;
+      const month = UT_MONTHS[m[2].slice(0, 3).toLowerCase()];
+      if (!month) return null;
+      return { dk: cmpDateKey(Number(m[3]), month, Number(m[1])), time: `${cmpPad(m[4])}:${m[5]}` };
+    }
+    function utLabel(spv) { return UT_SPV_LABELS[cmpKey(spv)] || cmpClean(spv).toUpperCase(); }
+    function utColor(spv) { return UT_SPV_COLORS[cmpKey(spv)] || "#7c3aed"; }
+    function utSpvRank(spv) { const i = UT_SPV_ORDER.indexOf(cmpKey(spv)); return i < 0 ? 99 : i; }
+
+    function utLoad() {
+      clearTimeout(utState.timer);
+      utState.tried = Date.now();
+      const today = cmpTodayKey();
+      const [y, m, d] = today.split("-").map(Number);
+      const prefixes = UT_MONTH_NAMES[m].map((name) => `B starts with '${d} ${name} ${y}'`).join(" or ");
+      utState.rt.status = "loading";
+      utState.other.status = "loading";
+      const make = (sheet, query, handler, headers) => {
+        const script = document.createElement("script");
+        script.src = `https://docs.google.com/spreadsheets/d/${CMP_ACHIEVE_ID}/gviz/tq?sheet=${encodeURIComponent(sheet)}&headers=${headers}&tqx=out:json;responseHandler:${handler}&tq=${encodeURIComponent(query)}&_=${Date.now()}`;
+        script.onerror = () => utFail(handler === "handleUtRealtime" ? "rt" : "other", "tidak bisa diakses dari halaman ini");
+        document.body.appendChild(script);
+        setTimeout(() => script.remove(), 30000);
+      };
+      make("UPDATE REALTIME", "select C,J,K,M,N,P,Q where A starts with 'INV'", "handleUtRealtime", 0);
+      make("dodolan TIM LAIN", `select B,D,F,G,H,J,K,L,M where D='SUCCEED' and L != 'Yulfan Prihartanto' and (${prefixes})`, "handleUtOther", 1);
+      utState.timer = setTimeout(() => {
+        ["rt", "other"].forEach((k) => { if (utState[k].status === "loading") utFail(k, "waktu tunggu habis (sheet belum dibagikan publik?)"); });
+      }, 25000);
+      if (activePageId() === "pageUpdateToday") utRender();
+    }
+    function utFail(kind, message) {
+      utState[kind].status = "error";
+      utState[kind].error = message;
+      if (activePageId() === "pageUpdateToday") utRender();
+    }
+    window.handleUtRealtime = function (response) {
+      try {
+        if (!response || response.status !== "ok") throw new Error("respons tidak valid");
+        const today = cmpTodayKey();
+        const rows = [];
+        let latest = "";
+        response.table.rows.forEach((row) => {
+          const c = row.c || [];
+          const val = (i) => (c[i] ? c[i].v : null);
+          const when = utParse((c[3] && (c[3].f || c[3].v)) || "", "rt");
+          if (when && when.dk + when.time > latest) latest = when.dk + " " + when.time;
+          if (!when || when.dk !== today) return;
+          rows.push({ src: "rt", agent: cmpClean(val(0)), pkg: cmpClean(val(1)), product: cmpClean(val(2)), time: when.time, amt: utAmount(val(4)), coach: cmpClean(val(5)), txn: utAmount(val(6)) || 1, spv: "Yulfan Prihartanto", team: "" });
+        });
+        utState.rt = { rows, status: "ok", at: new Date(), error: "", total: response.table.rows.length, latest };
+      } catch (error) {
+        utState.rt.status = "error";
+        utState.rt.error = error.message;
+      }
+      if (activePageId() === "pageUpdateToday") utRender();
+    };
+    window.handleUtOther = function (response) {
+      try {
+        if (!response || response.status !== "ok") throw new Error("respons tidak valid");
+        const today = cmpTodayKey();
+        const rows = [];
+        response.table.rows.forEach((row) => {
+          const c = row.c || [];
+          const val = (i) => (c[i] ? c[i].v : null);
+          const when = utParse(val(0), "other");
+          if (!when || when.dk !== today) return;
+          rows.push({ src: "other", agent: cmpClean(val(4)), pkg: cmpClean(val(3)), product: cmpClean(val(2)), time: when.time, amt: utAmount(c[8] && (c[8].f || c[8].v)), coach: cmpClean(val(5)), txn: 1, spv: cmpClean(val(7)), team: cmpClean(val(6)) });
+        });
+        utState.other = { rows, status: "ok", at: new Date(), error: "", total: response.table.rows.length };
+      } catch (error) {
+        utState.other.status = "error";
+        utState.other.error = error.message;
+      }
+      if (activePageId() === "pageUpdateToday") utRender();
+    };
+
+    function utCompute() {
+      const todayKey = cmpTodayKey();
+      const week = cmpIsoWeek(todayKey);
+      const dow = cmpDow(todayKey);
+      const remaining = dow <= 5 ? 6 - dow : 0;
+      const resolved = cmpResolved(week);
+      const agentMap = new Map();
+      const coachMap = new Map();
+      resolved.forEach((t) => { agentMap.set(t.agentK, t); if (!coachMap.has(cmpKey(t.coach))) coachMap.set(cmpKey(t.coach), t); });
+      const ents = new Map();
+      const get = (coach, team, spv) => {
+        const key = `${cmpKey(coach)}|${team}`;
+        let e = ents.get(key);
+        if (!e) { e = { coach, team, spv, target: 0, tAgents: 0, txnY: 0, revY: 0, txnT: 0, revT: 0 }; ents.set(key, e); }
+        return e;
+      };
+      resolved.forEach((t) => { if (UT_LAYERS.includes(t.team)) { const e = get(t.coach, t.team, t.spv); e.target += t.target; e.tAgents += 1; } });
+      const source = cmpSourceInfo();
+      let dsLast = "";
+      let dsRows = 0;
+      source.rows.forEach((r) => {
+        if (r.dk > dsLast) dsLast = r.dk;
+        if (r.w !== week || r.dk >= todayKey) return;
+        const at = cmpAttr(r);
+        if (!UT_LAYERS.includes(at.team)) return;
+        const key = `${cmpKey(at.coach)}|${at.team}`;
+        const e = ents.get(key);
+        if (!e) return;
+        e.txnY += r.txn; e.revY += r.rev; dsRows += 1;
+      });
+      const todayRows = utState.rt.rows.concat(utState.other.rows);
+      const used = [];
+      let skipped = 0;
+      todayRows.forEach((rec) => {
+        const t = agentMap.get(cmpKey(rec.agent)) || coachMap.get(cmpKey(rec.coach));
+        const coach = t ? t.coach : rec.coach;
+        const team = t ? t.team : rec.team;
+        const spv = t ? t.spv : rec.spv;
+        const item = Object.assign({}, rec, { coach, team, spv });
+        used.push(item);
+        if (!UT_LAYERS.includes(team)) { skipped += 1; return; }
+        const e = ents.get(`${cmpKey(coach)}|${team}`);
+        if (!e) { skipped += 1; return; }
+        e.txnT += rec.txn; e.revT += rec.amt;
+      });
+      const list = [];
+      ents.forEach((e) => {
+        if (cmpKey(e.coach) === cmpKey("Yulfan Prihartanto")) return;
+        if (e.target <= 0 && e.revY + e.revT <= 0) return;
+        e.txn = e.txnY + e.txnT;
+        e.rev = e.revY + e.revT;
+        e.pct = e.target ? e.rev / e.target : null;
+        e.dailyTarget = e.target / 5;
+        e.dailyAgent = UT_DAILY_AGENT[e.team];
+        e.g125 = e.rev - e.target * 1.25; e.g100 = e.rev - e.target; e.g75 = e.rev - e.target * 0.75; e.g50 = e.rev - e.target * 0.5;
+        e.arpu = e.txn ? e.rev / e.txn : 0;
+        e.targetToday = remaining ? Math.max(0, e.target - e.revY) / remaining : 0;
+        e.gapToday = e.revT - e.targetToday;
+        list.push(e);
+      });
+      return { todayKey, week, dow, remaining, list, used, skipped, dsLast, dsRows, source };
+    }
+    function utSum(items) {
+      const s = { target: 0, txnY: 0, revY: 0, txnT: 0, revT: 0 };
+      items.forEach((e) => { s.target += e.target; s.txnY += e.txnY; s.revY += e.revY; s.txnT += e.txnT; s.revT += e.revT; });
+      s.txn = s.txnY + s.txnT; s.rev = s.revY + s.revT;
+      s.pct = s.target ? s.rev / s.target : null;
+      s.dailyTarget = s.target / 5;
+      s.g125 = s.rev - s.target * 1.25; s.g100 = s.rev - s.target; s.g75 = s.rev - s.target * 0.75; s.g50 = s.rev - s.target * 0.5;
+      s.arpu = s.txn ? s.rev / s.txn : 0;
+      return s;
+    }
+    function utFull(value) { return number.format(Math.round(value || 0)); }
+    function utGapClass(v) { return v >= 0 ? "cmp-good" : "cmp-bad"; }
+    function utPctClass(p) { return p == null ? "" : p >= 1 ? "cmp-good" : p >= 0.75 ? "cmp-warnc" : "cmp-bad"; }
+
+    function utOverviewHtml(res) {
+      const spvs = [...new Set(res.list.map((e) => e.spv))].sort((a, b) => utSpvRank(a) - utSpvRank(b) || a.localeCompare(b));
+      const cell = (v, cls) => `<td class="${cls || ""}">${v}</td>`;
+      const head = `<tr><th>Coach</th><th>Layer</th><th>Txn</th><th>Yesterday</th><th>Target</th><th>Daily target</th><th>Daily agent</th><th class="ut-ct">Today txn</th><th class="ut-ct">Today</th><th class="ut-cs">Txn total</th><th class="ut-cs">Rev total</th><th>%</th><th>125%</th><th>100%</th><th>75%</th><th>50%</th><th>ARPU</th></tr>`;
+      let body = "";
+      spvs.forEach((spv) => {
+        const items = res.list.filter((e) => e.spv === spv).sort((a, b) => UT_LAYERS.indexOf(a.team) - UT_LAYERS.indexOf(b.team) || b.rev - a.rev);
+        const color = utColor(spv);
+        items.forEach((e) => {
+          body += `<tr class="ut-row${utMine(e.coach) ? " ut-mine" : ""}"><td style="text-align:left"><span class="cmp-dot" style="background:${color}"></span>${cmpEsc(e.coach)}</td><td>${e.team.replace("LAYER ", "L")}</td>${cell(e.txnY)}${cell(utFull(e.revY))}${cell(utFull(e.target))}${cell(utFull(e.dailyTarget))}${cell(utFull(e.dailyAgent))}${cell(e.txnT,"ut-ct")}${cell(`<b>${utFull(e.revT)}</b>`,"ut-ct")}${cell(e.txn,"ut-cs")}${cell(`<b>${utFull(e.rev)}</b>`,"ut-cs")}${cell(`<b>${cmpPct(e.pct, 2)}</b>`, utPctClass(e.pct))}${cell(utFull(e.g125), utGapClass(e.g125))}${cell(utFull(e.g100), utGapClass(e.g100))}${cell(utFull(e.g75), utGapClass(e.g75))}${cell(utFull(e.g50), utGapClass(e.g50))}${cell(utFull(e.arpu))}</tr>`;
+        });
+        const s = utSum(items);
+        const tToday = res.remaining ? Math.max(0, s.target - s.revY) / res.remaining : 0;
+        body += `<tr class="ut-total" style="--sc:${color}"><td style="text-align:left">${utLabel(spv)}</td><td></td>${cell(s.txnY)}${cell(utFull(s.revY))}${cell(utFull(s.target))}${cell(utFull(s.dailyTarget))}<td></td>${cell(s.txnT,"ut-ct")}${cell(utFull(s.revT),"ut-ct")}${cell(s.txn,"ut-cs")}${cell(utFull(s.rev),"ut-cs")}${cell(cmpPct(s.pct, 2))}${cell(utFull(s.g125))}${cell(utFull(s.g100))}${cell(utFull(s.g75))}${cell(utFull(s.g50))}${cell(utFull(s.arpu))}</tr>`;
+      });
+      return `<table class="cmp-table ut-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+    }
+    function utLayerDiffHtml(res) {
+      return UT_LAYERS.map((layer) => {
+        const spvs = [...new Set(res.list.filter((e) => e.team === layer).map((e) => e.spv))];
+        const rows = spvs.map((spv) => Object.assign({ spv }, utSum(res.list.filter((e) => e.team === layer && e.spv === spv)))).sort((a, b) => b.rev - a.rev);
+        if (!rows.length) return `<div><h3>${layer}</h3><div class="cmp-empty">Belum ada data.</div></div>`;
+        const top = rows[0];
+        const body = rows.map((r, i) => `<tr class="${utMine(r.spv === "Yulfan Prihartanto" ? "arif pambudi" : "") || cmpKey(r.spv).startsWith("yulfan") ? "ut-mine" : ""}"><td style="text-align:left"><span class="cmp-dot" style="background:${utColor(r.spv)}"></span>${utLabel(r.spv)}</td><td>${utFull(r.target)}</td><td><b>${utFull(r.rev)}</b></td><td class="${utPctClass(r.pct)}"><b>${cmpPct(r.pct, 2)}</b></td><td class="${utGapClass(r.g100)}">${utFull(r.g100)}</td><td>${r.txn}</td><td>${utFull(r.arpu)}</td><td class="ut-ct"><b>${utFull(r.revT)}</b></td><td class="${i ? "cmp-bad" : "cmp-good"}">${i ? "-" + utFull(top.rev - r.rev) : "—"}</td><td class="${i ? "cmp-bad" : "cmp-good"}">${i ? (((r.pct - top.pct) * 100) >= 0 ? "+" : "-") + Math.abs((r.pct - top.pct) * 100).toFixed(1).replace(".", ",") + " poin" : "—"}</td></tr>`).join("");
+        const t = utSum(rows);
+        const totalRow = `<tr class="ut-sumrow"><td style="text-align:left">TOTAL ${layer}</td><td>${utFull(t.target)}</td><td>${utFull(t.rev)}</td><td>${cmpPct(t.pct, 2)}</td><td>${utFull(t.g100)}</td><td>${t.txn}</td><td>${utFull(t.arpu)}</td><td class="ut-ct">${utFull(t.revT)}</td><td></td><td></td></tr>`;
+        return `<div><h3 style="margin-bottom:6px">${layer}</h3><div class="cmp-table-wrap"><table class="cmp-table ut-table" style="min-width:760px"><thead><tr><th>SPV</th><th>Target</th><th>Rev total</th><th>%</th><th>100%</th><th>Txn</th><th>ARPU</th><th class="ut-ct">Today</th><th>Selisih rev</th><th>Selisih %</th></tr></thead><tbody>${body}${totalRow}</tbody></table></div></div>`;
+      }).join("");
+    }
+    function utCoachHtml(res, layer) {
+      const items = res.list.filter((e) => e.team === layer).sort((a, b) => b.rev - a.rev);
+      if (!items.length) return `<div class="cmp-empty">Belum ada data.</div>`;
+      const top = items[0].rev || 1;
+      const body = items.map((e, i) => `<tr class="${utMine(e.coach) ? "ut-mine" : ""}"><td>${i + 1}</td><td style="text-align:left"><span class="cmp-dot" style="background:${utColor(e.spv)}"></span>${cmpEsc(e.coach)} <small style="color:var(--c-muted)">${utLabel(e.spv)}</small></td><td><span class="cmp-heat" style="--ec:${utColor(e.spv)};width:${Math.max(3, e.rev / top * 28).toFixed(0)}px"></span><b>${utFull(e.rev)}</b></td><td>${utFull(e.target)}</td><td class="${utPctClass(e.pct)}"><b>${cmpPct(e.pct, 1)}</b></td><td class="${utGapClass(e.g100)}">${utFull(e.g100)}</td><td>${e.txn}</td><td>${utFull(e.arpu)}</td><td class="ut-ct"><b>${utFull(e.revT)}</b></td><td class="${i ? "cmp-bad" : "cmp-good"}">${i ? "-" + utFull(items[i - 1].rev - e.rev) : "—"}</td></tr>`).join("");
+      const t = utSum(items);
+      const totalRow = `<tr class="ut-sumrow"><td></td><td style="text-align:left">TOTAL ${layer.replace("LAYER ", "LAYER ")}</td><td>${utFull(t.rev)}</td><td>${utFull(t.target)}</td><td>${cmpPct(t.pct, 1)}</td><td>${utFull(t.g100)}</td><td>${t.txn}</td><td>${utFull(t.arpu)}</td><td class="ut-ct">${utFull(t.revT)}</td><td></td></tr>`;
+      return `<table class="cmp-table ut-table" style="min-width:820px"><thead><tr><th>#</th><th>Coach</th><th>Rev total</th><th>Target</th><th>%</th><th>100%</th><th>Txn</th><th>ARPU</th><th class="ut-ct">Today</th><th>Ke atas</th></tr></thead><tbody>${body}${totalRow}</tbody></table>`;
+    }
+    const UT_MINE = ["faizal fahmi", "arif pambudi", "yuliani musfikoh", "yosua adhi"];
+    function utMine(name) { const k = cmpKey(name); return UT_MINE.some((m) => k.startsWith(m)); }
+    function utPkgCls(r) {
+      const t = `${r.pkg} ${r.product}`;
+      if (/privat/i.test(t)) return "ut-pk-purple";
+      if (/ruangbelajar|bogor|permata|master|tka|utbk/i.test(t) && !/perpanjang/i.test(t)) return "ut-pk-green";
+      return "ut-pk-amber";
+    }
+    function utPkgTable(rows, title, withGrand) {
+      if (!rows.length) return `<div><h4 class="ut-pk-title">${title}</h4><div class="cmp-empty">Belum ada transaksi hari ini.</div></div>`;
+      const byCoach = new Map();
+      rows.forEach((r) => { const k = r.coach || "(tanpa coach)"; if (!byCoach.has(k)) byCoach.set(k, []); byCoach.get(k).push(r); });
+      let body = "", gt = 0, gr = 0;
+      [...byCoach.entries()].sort((a, b) => b[1].reduce((x, r) => x + r.amt, 0) - a[1].reduce((x, r) => x + r.amt, 0)).forEach(([coach, list]) => {
+        const ord = { "ut-pk-purple": 0, "ut-pk-green": 1, "ut-pk-amber": 2 };
+        list.sort((a, b) => (ord[utPkgCls(a)] - ord[utPkgCls(b)]) || b.amt - a.amt);
+        let st = 0, sr = 0;
+        list.forEach((r, i) => {
+          st += r.txn; sr += r.amt;
+          body += `<tr class="${utMine(coach) ? "ut-mine" : ""}"><td class="ut-pk-coach">${i === 0 ? cmpEsc(coach) : ""}</td><td class="${utPkgCls(r)}" title="${cmpEsc(r.pkg)}">${cmpEsc(r.pkg || "(tanpa nama paket)")}</td><td>${cmpEsc(r.agent)}</td><td class="ut-pk-n">${r.txn}</td><td class="ut-pk-n">${utFull(r.amt)}</td></tr>`;
+        });
+        gt += st; gr += sr;
+        body += `<tr class="ut-pk-sub"><td colspan="3" style="text-align:left">${cmpEsc(coach)} Total</td><td class="ut-pk-n">${st}</td><td class="ut-pk-n">${utFull(sr)}</td></tr>`;
+      });
+      if (withGrand) body += `<tr class="ut-pk-grand"><td colspan="3" style="text-align:left">Grand Total</td><td class="ut-pk-n">${gt}</td><td class="ut-pk-n">${utFull(gr)}</td></tr>`;
+      return `<div><h4 class="ut-pk-title">${title}</h4><div class="cmp-table-wrap"><table class="cmp-table ut-pk"><thead><tr><th style="text-align:left">Coach</th><th style="text-align:left">Paket</th><th style="text-align:left">Agent</th><th>Txn</th><th>Revenue</th></tr></thead><tbody>${body}</tbody></table></div></div>`;
+    }
+    function utPackagesHtml(res) {
+      if (!res.used.length) return `<div class="cmp-empty">Belum ada transaksi hari ini pada kedua sumber.</div>`;
+      const L = res.used.filter((r) => cmpKey(r.spv) === UT_SPV_ORDER[0]);
+      const R = res.used.filter((r) => cmpKey(r.spv) === UT_SPV_ORDER[1] || cmpKey(r.spv) === UT_SPV_ORDER[2]);
+      return `<div class="ut-pk-grid">${utPkgTable(L, "FORTUNA", true)}${utPkgTable(R, "DETI & MARK", false)}</div>`;
+    }
+    function utFeedHtml(res) {
+      if (!res.used.length) return `<div class="cmp-empty">Belum ada transaksi hari ini.</div>`;
+      return [...res.used].sort((a, b) => (a.time < b.time ? 1 : -1)).slice(0, 14).map((r) => `<div class="cmp-li" title="${cmpEsc(r.pkg)}"><span><b>${r.time}</b> · ${cmpEsc(r.agent)} <small style="color:var(--c-muted)">${cmpEsc(cmpShort(r.coach))} · ${utLabel(r.spv || "-")}</small><br><small style="color:var(--c-muted)">${cmpEsc(r.pkg.slice(0, 70))}</small></span><b>${cmpMoney(r.amt)}</b></div>`).join("");
+    }
+    function utBanner(res) {
+      const msgs = [];
+      let level = "";
+      const rt = utState.rt; const ot = utState.other;
+      if (rt.status === "error") { msgs.push(`UPDATE REALTIME belum bisa dibaca (${cmpEsc(rt.error)}).`); level = "bad"; }
+      else if (rt.status === "ok" && !rt.rows.length) { msgs.push(`UPDATE REALTIME belum berisi transaksi tanggal ${cmpFmtDate(res.todayKey)}${rt.latest ? ` (data terakhir: ${rt.latest})` : ""}. Tempel invoice terbaru ke sheet itu.`); level = level || "warn"; }
+      if (ot.status === "error") { msgs.push(`dodolan TIM LAIN belum bisa dibaca (${cmpEsc(ot.error)}).`); level = "bad"; }
+      else if (ot.status === "ok" && !ot.rows.length) { msgs.push(`dodolan TIM LAIN belum punya transaksi SUCCEED tanggal ${cmpFmtDate(res.todayKey)} (tanggal pembayaran = kolom Invoice Update).`); level = level || "warn"; }
+      if (cmpState.achieve.status === "error") { msgs.push(`Data kemarin (DS Achieve) belum bisa dibaca: ${cmpEsc(cmpState.achieve.error)}.`); level = "bad"; }
+      else if (res.dsLast && res.dsLast < res.todayKey) {
+        const late = cmpWorkdaysAfter(res.dsLast);
+        if (late >= 2) { msgs.push(`DS terakhir ${cmpFmtDate(res.dsLast)} — kemarin belum masuk DS, kolom Yesterday bisa kurang.`); level = "bad"; }
+      }
+      if (res.list.some((e) => e.team === "LAYER 1") && cmpState.target.status !== "live") { msgs.push(`Target dari snapshot; target Layer 1 minggu ini memakai Rp110,4 jt per coach bila tab Target belum terisi.`); level = level || "warn"; }
+      if (res.skipped) msgs.push(`${res.skipped} transaksi hari ini tidak dihitung di tabel (coach/agent tidak ada di target Layer 1/2).`);
+      return { html: msgs.map((m) => `<div>${m}</div>`).join(""), level };
+    }
+    function utSummaryText(res) {
+      const spvs = [...new Set(res.list.map((e) => e.spv))].sort((a, b) => utSpvRank(a) - utSpvRank(b));
+      const now = new Date();
+      const lines = [`UPDATE ${cmpFmtDate(res.todayKey)} ${cmpPad(now.getHours())}:${cmpPad(now.getMinutes())} (W${res.week})`];
+      spvs.forEach((spv) => {
+        const items = res.list.filter((e) => e.spv === spv);
+        const s = utSum(items);
+        lines.push("", `${utLabel(spv)}: ${cmpMoney(s.rev)} / ${cmpMoney(s.target)} (${cmpPct(s.pct, 1)}) · gap ${cmpMoney(s.g100)} · ${s.txn} txn · today ${cmpMoney(s.revT)} (${s.txnT} txn)`);
+        UT_LAYERS.forEach((layer) => {
+          const ls = utSum(items.filter((e) => e.team === layer));
+          if (ls.target || ls.rev) lines.push(`  ${layer.replace("LAYER ", "L")}: ${cmpMoney(ls.rev)} (${cmpPct(ls.pct, 0)}) gap ${cmpMoney(ls.g100)}`);
+          items.filter((e) => e.team === layer).sort((a, b) => b.rev - a.rev).forEach((e) => lines.push(`   - ${cmpShort(e.coach)}: ${cmpMoney(e.rev)} (${cmpPct(e.pct, 0)}) gap ${cmpMoney(e.g100)} · today ${cmpMoney(e.revT)}`));
+        });
+      });
+      return lines.join("\n");
+    }
+    function utAddShotButtons() {
+      [["utOverview", "overview"], ["utLayerDiff", "gap-layer"], ["utCoachL1", "gap-coach-l1"], ["utCoachL2", "gap-coach-l2"], ["utPackages", "paket-today"]].forEach(([id, name]) => {
+        const el = document.getElementById(id);
+        const panel = el && el.closest(".cmp-panel");
+        if (!panel || panel.querySelector(":scope > .ut-shot-btn")) return;
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "ut-shot-btn"; btn.textContent = "Unduh gambar tajam";
+        btn.setAttribute("data-html2canvas-ignore", "true");
+        btn.addEventListener("click", async () => {
+          if (!window.html2canvas) { btn.textContent = "Gagal memuat alat gambar"; return; }
+          btn.disabled = true; const old = btn.textContent; btn.textContent = "Membuat gambar...";
+          try {
+            const canvas = await html2canvas(panel, { scale: 3, backgroundColor: getComputedStyle(panel).backgroundColor || "#0b1220", useCORS: true, ignoreElements: (n) => n.classList && n.classList.contains("ut-shot-btn") });
+            const url = canvas.toDataURL("image/png");
+            const a = document.createElement("a");
+            a.href = url; a.download = `fortuna-${name}-${cmpTodayKey()}.png`;
+            document.body.appendChild(a); a.click(); a.remove();
+          } catch (error) { btn.textContent = "Gagal membuat gambar"; btn.disabled = false; return; }
+          btn.textContent = old; btn.disabled = false;
+        });
+        panel.insertBefore(btn, panel.firstChild);
+      });
+    }
+    const UT_TIERS = [0.5, 0.75, 1, 1.25];
+    function utPkgKind(pkg) {
+      const t = String(pkg || "");
+      if (/perpanjang|extend/i.test(t)) return "Perpanjangan";
+      if (/privat/i.test(t)) return "Privat";
+      if (/english|ielts/i.test(t)) return "English";
+      if (/tryout|kuota/i.test(t)) return "Tryout";
+      if (/brain academy|\bBA\b/i.test(t)) return "Brain Academy baru";
+      if (/ruangbelajar|tka|utbk|bogor|permata/i.test(t)) return "ruangbelajar / TKA";
+      return "Lainnya";
+    }
+    function utPkgName(pkg) {
+      let t = String(pkg || "").trim();
+      t = t.replace(/^\(cicilan[^)]*\)\s*/i, "").replace(/^cicilan\s*\d+(\s*dari\s*\d+)?\s*-\s*/i, "").replace(/\bTA\s*\d{4}\/\d{2,4}\b/i, "").replace(/\s+/g, " ").trim();
+      return t.length > 62 ? `${t.slice(0, 60)}…` : t || "(tanpa nama paket)";
+    }
+    function utTierName(t) { return `${Math.round(t * 100)}%`; }
+    function utAnalysis(res) {
+      const rows = res.used.filter((r) => UT_SPV_ORDER.includes(cmpKey(r.spv)) && UT_LAYERS.includes(r.team));
+      const sum = (a, f) => a.reduce((s, x) => s + (f(x) || 0), 0);
+      const list = res.list;
+      const total = { rev: sum(rows, (r) => r.amt), txn: sum(rows, (r) => r.txn) };
+      const elapsed = Math.max(0, Math.min(4, res.dow - 1));
+      const avgDay = elapsed ? sum(list, (e) => e.revY) / elapsed : 0;
+      const bySpv = UT_SPV_ORDER.map((k) => { const r = rows.filter((x) => cmpKey(x.spv) === k); return { key: k, label: utLabel(k), rev: sum(r, (x) => x.amt), txn: sum(r, (x) => x.txn) }; });
+      const coachToday = list.slice().sort((a, b) => b.revT - a.revT);
+      const kinds = new Map();
+      rows.forEach((r) => { const k = utPkgKind(r.pkg); const o = kinds.get(k) || { rev: 0, txn: 0 }; o.rev += r.amt; o.txn += r.txn; kinds.set(k, o); });
+      const pk = new Map();
+      rows.forEach((r) => { const k = utPkgName(r.pkg); const o = pk.get(k) || { name: k, rev: 0, txn: 0 }; o.rev += r.amt; o.txn += r.txn; pk.set(k, o); });
+      const pkgs = [...pk.values()].sort((a, b) => b.rev - a.rev);
+      const agents = new Map();
+      rows.forEach((r) => { const k = cmpKey(r.agent); const o = agents.get(k) || { name: r.agent, coach: r.coach, rev: 0, txn: 0 }; o.rev += r.amt; o.txn += r.txn; agents.set(k, o); });
+      const agentList = [...agents.values()].sort((a, b) => b.rev - a.rev);
+      const biggest = rows.slice().sort((a, b) => b.amt - a.amt)[0] || null;
+      return { rows, total, avgDay, bySpv, coachToday, kinds, pkgs, agentList, biggest, elapsed };
+    }
+    function utNextTier(e) {
+      const p = e.pct || 0;
+      const t = UT_TIERS.find((x) => p < x - 1e-9);
+      return t ? { tier: t, need: Math.max(0, t * e.target - e.rev) } : null;
+    }
+    function utDeep(res, an) {
+      const spvOf = (x) => cmpKey(x.spv);
+      const in3 = (t) => UT_SPV_ORDER.includes(cmpKey(t.spv)) && UT_LAYERS.includes(t.team);
+      const resolved = cmpResolved(res.week).filter(in3);
+      const ds = [];
+      res.source.rows.forEach((r) => {
+        if (r.w !== res.week || r.dk >= res.todayKey) return;
+        const at = cmpAttr(r);
+        if (!in3(at)) return;
+        ds.push({ agentK: cmpKey(r.agent), agent: r.agent, coach: at.coach, spv: at.spv, team: at.team, rev: r.rev, txn: r.txn, ext: !!r.ext });
+      });
+      const sum = (a, f) => a.reduce((s, x) => s + (f(x) || 0), 0);
+      const rows = an.rows;
+      const todayRev = an.total.rev;
+      const cicLanjut = (r) => { const m = /cicilan\s*(\d+)/i.exec(String(r.pkg || "")); return m ? Number(m[1]) >= 2 : false; };
+      const extRows = rows.filter((r) => utPkgKind(r.pkg) === "Perpanjangan");
+      const cicRows = rows.filter((r) => utPkgKind(r.pkg) !== "Perpanjangan" && cicLanjut(r));
+      const baru = todayRev - sum(extRows, (r) => r.amt) - sum(cicRows, (r) => r.amt);
+      const extToday = sum(extRows, (r) => r.amt);
+      const dsRev = sum(ds, (x) => x.rev);
+      const extWeek = dsRev ? sum(ds.filter((x) => x.ext), (x) => x.rev) / dsRev : null;
+      const perSpv = UT_SPV_ORDER.map((k) => {
+        const r = rows.filter((x) => cmpKey(x.spv) === k);
+        const rev = sum(r, (x) => x.amt);
+        const ext = sum(r.filter((x) => utPkgKind(x.pkg) === "Perpanjangan"), (x) => x.amt);
+        const top = r.slice().sort((a, b) => b.amt - a.amt)[0] || null;
+        const agentsAll = resolved.filter((t) => cmpKey(t.spv) === k);
+        const active = new Set(r.map((x) => cmpKey(x.agent)));
+        return { key: k, label: utLabel(k), n: r.length, rev, ext, extShare: rev ? ext / rev : 0, top, agentsAll: agentsAll.length, active: active.size };
+      });
+      const agentWeek = new Map();
+      ds.forEach((x) => { const o = agentWeek.get(x.agentK) || { rev: 0 }; o.rev += x.rev; agentWeek.set(x.agentK, o); });
+      rows.forEach((x) => { const k = cmpKey(x.agent); const o = agentWeek.get(k) || { rev: 0 }; o.rev += x.amt; agentWeek.set(k, o); });
+      const zeroAgents = resolved.filter((t) => !(agentWeek.get(t.agentK)?.rev > 0));
+      const coachAgents = new Map();
+      const addCA = (coach, agent, rev) => { const k = cmpKey(coach); const m = coachAgents.get(k) || { coach, total: 0, agents: new Map() }; m.total += rev; m.agents.set(agent, (m.agents.get(agent) || 0) + rev); coachAgents.set(k, m); };
+      ds.forEach((x) => addCA(x.coach, x.agent, x.rev));
+      rows.forEach((x) => addCA(x.coach, x.agent, x.amt));
+      const concentration = [...coachAgents.values()].map((m) => { const top = [...m.agents.entries()].sort((a, b) => b[1] - a[1])[0]; return { coach: m.coach, agent: top ? top[0] : "", share: m.total ? top[1] / m.total : 0, total: m.total }; }).filter((x) => x.total > 0 && x.share >= 0.4).sort((a, b) => b.share - a.share);
+      return { resolved, ds, rows, todayRev, baru, extToday, extWeek, cicRows, cicRev: sum(cicRows, (r) => r.amt), perSpv, zeroAgents, concentration, agentWeek, sum };
+    }
+    function utInsights(res, an) {
+      const out = [];
+      const add = (tone, html) => out.push({ tone, html });
+      const mineTag = (n) => (utMine(n) ? " ★" : "");
+      if (!an.rows.length) { add("warn", "Belum ada transaksi hari ini pada tiga SPV. Analisa muncul setelah data masuk."); return out; }
+      const d = utDeep(res, an);
+      const pc = (v) => `${Math.round(v * 100)}%`;
+      /* 1. Penjualan baru murni */
+      if (d.todayRev) {
+        const parts = [];
+        if (d.extToday) parts.push(`perpanjangan ${cmpMoney(d.extToday)}`);
+        if (d.cicRev) parts.push(`cicilan lanjutan ${cmpMoney(d.cicRev)}`);
+        add(d.baru / d.todayRev < 0.4 ? "bad" : "info", `<b>Penjualan baru murni hanya ${cmpMoney(d.baru)} (${pc(d.baru / d.todayRev)})</b> dari ${cmpMoney(d.todayRev)} hari ini. ${parts.length ? `Sisanya ${parts.join(" dan ")}.` : "Tidak ada perpanjangan atau cicilan lanjutan."}`);
+      }
+      /* 2. Tren perpanjangan */
+      if (d.todayRev && d.extWeek != null) {
+        const now = d.extToday / d.todayRev; const diff = (now - d.extWeek) * 100;
+        const hi = d.perSpv.filter((s) => s.rev > 0).sort((a, b) => b.extShare - a.extShare);
+        add(diff >= 10 ? "warn" : diff <= -10 ? "good" : "info", `<b>Perpanjangan ${pc(now)} hari ini</b> vs ${pc(d.extWeek)} rata-rata minggu ini sampai kemarin (${diff >= 0 ? "+" : ""}${diff.toFixed(0)} poin). ${hi.length > 1 ? `Paling bergantung: ${hi[0].label} ${pc(hi[0].extShare)}; paling sedikit: ${hi[hi.length - 1].label} ${pc(hi[hi.length - 1].extShare)}.` : ""}`);
+      }
+      /* 3. Ketergantungan pada satu transaksi */
+      const dep = d.perSpv.filter((s) => s.top && s.rev && s.n >= 3 && s.top.amt / s.rev >= 0.25).sort((a, b) => b.top.amt / b.rev - a.top.amt / a.rev)[0];
+      if (dep) add("warn", `<b>${dep.label} bertumpu pada 1 transaksi:</b> ${cmpMoney(dep.top.amt)} (${pc(dep.top.amt / dep.rev)} dari revenue ${dep.label} hari ini, paket ${utPkgKind(dep.top.pkg)}). Tanpa itu hari ini hanya ${cmpMoney(dep.rev - dep.top.amt)}.`);
+      /* 4. Partisipasi agent */
+      const part = d.perSpv.filter((s) => s.agentsAll).map((s) => `${s.label} ${s.active} dari ${s.agentsAll} agent (${pc(s.active / s.agentsAll)})`);
+      if (part.length) add("info", `<b>Agent yang closing hari ini:</b> ${part.join(" · ")}.`);
+      const zeroBy = UT_SPV_ORDER.map((k) => ({ k, z: d.zeroAgents.filter((t) => cmpKey(t.spv) === k) })).filter((x) => x.z.length);
+      if (zeroBy.length) {
+        const mine = zeroBy.find((x) => x.k === UT_SPV_ORDER[0]);
+        add("bad", `<b>Agent belum closing sama sekali minggu ini:</b> ${zeroBy.map((x) => `${utLabel(x.k)} ${x.z.length} agent`).join(" · ")}.${mine ? ` Timmu: ${mine.z.slice(0, 8).map((t) => `${cmpEsc(cmpShort(t.agent))} (${cmpEsc(cmpShort(t.coach))})`).join(", ")}${mine.z.length > 8 ? `, +${mine.z.length - 8} lainnya` : ""}.` : ""}`);
+      }
+      /* 5. Konsentrasi pada satu agent */
+      if (d.concentration.length) add("warn", `<b>Revenue minggu ini bergantung pada 1 agent:</b> ${d.concentration.slice(0, 4).map((x) => `${cmpEsc(cmpShort(x.coach))}${mineTag(x.coach)} ${pc(x.share)} dari ${cmpEsc(cmpShort(x.agent))}`).join("; ")}`);
+      /* 6. Pergeseran peringkat dan selisih akibat hari ini */
+      UT_LAYERS.forEach((layer) => {
+        const L = res.list.filter((e) => e.team === layer && e.target > 0);
+        if (L.length < 2) return;
+        const before = L.slice().sort((a, b) => b.revY / b.target - a.revY / a.target);
+        const after = L.slice().sort((a, b) => b.pct - a.pct);
+        const moves = after.map((e, i) => ({ e, d: before.indexOf(e) - i })).filter((m) => m.d !== 0);
+        const up = moves.filter((m) => m.d > 0).sort((a, b) => b.d - a.d).slice(0, 2);
+        const dn = moves.filter((m) => m.d < 0).sort((a, b) => a.d - b.d).slice(0, 2);
+        if (up.length || dn.length) add("info", `<b>Pergeseran peringkat ${layer.replace("LAYER ", "Layer ")} hari ini:</b> ${up.map((m) => `${cmpEsc(cmpShort(m.e.coach))}${mineTag(m.e.coach)} naik ${m.d}`).concat(dn.map((m) => `${cmpEsc(cmpShort(m.e.coach))}${mineTag(m.e.coach)} turun ${-m.d}`)).join(", ")}.`);
+        const sp = UT_SPV_ORDER.map((k) => { const s = utSum(L.filter((e) => cmpKey(e.spv) === k)); return { k, now: s.pct, was: s.target ? s.revY / s.target : 0 }; }).filter((x) => x.now != null);
+        if (sp.length > 1) {
+          const nowS = sp.slice().sort((a, b) => b.now - a.now); const lead = nowS[0], last = nowS[nowS.length - 1];
+          const gapNow = (lead.now - last.now) * 100; const gapWas = ((sp.find((x) => x.k === lead.k).was) - (sp.find((x) => x.k === last.k).was)) * 100;
+          if (Math.abs(gapNow - gapWas) >= 1) add(gapNow > gapWas ? "info" : "good", `<b>Selisih ${utLabel(lead.k)} dan ${utLabel(last.k)} di ${layer.replace("LAYER ", "Layer ")} ${gapNow > gapWas ? "melebar" : "menyempit"}</b> dari ${gapWas.toFixed(1).replace(".", ",")} poin kemarin menjadi ${gapNow.toFixed(1).replace(".", ",")} poin setelah hari ini.`);
+        }
+      });
+      /* 7. Pergeseran ukuran tiket */
+      UT_LAYERS.forEach((layer) => {
+        const L = res.list.filter((e) => e.team === layer);
+        const s = utSum(L);
+        const was = s.txnY ? s.revY / s.txnY : 0; const now = s.txnT ? s.revT / s.txnT : 0;
+        if (was && now && Math.abs(now / was - 1) >= 0.1) add(now > was ? "good" : "warn", `<b>Ukuran tiket ${layer.replace("LAYER ", "Layer ")} ${now > was ? "naik" : "turun"} ${Math.abs(Math.round((now / was - 1) * 100))}%:</b> ${cmpMoney(now)} per transaksi hari ini vs ${cmpMoney(was)} rata-rata minggu ini.`);
+      });
+      /* 8. Pola jam closing */
+      const hrs = new Map();
+      an.rows.forEach((r) => { const m = /^(\d{1,2}):(\d{2})/.exec(r.time || ""); if (!m || (m[1] === "00" && m[2] === "00")) return; const h = Number(m[1]); hrs.set(h, (hrs.get(h) || 0) + r.txn); });
+      if (hrs.size) {
+        const peak = [...hrs.entries()].sort((a, b) => b[1] - a[1])[0];
+        const last = an.rows.map((r) => r.time).filter((t) => t && t !== "00:00").sort().pop();
+        const now = new Date(); const nowH = now.getHours() + now.getMinutes() / 60;
+        const lm = /^(\d{1,2}):(\d{2})/.exec(last || ""); const lh = lm ? Number(lm[1]) + Number(lm[2]) / 60 : null;
+        const quiet = lh != null && nowH - lh >= 1.5 && nowH < 17 ? ` Sudah ${(nowH - lh).toFixed(1).replace(".", ",")} jam tanpa closing baru sejak ${last}.` : "";
+        add(quiet ? "warn" : "info", `<b>Puncak closing jam ${String(peak[0]).padStart(2, "0")}.00-${String(peak[0]).padStart(2, "0")}.59</b> (${peak[1]} transaksi).${quiet}`);
+      }
+      return out;
+    }
+    function utPlanHtml(res, an) {
+      const mine = res.list.filter((e) => utMine(e.coach)).sort((a, b) => (b.pct || 0) - (a.pct || 0));
+      if (!mine.length) return "";
+      const rem = Math.max(1, res.remaining);
+      const body = mine.map((e) => {
+        const n = utNextTier(e);
+        const todayAgents = an.agentList.filter((a) => cmpKey(a.coach) === cmpKey(e.coach));
+        const star = todayAgents[0];
+        let tier = "—", need = "—", perDay = "—", closings = "—", advice = "";
+        const pace = Math.max(an.elapsed ? e.revY / an.elapsed : 0, e.revT);
+        if (!n) { tier = "125% tercapai"; advice = "Sudah di tier tertinggi. Jaga ritme dan bantu coach yang masih tertinggal."; }
+        else {
+          const pd = n.need / rem;
+          tier = utTierName(n.tier); need = utFull(n.need); perDay = utFull(pd); closings = e.arpu ? `${Math.ceil(n.need / e.arpu)} (tiket ${cmpMoney(e.arpu)})` : "—";
+          const ratio = pace ? pd / pace : Infinity;
+          if (n.need <= 0) advice = "Tier sudah terlewati.";
+          else if (ratio <= 1.1) advice = `Realistis: butuh ${cmpMoney(pd)}/hari, setara pace sekarang. Jaga ritme dan tutup follow-up cicilan.`;
+          else if (ratio <= 2) advice = `Perlu dorongan: butuh ${cmpMoney(pd)}/hari, sekitar ${ratio.toFixed(1).replace(".", ",")}x pace. Prioritaskan perpanjangan dan lead yang sudah hangat.`;
+          else advice = `Berat: butuh ${cmpMoney(pd)}/hari, ${Number.isFinite(ratio) ? `sekitar ${ratio.toFixed(1).replace(".", ",")}x pace` : "belum ada pace"}. Fokus ke closing terbesar dulu dan agent teratas.`;
+        }
+        if (star) advice += ` Andalan hari ini: ${cmpEsc(star.name)} (${cmpMoney(star.rev)}).`;
+        else advice += " Belum ada closing hari ini.";
+        return `<tr class="ut-row"><td style="text-align:left"><b>${cmpEsc(e.coach)}</b> <small>${e.team.replace("LAYER ", "L")}</small></td><td>${cmpPct(e.pct, 1)}</td><td class="ut-ct">${utFull(e.revT)}</td><td>${tier}</td><td>${need}</td><td>${closings}</td><td>${perDay}</td><td style="text-align:left">${advice}</td></tr>`;
+      }).join("");
+      return `<h4 class="ut-pk-title" style="margin-top:14px">RENCANA SARAN · TIM FORTUNA</h4><div class="cmp-table-wrap"><table class="cmp-table ut-table ut-plan"><thead><tr><th style="text-align:left">Coach</th><th>%</th><th class="ut-ct">Today</th><th>Tier berikut</th><th>Butuh lagi</th><th>≈ Closing lagi</th><th>Per hari (sisa ${rem})</th><th style="text-align:left">Saran</th></tr></thead><tbody>${body}</tbody></table></div>`;
+    }
+    function utAnalysisRender(fullRes) {
+      const res = Object.assign({}, fullRes, { list: fullRes.list.filter((e) => UT_SPV_ORDER.includes(cmpKey(e.spv))) });
+      const an = utAnalysis(res);
+      const stat = (label, value, sub, cls) => `<div class="ut-an-stat ${cls || ""}"><span>${label}</span><b>${value}</b><small>${sub || ""}</small></div>`;
+      const d = an.rows.length ? utDeep(res, an) : null;
+      const pc = (v) => `${Math.round(v * 100)}%`;
+      const act = d ? d.perSpv.reduce((s, x) => s + x.active, 0) : 0;
+      const all = d ? d.perSpv.reduce((s, x) => s + x.agentsAll, 0) : 0;
+      const sl = an.total.txn ? an.total.rev / an.total.txn : 0;
+      const wk = utSum(res.list); const wkArpu = wk.txnY ? wk.revY / wk.txnY : 0;
+      document.getElementById("utAnStats").innerHTML =
+        stat("Revenue hari ini", cmpMoney(an.total.rev), `${an.total.txn} txn · ${an.avgDay ? `${Math.round(an.total.rev / an.avgDay * 100)}% dari rata-rata hari` : "belum ada pembanding"}`, "hot") +
+        stat("Penjualan baru murni", d && an.total.rev ? pc(d.baru / an.total.rev) : "—", d ? `${cmpMoney(d.baru)} · di luar perpanjangan dan cicilan lanjutan` : "") +
+        stat("Perpanjangan", d && an.total.rev ? pc(d.extToday / an.total.rev) : "—", d && d.extWeek != null ? `minggu ini ${pc(d.extWeek)}` : "") +
+        stat("Agent closing hari ini", all ? `${act} dari ${all}` : "—", all ? `${pc(act / all)} agent aktif` : "") +
+        stat("Tiket rata-rata", cmpMoney(sl), wkArpu ? `minggu ini ${cmpMoney(wkArpu)}` : "");
+      const tone = { good: "#16a34a", warn: "#d97706", bad: "#dc2626", info: "#2563eb" };
+      document.getElementById("utAnInsights").innerHTML = utInsights(res, an).map((i) => `<li style="--tc:${tone[i.tone]}">${i.html}</li>`).join("");
+      document.getElementById("utAnPlan").innerHTML = utPlanHtml(res, an);
+      utAnalysisCharts(res, an);
+    }
+    function utAnalysisCharts(res, an) {
+      const th = chartTheme();
+            const E2 = res.list.filter((e) => e.pct != null).sort((a, b) => b.pct - a.pct).slice(0, 16);
+      const tierColor = (p) => (p >= 1.25 ? "#0d9488" : p >= 1 ? "#16a34a" : p >= 0.75 ? "#d97706" : p >= 0.5 ? "#ea580c" : "#dc2626");
+      const maxPct = Math.max(150, ...E2.map((e) => e.pct * 100 + 15));
+      const tierPlugin = { id: "utTierLines", afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart; if (!scales.x) return;
+        ctx.save(); ctx.font = "700 11px sans-serif"; ctx.textAlign = "center";
+        [50, 75, 100, 125].forEach((t) => { const x = scales.x.getPixelForValue(t); ctx.strokeStyle = t === 100 ? "#16a34a" : "rgba(120,140,160,.7)"; ctx.setLineDash(t === 100 ? [] : [5, 4]); ctx.lineWidth = t === 100 ? 2 : 1; ctx.beginPath(); ctx.moveTo(x, chartArea.top); ctx.lineTo(x, chartArea.bottom); ctx.stroke(); ctx.fillStyle = th.axis; ctx.fillText(`${t}%`, x, chartArea.top - 4); });
+        ctx.restore(); } };
+      makeChart("utChTier", {
+        type: "bar", plugins: [tierPlugin],
+        data: { labels: E2.map((e) => `${cmpShort(e.coach)}${utMine(e.coach) ? " ★" : ""} · ${e.team.replace("LAYER ", "L")}`), datasets: [{ label: "% target", data: E2.map((e) => +(e.pct * 100).toFixed(1)), backgroundColor: E2.map((e) => tierColor(e.pct)), borderRadius: 5 }] },
+        options: Object.assign(cmpAxisOptions({ horizontal: true, legend: false, xMax: maxPct, xTick: (v) => `${v}%`, tooltip: { label: (c) => `${c.parsed.x.toString().replace(".", ",")}% dari target` },
+          datalabels: { display: true, anchor: "end", align: "end", color: th.datalabelOutside, font: { size: 10, weight: "700" }, formatter: (v) => `${String(v).replace(".", ",")}%` } }), { layout: { padding: { top: 16 } } })
+      });
+      const kinds = [...an.kinds.entries()].sort((a, b) => b[1].rev - a[1].rev);
+      const kc = { "Perpanjangan": "#f59e0b", "Brain Academy baru": "#2563eb", "ruangbelajar / TKA": "#16a34a", "Privat": "#7c3aed", "English": "#0891b2", "Tryout": "#db2777", "Lainnya": "#64748b" };
+      makeChart("utChKind", {
+        type: "doughnut",
+        data: { labels: kinds.map(([k]) => k), datasets: [{ data: kinds.map(([, v]) => v.rev), backgroundColor: kinds.map(([k]) => kc[k] || "#64748b"), borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: "55%", animation: { duration: 220 },
+          plugins: { legend: { position: "right", labels: { color: th.legend, boxWidth: 10, boxHeight: 10, font: { size: 11 } } },
+            tooltip: { backgroundColor: th.tooltipBackground, borderColor: th.tooltipBorder, borderWidth: 1, callbacks: { label: (c) => `${c.label}: ${cmpMoney(c.parsed)} (${kinds[c.dataIndex][1].txn} txn)` } },
+            datalabels: { display: (c) => an.total.rev && c.dataset.data[c.dataIndex] / an.total.rev >= 0.07, color: "#fff", font: { size: 11, weight: "800" }, formatter: (v) => `${Math.round(v / an.total.rev * 100)}%` } } }
+      });
+    }
+    function utRender() {
+      const root = document.getElementById("utRoot");
+      if (!root) return;
+      const res = utCompute();
+      utState.lastTexts = utSummaryText(res);
+      const day = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][new Date().getDay()];
+      document.getElementById("utTitle").textContent = `Update ${day}, ${cmpFmtDate(res.todayKey)} · W${res.week}`;
+      const stamp = (s) => (s.status === "ok" ? `<span class="cmp-pill"><i></i>${s.rows.length} transaksi</span>` : s.status === "loading" ? `<span class="cmp-pill warn"><i></i>memuat...</span>` : s.status === "error" ? `<span class="cmp-pill bad"><i></i>gagal</span>` : `<span class="cmp-pill warn"><i></i>belum dimuat</span>`);
+      const at = utState.rt.at || utState.other.at;
+      document.getElementById("utSource").innerHTML = `<div>Realtime ${stamp(utState.rt)} Tim lain ${stamp(utState.other)}</div><div>DS s/d <b>${res.dsLast ? cmpFmtDate(res.dsLast) : "-"}</b>${at ? ` · dimuat ${cmpPad(at.getHours())}:${cmpPad(at.getMinutes())}` : ""}</div>`;
+      const banner = utBanner(res);
+      const el = document.getElementById("utBanner");
+      el.className = `cmp-banner ${banner.level}`;
+      el.innerHTML = banner.html;
+      if (!res.list.length) {
+        document.getElementById("utOverview").innerHTML = `<div class="cmp-empty">${cmpState.achieve.status === "loading" || cmpState.achieve.status === "idle" ? "Memuat data..." : "Belum ada data target/penjualan untuk minggu ini."}</div>`;
+        ["utLayerDiff", "utCoachL1", "utCoachL2", "utPackages", "utAnStats", "utAnInsights", "utAnPlan"].forEach((id) => { document.getElementById(id).innerHTML = ""; });
+        return;
+      }
+      document.getElementById("utOverview").innerHTML = utOverviewHtml(res);
+      document.getElementById("utLayerDiff").innerHTML = utLayerDiffHtml(res);
+      document.getElementById("utCoachL1").innerHTML = utCoachHtml(res, "LAYER 1");
+      document.getElementById("utCoachL2").innerHTML = utCoachHtml(res, "LAYER 2");
+      document.getElementById("utPackages").innerHTML = utPackagesHtml(res);
+      utAddShotButtons();
+      utAnalysisRender(res);
+    }
+    function utShow() {
+      if (!utState.inited) {
+        utState.inited = true;
+        document.getElementById("utRoot").addEventListener("click", (event) => {
+          const el = event.target.closest("[data-ut]");
+          if (!el) return;
+          if (el.dataset.ut === "refresh") utLoad();
+          if (el.dataset.ut === "copy") {
+            const text = utState.lastTexts;
+            const done = (ok) => { const n = document.getElementById("utCopyNote"); if (n) { n.textContent = ok ? " tersalin ✓" : " gagal menyalin"; setTimeout(() => { n.textContent = ""; }, 2500); } };
+            try {
+              navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
+            } catch (error) { done(false); }
+          }
+        });
+        utState.interval = setInterval(() => { if (activePageId() === "pageUpdateToday") utLoad(); }, 180000);
+      }
+      const stale = !utState.rt.at || Date.now() - utState.rt.at.getTime() > 120000;
+      if (stale && utState.rt.status !== "loading" && Date.now() - utState.tried > 60000) utLoad();
+      utRender();
+    }
+
     function initialize() {
       enhanceMultiSelects();
       setMonthOptions("monthFilter", allRows);
@@ -6400,6 +8221,16 @@
       setOptions("leaderFilter", allRows.map((row) => row[fields.leader]), "leader");
       setOptions("agentFilter", allRows.map((row) => row[fields.agent]), "agent");
       setOptions("productFilter", allRows.map((row) => row[fields.product]), "produk");
+      if (dashboardInitialized) {
+        render();
+        if (dashboardDataTimeout) {
+          clearTimeout(dashboardDataTimeout);
+          dashboardDataTimeout = null;
+        }
+        document.getElementById("status").textContent = `Update: ${new Date().toLocaleString("id-ID")}`;
+        return;
+      }
+      dashboardInitialized = true;
       ["monthFilter", "weekFilter", "leaderFilter", "agentFilter", "productFilter", "searchInput"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
           scheduleFilterRender("dashboard", () => {
@@ -6411,27 +8242,7 @@
           });
         });
       });
-      document.getElementById("compareLeaderAFilter").addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
-      document.getElementById("compareLeaderBFilter").addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
-      ["leaderAMonthFilter", "leaderAWeekFilter", "leaderADateFilter", "leaderAProductFilter", "leaderBMonthFilter", "leaderBWeekFilter", "leaderBDateFilter", "leaderBProductFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", () => scheduleFilterRender("leaderCompare", renderLeaderCompare));
-      });
-      ["unitALayerFilter", "unitASpvFilter", "unitAMonthFilter", "unitAWeekFilter", "unitADateFilter", "unitAAgentFilter", "unitAProductFilter", "unitBLayerFilter", "unitBSpvFilter", "unitBMonthFilter", "unitBWeekFilter", "unitBDateFilter", "unitBAgentFilter", "unitBProductFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", () => {
-          scheduleFilterRender("unitCompare", () => {
-            setUnitOptions();
-            renderUnitCompare();
-          });
-        });
-      });
-      ["assignMonthFilter", "assignWeekFilter", "assignSpvFilter", "assignLeaderFilter", "assignCampaignFilter"].forEach((id) => {
-        document.getElementById(id).addEventListener("input", () => {
-          scheduleFilterRender("assign", () => {
-            setAssignOptions();
-            renderAssignDatePage();
-          });
-        });
-      });
+      cmpInit();
       ["growthMonthFilter", "growthWeekFilter", "growthDateFilter", "growthProductFilter", "growthSpvFilter", "growthCoachFilter", "growthAgentFilter"].forEach((id) => {
         document.getElementById(id).addEventListener("input", () => {
           scheduleFilterRender("growth", () => {
@@ -6566,6 +8377,7 @@
         const parsed = callDate(row["Start At"]);
         row._date = parsed.date;
         row._hour = parsed.hour;
+        row._min = parsed.minute;
         row._bucket = callBucket(parsed.hour);
         row._duration = durationSeconds(row.Duration);
         row._week = weekNumberFromDate(row._date);
@@ -6694,6 +8506,9 @@
       }
     };
 
+    document.addEventListener("click", (e) => { const td = e.target.closest && e.target.closest(".ct-click"); if (!td) return; const tr = td.closest("tr"); const name = tr.dataset.agent; if (ctExpanded.has(name)) ctExpanded.delete(name); else ctExpanded.add(name); const next = tr.nextElementSibling; const open = ctExpanded.has(name); tr.classList.toggle("open", open); if (next) next.hidden = !open; td.querySelector(".ct-caret").textContent = open ? "▾" : "▸"; });
+    document.addEventListener("change", (e) => { if (e.target && (e.target.id === "ctShowAll" || e.target.classList.contains("ct-sel"))) renderCallCoachSection(); });
+
     window.handleCallData = function(response) {
       try {
         callRows = rowsFromCallTable(response.table);
@@ -6794,6 +8609,8 @@
     }
 
     function loadDailyPresentationSheet() {
+      if (dailyPresentationLoadingStarted) return;
+      dailyPresentationLoadingStarted = true;
       DAILY_PRESENTATION_SOURCES.forEach((source) => {
         const script = document.createElement("script");
         const query = encodeURIComponent(source.query);
@@ -6825,15 +8642,52 @@
     }
 
     function startDashboardAfterUnlock() {
+      if (window.__dashStarted) return;
+      window.__dashStarted = true;
       document.body.classList.remove("access-locked");
       document.getElementById("accessLock")?.classList.add("access-lock-hidden");
       enhanceMultiSelects();
       setupThemeToggle();
+      initialize();
       loadSheet();
-      loadDailyPresentationSheet();
+      dashboardDataTimeout = setTimeout(() => {
+        if (!allRows.length) {
+          document.getElementById("status").textContent = "Activity Renewal siap digunakan · data utama masih memuat";
+        }
+      }, 10000);
+    }
+
+    const ACCESS_REMEMBER_KEY = "fortuna_access_ok_v1";
+    function accessRemembered() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(ACCESS_REMEMBER_KEY) || "null");
+        return Boolean(saved && saved.h === ACCESS_PASSWORD_HASH && Date.now() - saved.t < 30 * 24 * 3600 * 1000);
+      } catch (error) { return false; }
+    }
+
+    const REPORT_KEY_HASH = "028eab1efaee0abd5b1fe7b7d9611d3c6960e9e496ca4335ce1d7fb19d011813";
+    async function reportModeKey() {
+      try {
+        const key = new URLSearchParams(location.search).get("laporan");
+        if (!key || !window.crypto?.subtle) return false;
+        const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+        const hash = Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        return hash === REPORT_KEY_HASH;
+      } catch (error) { return false; }
+    }
+    async function startReportMode() {
+      document.body.classList.add("report-mode");
+      startDashboardAfterUnlock();
+      const open = () => {
+        const tab = document.querySelector('#pageTabs button[data-page="pageUpdateToday"]');
+        if (tab) tab.click(); else setTimeout(open, 300);
+      };
+      open();
     }
 
     function setupAccessGate() {
+      reportModeKey().then((ok) => { if (ok) startReportMode(); });
+      if (accessRemembered()) { startDashboardAfterUnlock(); return; }
       const input = document.getElementById("accessPasswordInput");
       const button = document.getElementById("accessPasswordButton");
       const message = document.getElementById("accessLockMessage");
@@ -6844,6 +8698,13 @@
         const valid = await accessPasswordMatches(input.value);
         if (valid) {
           message.textContent = "";
+          try {
+            if (document.getElementById("accessRememberCheck")?.checked) {
+              localStorage.setItem(ACCESS_REMEMBER_KEY, JSON.stringify({ h: ACCESS_PASSWORD_HASH, t: Date.now() }));
+            } else {
+              localStorage.removeItem(ACCESS_REMEMBER_KEY);
+            }
+          } catch (error) {}
           startDashboardAfterUnlock();
           return;
         }

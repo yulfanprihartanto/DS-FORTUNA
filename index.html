@@ -3007,13 +3007,47 @@
     .eu-parent.open td { background: #bfdbfe !important; }
     .eu-parent:hover td { filter: brightness(.97); }
     .eu-pname { font-size: 15px; } .eu-pname small { font-size: 11.5px; font-weight: 700; opacity: .75; margin-left: 4px; }
-    .eu-chips { text-align: center; }
+    .eu-chips { text-align: left !important; padding: 2px 12px 8px !important; }
+    .eu-chiprow td { background: #dbeafe !important; cursor: pointer; border-top: 0 !important; }
+    .eu-chiprow.open td { background: #bfdbfe !important; }
+    .eu-chiprow:hover td { filter: brightness(.97); }
+    .eu-parent td { border-bottom: 0 !important; }
+    .eu-chiplbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .7; margin-right: 6px; }
     .eu-chip { display: inline-block; margin: 2px 4px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; }
     .eu-chip.bad { background: #fecaca; color: #7f1d1d; } .eu-chip.warn { background: #fde68a; color: #78350f; } .eu-chip.good { background: #bbf7d0; color: #14532d; }
     .eu-chip b { font-size: 14px; }
     .eu-child td:first-child { padding-left: 30px !important; }
     .eu-uname small { font-weight: 600; opacity: .7; margin-left: 4px; }
     .eu-stats { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .eu-tcell { text-align: center; white-space: nowrap; }
+    .eu-tcell small { color: #64748b; font-weight: 700; margin-left: 2px; }
+    .eu-total td { background: #0f2744 !important; color: #fff !important; font-weight: 800; }
+    .eu-foot { margin-top: 8px; font-size: 12.5px; opacity: .8; line-height: 1.4; }
+    .eu-seg { display: inline-flex; gap: 6px; margin: 0 0 10px; }
+    .eu-seg button { border: 1px solid #38bdf8; background: #e0f2fe; color: #0f2744; border-radius: 999px; padding: 7px 16px; font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .eu-seg button.on { background: #0f2744; color: #fff; border-color: #0f2744; }
+    .ct-table th.eu-w-sis, .ct-table th.eu-w-sis2 { background: #86efac !important; color: #052e16 !important; }
+    .ct-table th.eu-w-ort, .ct-table th.eu-w-ort2 { background: #c4b5fd !important; color: #2e1065 !important; }
+    th.eu-w-sis, td.eu-w-sis { background: #dcfce7 !important; color: #14532d; } th.eu-w-sis2, td.eu-w-sis2 { background: #f0fdf4 !important; color: #14532d; font-weight: 600; }
+    th.eu-w-ort, td.eu-w-ort { background: #ede9fe !important; color: #4c1d95; } th.eu-w-ort2, td.eu-w-ort2 { background: #f5f3ff !important; color: #4c1d95; font-weight: 600; }
+    .eu-total td.eu-w-sis, .eu-total td.eu-w-sis2, .eu-total td.eu-w-ort, .eu-total td.eu-w-ort2 { background: #0f2744 !important; color: #fff !important; }
+    #euAgents td:not(.ct-first):not(.eu-coachcell) { color: #050b1a; font-weight: 800; font-size: 15.5px; }
+    #euAgents td.ct-key { color: #3b1100; }
+    #euAgents td.ct-off { color: #3b0764; }
+    #euAgents td.eu-w-sis, #euAgents td.eu-w-sis2 { color: #052e16; }
+    #euAgents td.eu-w-ort, #euAgents td.eu-w-ort2 { color: #1e0a4a; }
+    #euAgents tr.eu-total td { color: #fff !important; }
+    #euAgents tr.eu-total td.ct-key { color: #3b1100 !important; }
+    .eu-numcell { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+    .eu-numcell:hover { filter: brightness(.93); text-decoration-style: solid; }
+    #euModal { display: none; }
+    .eu-m-back { position: fixed; inset: 0; background: rgba(8, 15, 35, .55); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .eu-m-card { background: var(--panel, #fff); color: var(--text, #172033); border-radius: 18px; width: min(1180px, 100%); max-height: 88vh; display: flex; flex-direction: column; box-shadow: 0 30px 80px rgba(0,0,0,.4); overflow: hidden; }
+    .eu-m-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--line, #dbe3ef); font-size: 16px; }
+    .eu-m-head button { margin-left: 8px; border: 1px solid #38bdf8; background: #e0f2fe; color: #0f2744; border-radius: 10px; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer; }
+    .eu-m-count { display: inline-block; margin-left: 8px; background: #fde68a; color: #78350f; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 800; }
+    .eu-m-body { overflow: auto; padding: 0 12px 14px; }
+    .eu-m-name small { opacity: .75; }
     .eu-coachcell { font-size: 12.5px; white-space: nowrap; }
     .eu-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
     .eu-filters label { display: grid; gap: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
@@ -3372,7 +3406,7 @@
             <label>Coach<select id="euCoachF" class="eu-f ct-sel" data-f="coach"></select></label>
             <label>Agent<select id="euAgentF" class="eu-f ct-sel" data-f="agent"></select></label>
             <label>Status call<select class="eu-f ct-sel" data-f="status">
-              <option value="">Semua status</option><option value="none">Belum pernah di-call</option><option value="once">Baru di-call 1 kali, belum terhubung</option><option value="noconn">Sudah di-call, belum terhubung</option><option value="noconn3">Di-call 3x atau lebih, belum terhubung</option><option value="partial">Ada nomor yang belum pernah di-call</option><option value="conn">Sudah terhubung</option><option value="nonum">Tanpa nomor valid</option></select></label>
+              <option value="">Semua status</option><option value="none">Belum pernah di-call</option><option value="once">Baru di-call 1 kali, belum terhubung</option><option value="noconn">Sudah di-call, belum terhubung</option><option value="noconn3">Di-call 3x atau lebih, belum terhubung</option><option value="partial">Ada nomor yang belum pernah di-call</option><option value="conn">Sudah terhubung</option><option value="sisOnly">Terhubung ke siswa, belum ke ortu</option><option value="ortOnly">Terhubung ke ortu, belum ke siswa</option><option value="sisNoOrtu">Siswa terhubung, user tidak punya no ortu</option><option value="sisOrtuBelum">Siswa terhubung, no ortu ada tapi belum terhubung</option><option value="ortNoSiswa">Ortu terhubung, user tidak punya no siswa</option><option value="ortSiswaBelum">Ortu terhubung, no siswa ada tapi belum terhubung</option><option value="bothConn">Terhubung ke siswa dan ortu</option><option value="nonum">Tanpa nomor valid</option></select></label>
             <label>Cari nama<input class="eu-f ct-sel" data-f="q" type="search" placeholder="nama user..."></label>
             <button type="button" class="eu-toggle-all" data-open="1">Buka semua</button>
             <button type="button" class="eu-toggle-all" data-open="0">Tutup semua</button>
@@ -3382,6 +3416,7 @@
         <div class="ut-an-stats eu-stats" id="euSummary"><div class="ut-an-stat"><span>Status</span><b>Memuat kontak...</b></div></div>
         <div class="ct-block">
           <div class="panel-head"><h2>Per Agent</h2><span class="note">klik nama agent untuk memfilter daftar kontak di bawah</span></div>
+          <div class="eu-seg" id="euSeg"><button type="button" data-v="call" class="on">Ringkasan call</button><button type="button" data-v="who">Siswa vs Ortu</button></div>
           <div id="euAgents"></div>
         </div>
         <div class="ct-block">
@@ -8646,6 +8681,7 @@
     const EXTEND_SHEET_NAME = "extend user";
     const EU_PAGE = 150;
     const euOpen = new Set();
+    let euAgView = "call";
     let euUsers = [], euLoaded = false, euLoading = false, euShown = EU_PAGE, euIndex = null, euIndexFor = null;
     function euNorm(value) {
       let s = String(value ?? "").replace(/\D/g, "");
@@ -8741,6 +8777,9 @@
         u.calls = u.nums.map((x) => ({ ...x, ...(idx.get(x.n) || { dial: 0, ans: 0, conn: 0 }) }));
         u.dial = u.calls.reduce((s, x) => s + x.dial, 0); u.ans = u.calls.reduce((s, x) => s + x.ans, 0); u.conn = u.calls.reduce((s, x) => s + x.conn, 0);
         u.untouched = u.calls.filter((x) => !x.dial).length;
+        u.connS = u.calls.filter((x) => x.role === "Siswa").reduce((t, x) => t + x.conn, 0); u.connO = u.calls.filter((x) => x.role === "Ortu").reduce((t, x) => t + x.conn, 0);
+        u.hasOrtu = u.nums.some((x) => x.role === "Ortu"); u.hasSiswa = u.nums.some((x) => x.role === "Siswa");
+        u.who = !u.conn ? "" : u.connS && u.connO ? "both" : u.connS ? "sis" : u.connO ? "ort" : "lain";
         u.status = !u.nums.length ? "nonum" : !u.dial ? "none" : u.conn ? "conn" : u.dial === 1 ? "once" : "noconn";
       });
     }
@@ -8754,7 +8793,7 @@
       const g = euVal;
       const cat = g("cat"), st = g("status"), q = g("q").toLowerCase().trim();
       return euScope().filter((u) => (!cat || u.cat === cat)
-        && (!st || (st === "partial" ? (u.nums.length > 1 && u.untouched > 0 && u.dial > 0) : st === "noconn3" ? (u.status !== "conn" && u.dial >= 3) : u.status === st))
+        && (!st || (st === "partial" ? (u.nums.length > 1 && u.untouched > 0 && u.dial > 0) : st === "noconn3" ? (u.status !== "conn" && u.dial >= 3) : st === "sisOnly" ? (u.connS > 0 && !u.connO) : st === "ortOnly" ? (u.connO > 0 && !u.connS) : st === "sisNoOrtu" ? (u.who === "sis" && !u.hasOrtu) : st === "sisOrtuBelum" ? (u.who === "sis" && u.hasOrtu) : st === "ortNoSiswa" ? (u.who === "ort" && !u.hasSiswa) : st === "ortSiswaBelum" ? (u.who === "ort" && u.hasSiswa) : st === "bothConn" ? (u.connS > 0 && u.connO > 0) : u.status === st))
         && (!q || u.name.toLowerCase().includes(q)));
     }
     function euCell(x) {
@@ -8789,12 +8828,23 @@
         stat("Belum di-call", cnt(all, "none"), pc(cnt(all, "none"), all.length) + " dari kontak") +
         stat("Baru 1x, belum terhubung", cnt(all, "once"), pc(cnt(all, "once"), all.length)) +
         stat("Sudah di-call, belum terhubung", cnt(all, "noconn"), pc(cnt(all, "noconn"), all.length)) +
-        stat("Sudah terhubung", cnt(all, "conn"), pc(cnt(all, "conn"), all.length) + " (≥ 2 menit)");
+        stat("Sudah terhubung (user)", cnt(all, "conn"), pc(cnt(all, "conn"), all.length) + " · siswa atau ortu terhubung ≥ 2 menit, dihitung 1");
       /* ringkasan per agent */
-      const byAgent = [...new Set(all.map((u) => u.agent))].sort().map((a) => { const us = all.filter((u) => u.agent === a); return { a, coach: us[0]?.coach || "", n: us.length, none: cnt(us, "none"), once: cnt(us, "once"), noconn: cnt(us, "noconn"), conn: cnt(us, "conn"), dial: us.reduce((s, u) => s + u.dial, 0), ...({ d1: us.filter((u) => u.dial === 1).length, d2: us.filter((u) => u.dial === 2).length, d3: us.filter((u) => u.dial >= 3).length }) }; }).sort((x, y) => y.n - x.n);
+      const byAgent = [...new Set(all.map((u) => u.agent))].sort().map((a) => { const us = all.filter((u) => u.agent === a); return { a, coach: us[0]?.coach || "", n: us.length, none: cnt(us, "none"), once: cnt(us, "once"), noconn: cnt(us, "noconn"), conn: cnt(us, "conn"), sh: us.filter((u) => u.who === "sis" && u.hasOrtu).length, ts: us.filter((u) => u.connS > 0).length, to: us.filter((u) => u.connO > 0).length, ws: us.filter((u) => u.who === "sis").length, wo: us.filter((u) => u.who === "ort").length, wb: us.filter((u) => u.who === "both").length, wl: us.filter((u) => u.who === "lain").length, dial: us.reduce((s, u) => s + u.dial, 0), ...({ d1: us.filter((u) => u.dial === 1).length, d2: us.filter((u) => u.dial === 2).length, d3: us.filter((u) => u.dial >= 3).length }) }; }).sort((x, y) => y.n - x.n);
       const selAgents = splitFilterValue(sel?.value || "");
       
-      document.getElementById("euAgents").innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Agent</th><th>Coach</th><th>Kontak</th><th>Total dial</th><th class="ct-off">Belum di-call</th><th>Di-call 1×</th><th>Di-call 2×</th><th>Di-call 3×+</th><th>Baru 1x</th><th>Belum terhubung</th><th class="ct-key">Terhubung</th><th class="ct-key">% terhubung</th><th>% tersentuh</th></tr></thead><tbody>${byAgent.map((x) => `<tr class="eu-arow${selAgents.includes(x.a) ? " open" : ""}" data-agent="${escapeHtml(x.a)}"><td class="ct-first ct-click2">${escapeHtml(x.a)}</td><td class="eu-coachcell">${escapeHtml(x.coach)}</td><td>${x.n}</td><td>${number.format(x.dial)}</td><td class="ct-off">${x.none}</td><td>${x.d1}</td><td>${x.d2}</td><td>${x.d3}</td><td>${x.once}</td><td>${x.noconn}</td><td class="ct-key">${x.conn}</td><td class="ct-key">${pc(x.conn, x.n)}</td><td>${pc(x.n - x.none, x.n)}</td></tr>`).join("")}</tbody></table></div>`;
+      const COLS = {
+        call: [["Kontak", "n"], ["Total dial", "dial", "num"], ["Belum di-call", "none", "off"], ["Di-call 1×", "d1"], ["Di-call 2×", "d2"], ["Di-call 3×+", "d3"], ["Baru 1x", "once"], ["Belum terhubung", "noconn"], ["Total terhubung (user)", "conn", "key"], ["% terhubung", "pct", "key"], ["% tersentuh", "touch"]],
+        who: [["Kontak", "n"], ["Total terhubung (user)", "conn", "key"], ["Terh. ke siswa", "ts", "", "user yang nomor siswanya pernah terhubung (termasuk yang ortunya juga)"], ["Terh. ke ortu", "to", "", "user yang nomor ortunya pernah terhubung (termasuk yang siswanya juga)"], ["Siswa saja, ortu belum", "ws", "sis", "siswa terhubung, ortu belum terhubung sama sekali"], ["…punya no ortu", "sh", "sis2", "dari kolom di kiri: user yang punya nomor ortu (tapi ortunya belum terhubung)"], ["Ortu saja, siswa belum", "wo", "ort", "ortu terhubung, siswa belum terhubung sama sekali"], ["Keduanya", "wb"], ["Nomor lain saja", "wl"]]
+      };
+      const view = euAgView, cols = COLS[view];
+      const val = (x, k) => k === "pct" ? pc(x.conn, x.n) : k === "touch" ? pc(x.n - x.none, x.n) : k === "dial" ? number.format(x.dial) : x[k];
+      const tot = (k) => { const t = (kk) => byAgent.reduce((a, x) => a + x[kk], 0); return k === "pct" ? pc(t("conn"), t("n")) : k === "touch" ? pc(t("n") - t("none"), t("n")) : k === "dial" ? number.format(t("dial")) : t(k); };
+      const th = cols.map(([l, , c, tip]) => `<th class="${c === "off" ? "ct-off" : c === "key" ? "ct-key" : c ? "eu-w-" + c : ""}"${tip ? ` title="${tip}"` : ""}>${l}</th>`).join("");
+      const CLICKABLE = new Set(["n", "none", "d1", "d2", "d3", "once", "noconn", "conn", "ts", "to", "ws", "sh", "wo", "wb", "wl"]);
+      const tds = (x, tot_) => cols.map(([, k, c]) => `<td class="${c === "off" ? "ct-off" : c === "key" ? "ct-key" : c ? "eu-w-" + c : ""}${CLICKABLE.has(k) ? " eu-numcell" : ""}"${CLICKABLE.has(k) ? ` data-k="${k}" title="klik untuk melihat nama dan nomor user"` : ""}>${tot_ ? tot(k) : val(x, k)}</td>`).join("");
+      document.getElementById("euAgents").innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Agent</th><th>Coach</th>${th}</tr></thead><tbody>${byAgent.map((x) => `<tr class="eu-arow${selAgents.includes(x.a) ? " open" : ""}" data-agent="${escapeHtml(x.a)}"><td class="ct-first ct-click2">${escapeHtml(x.a)}</td><td class="eu-coachcell">${escapeHtml(x.coach)}</td>${tds(x)}</tr>`).join("")}<tr class="eu-total"><td class="ct-first">TOTAL</td><td></td>${tds(null, true)}</tr></tbody></table></div><div class="eu-foot">${view === "who" ? "Total terhubung dihitung per <b>user</b>: kalau siswa dan ortu dalam satu user sama-sama terhubung, tetap dihitung 1. Terh. ke siswa + Terh. ke ortu bisa lebih besar dari total. <b>Siswa saja + Ortu saja + Keduanya + Nomor lain saja = Total terhubung.</b> Kolom \"…punya no ortu\" adalah bagian dari kolom di sebelah kirinya (sisanya tidak punya nomor ortu). <b>Klik angka</b> untuk melihat nama dan nomor user-nya." : "Total terhubung dihitung per user (siswa atau ortu terhubung ≥ 2 menit dihitung 1). Untuk perbandingan siswa vs ortu, pilih tampilan \"Siswa vs Ortu\"."}</div>`;
+      document.querySelectorAll("#euSeg button").forEach((b) => b.classList.toggle("on", b.dataset.v === view));
       /* tabel kontak: dua tabel (VO dan non VO), baris induk per agent */
       document.getElementById("euCount").textContent = `${number.format(list.length)} kontak sesuai filter · klik nama agent untuk membuka user-nya`;
       const prio = { none: 0, once: 1, noconn: 2, conn: 3, nonum: 4 };
@@ -8805,27 +8855,30 @@
         const arr = [...groups.entries()].map(([a, us]) => ({ a, us: us.slice().sort((x, y) => prio[x.status] - prio[y.status] || x.name.localeCompare(y.name)) })).sort((x, y) => (cnt(y.us, "none") + cnt(y.us, "once")) - (cnt(x.us, "none") + cnt(x.us, "once")) || y.us.length - x.us.length);
         const body = arr.map(({ a, us }) => {
           const key = `${isVO ? "vo" : "non"}|${a}`; const open = euOpen.has(key);
-          const n = us.length, none = cnt(us, "none"), once = cnt(us, "once"), noconn = cnt(us, "noconn"), conn = cnt(us, "conn");
-          const parent = `<tr class="eu-parent${open ? " open" : ""}" data-key="${escapeHtml(key)}"><td class="ct-first eu-pname"><span class="ct-caret">${open ? "▾" : "▸"}</span> ${escapeHtml(a)} <small>${n} user</small></td><td colspan="3" class="eu-chips"><span class="eu-chip bad">belum di-call <b>${none}</b></span><span class="eu-chip">di-call 1× <b>${us.filter((u) => u.dial === 1).length}</b></span><span class="eu-chip">2× <b>${us.filter((u) => u.dial === 2).length}</b></span><span class="eu-chip">3×+ <b>${us.filter((u) => u.dial >= 3).length}</b></span><span class="eu-chip warn">baru 1× belum terhubung <b>${once}</b></span><span class="eu-chip warn">belum terhubung <b>${noconn}</b></span><span class="eu-chip good">terhubung <b>${conn}</b></span></td><td><b>${us.reduce((s2, u) => s2 + u.dial, 0)}</b></td><td class="ct-key">${conn}</td><td class="ct-key">${pc(conn, n)}</td></tr>`;
-          const kids = open ? us.map((u) => { const st = EU_STATUS[u.status]; return `<tr class="eu-child"><td class="ct-first eu-uname">${escapeHtml(u.name)}${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}</td><td>${euRoleCell(u, "Siswa")}</td><td>${euRoleCell(u, "Ortu")}</td><td>${euRoleCell(u, "Lain")}</td><td><b>${u.dial}</b></td><td class="ct-key">${u.conn}</td><td class="ct-lbl-cell"><span class="ct-pill ${st.c}">${st.t}</span></td></tr>`; }).join("") : "";
+          const n = us.length, none = cnt(us, "none"), once = cnt(us, "once"), noconn = cnt(us, "noconn"), conn = cnt(us, "conn"), wS = us.filter((u) => u.who === "sis").length, wO = us.filter((u) => u.who === "ort").length, wB = us.filter((u) => u.who === "both").length, wL = us.filter((u) => u.who === "lain").length;
+          const rd = (role) => us.reduce((t, u) => t + u.calls.filter((x) => x.role === role).reduce((t2, x) => t2 + x.dial, 0), 0);
+          const dcell = (v) => `<td class="eu-tcell"><b>${v}×</b> <small>total dial</small></td>`;
+          const parent = `<tr class="eu-parent${open ? " open" : ""}" data-key="${escapeHtml(key)}"><td class="ct-first eu-pname"><span class="ct-caret">${open ? "▾" : "▸"}</span> ${escapeHtml(a)} <small>${n} user</small></td>${dcell(rd("Siswa"))}${dcell(rd("Ortu"))}${dcell(rd("Lain"))}<td><b>${us.reduce((s2, u) => s2 + u.dial, 0)}</b></td><td class="eu-tcell"><b>${wS}</b> <small>user</small></td><td class="eu-tcell"><b>${wO}</b> <small>user</small></td><td class="eu-tcell"><b>${wB}</b> <small>user</small></td><td class="ct-key">${conn}</td><td class="ct-key">${pc(conn, n)}</td></tr>`
+            + `<tr class="eu-chiprow${open ? " open" : ""}" data-key="${escapeHtml(key)}"><td colspan="10" class="eu-chips"><span class="eu-chiplbl">Sebaran user:</span><span class="eu-chip bad">belum di-call <b>${none}</b></span><span class="eu-chip">di-call 1× <b>${us.filter((u) => u.dial === 1).length}</b></span><span class="eu-chip">2× <b>${us.filter((u) => u.dial === 2).length}</b></span><span class="eu-chip">3×+ <b>${us.filter((u) => u.dial >= 3).length}</b></span><span class="eu-chip warn">baru 1× belum terhubung <b>${once}</b></span><span class="eu-chip warn">belum terhubung <b>${noconn}</b></span><span class="eu-chip good">terhubung <b>${conn}</b> <small>(= siswa saja ${wS} + ortu saja ${wO} + keduanya ${wB}${wL ? ` + nomor lain saja ${wL}` : ""})</small></span></td></tr>`;
+          const kids = open ? us.map((u) => { const st = EU_STATUS[u.status]; return `<tr class="eu-child"><td class="ct-first eu-uname">${escapeHtml(u.name)}${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}</td><td>${euRoleCell(u, "Siswa")}</td><td>${euRoleCell(u, "Ortu")}</td><td>${euRoleCell(u, "Lain")}</td><td><b>${u.dial}</b></td>${["sis", "ort", "both"].map((k) => `<td class="eu-tcell">${u.who === k ? `<b class="ct-up">✓</b>` : `<span class="eu-none">–</span>`}</td>`).join("")}<td class="ct-key">${u.conn}</td><td class="ct-lbl-cell"><span class="ct-pill ${st.c}">${st.t}</span></td></tr>`; }).join("") : "";
           return parent + kids;
         }).join("");
-        document.getElementById(boxId).innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table eu-table"><thead><tr><th class="ct-first">Agent / User</th><th>No Siswa</th><th>No Ortu</th><th>Nomor lain</th><th>Total dial</th><th class="ct-key">Terhubung</th><th class="ct-key">% terhubung / Status</th></tr></thead><tbody>${body || `<tr><td colspan="7" class="empty">Tidak ada kontak sesuai filter.</td></tr>`}</tbody></table></div>`;
+        document.getElementById(boxId).innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table eu-table"><thead><tr><th class="ct-first">Agent / User</th><th>No Siswa</th><th>No Ortu</th><th>Nomor lain</th><th>Total dial</th><th>Terh. siswa saja</th><th>Terh. ortu saja</th><th>Terh. keduanya</th><th class="ct-key">Terhubung</th><th class="ct-key">% terhubung / Status</th></tr></thead><tbody>${body || `<tr><td colspan="10" class="empty">Tidak ada kontak sesuai filter.</td></tr>`}</tbody></table></div>`;
       };
       section(true, "euTableVO", "euCountVO");
       section(false, "euTableNon", "euCountNon");
     }
-    function euExport() {
+    function euExport(listArg, tag) {
       euEnrich();
-      const list = euFiltered();
+      const list = listArg || euFiltered();
       const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
       const num = (n) => `="0${n}"`;
       const pick = (u, role) => u.calls.filter((x) => x.role === role);
       const cell = (u, role, f) => pick(u, role).map(f).join(" | ");
-      const head = ["Agent", "Coach", "User", "Kategori", "Kelas", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log"];
+      const head = ["Agent", "Coach", "User", "Kategori", "Kelas", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "Terhubung Via", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log"];
       const lines = [head.map(q).join(",")];
       list.forEach((u) => {
-        lines.push([u.agent, u.coach, u.name, u.cat, u.kelas, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn,
+        lines.push([u.agent, u.coach, u.name, u.cat, u.kelas, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn, ({ both: "Siswa dan ortu", sis: "Siswa saja", ort: "Ortu saja", lain: "Nomor lain saja" }[u.who] || ""),
           cell(u, "Siswa", (x) => x.n) ? num(pick(u, "Siswa")[0].n) : "", pick(u, "Siswa").reduce((s, x) => s + x.dial, 0), pick(u, "Siswa").reduce((s, x) => s + x.ans, 0), pick(u, "Siswa").reduce((s, x) => s + x.conn, 0),
           pick(u, "Ortu").length ? num(pick(u, "Ortu")[0].n) : "", pick(u, "Ortu").reduce((s, x) => s + x.dial, 0), pick(u, "Ortu").reduce((s, x) => s + x.ans, 0), pick(u, "Ortu").reduce((s, x) => s + x.conn, 0),
           pick(u, "Lain").map((x) => `0${x.n}`).join(" | "), cell(u, "Lain", (x) => x.dial), cell(u, "Lain", (x) => x.conn), u.log].map(q).join(","));
@@ -8834,14 +8887,42 @@
       const av = splitFilterValue(euVal("agent")), cv = splitFilterValue(euVal("coach"));
       const agent = av.length === 1 ? av[0] : av.length ? "beberapa-agent" : cv.length === 1 ? cv[0] : cv.length ? "beberapa-coach" : "semua-agent";
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-      a.download = `extend-user-${agent.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `extend-user-${tag ? tag + "-" : ""}${agent.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     }
+    const EU_PRED = {
+      n: () => true, none: (u) => u.status === "none", d1: (u) => u.dial === 1, d2: (u) => u.dial === 2, d3: (u) => u.dial >= 3, once: (u) => u.status === "once", noconn: (u) => u.status === "noconn",
+      conn: (u) => u.conn > 0, ts: (u) => u.connS > 0, to: (u) => u.connO > 0, ws: (u) => u.who === "sis", sh: (u) => u.who === "sis" && u.hasOrtu, wo: (u) => u.who === "ort", wb: (u) => u.who === "both", wl: (u) => u.who === "lain"
+    };
+    const EU_PRED_LABEL = { n: "Semua kontak", none: "Belum di-call", d1: "Di-call 1×", d2: "Di-call 2×", d3: "Di-call 3×+", once: "Baru 1× belum terhubung", noconn: "Sudah di-call, belum terhubung", conn: "Total terhubung (user)", ts: "Terhubung ke siswa", to: "Terhubung ke ortu", ws: "Siswa terhubung, ortu belum terhubung", sh: "Siswa terhubung, ortu belum terhubung (punya no ortu)", wo: "Ortu terhubung, siswa belum terhubung", wb: "Siswa dan ortu terhubung", wl: "Terhubung hanya lewat nomor lain" };
+    let euModalList = [], euModalTag = "";
+    function euOpenModal(agent, k) {
+      euEnrich();
+      const list = euScope().filter((u) => (agent === "*" || u.agent === agent) && EU_PRED[k](u));
+      list.sort((a, b) => a.agent.localeCompare(b.agent) || a.name.localeCompare(b.name));
+      euModalList = list; euModalTag = k;
+      let box = document.getElementById("euModal");
+      if (!box) { box = document.createElement("div"); box.id = "euModal"; document.body.appendChild(box); }
+      const shown = list.slice(0, 500);
+      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}${agent === "*" ? `<br><small>${escapeHtml(u.agent)}</small>` : ""}</td><td>${euRoleCell(u, "Siswa")}</td><td>${euRoleCell(u, "Ortu")}</td><td>${euRoleCell(u, "Lain")}</td><td><span class="ct-pill ${EU_STATUS[u.status].c}">${EU_STATUS[u.status].t}</span></td></tr>`).join("");
+      box.innerHTML = `<div class="eu-m-back" data-close="1"><div class="eu-m-card" role="dialog" aria-label="Daftar user"><div class="eu-m-head"><div><b>${escapeHtml(agent === "*" ? "Semua agent" : agent)}</b> · ${escapeHtml(EU_PRED_LABEL[k])} <span class="eu-m-count">${list.length} user</span></div><div><button type="button" class="eu-export-list">Export CSV</button><button type="button" data-close="1">Tutup</button></div></div><div class="eu-m-body"><table class="ct-table eu-table"><thead><tr><th class="ct-first">User</th><th>No Siswa</th><th>No Ortu</th><th>Nomor lain</th><th>Status</th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="empty">Tidak ada user.</td></tr>`}</tbody></table>${list.length > shown.length ? `<div class="eu-foot">Menampilkan ${shown.length} dari ${list.length} user. Export CSV untuk daftar lengkap.</div>` : ""}</div></div></div>`;
+      box.style.display = "block";
+    }
+    function euCloseModal() { const b = document.getElementById("euModal"); if (b) b.style.display = "none"; }
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") euCloseModal(); });
+    document.addEventListener("click", (e) => {
+      if (e.target.closest && e.target.closest(".eu-export-list")) { euExport(euModalList, euModalTag); return; }
+      const cl = e.target.closest && e.target.closest("#euModal [data-close]");
+      if (cl && (cl.tagName === "BUTTON" || e.target === cl)) { euCloseModal(); return; }
+      const nc = e.target.closest && e.target.closest(".eu-numcell");
+      if (nc) { const tr = nc.closest("tr"); euOpenModal(tr.classList.contains("eu-total") ? "*" : tr.dataset.agent, nc.dataset.k); return; }
+    });
     document.addEventListener("click", (e) => {
       if (e.target.closest && e.target.closest(".eu-export")) { euExport(); return; }
       const ta = e.target.closest && e.target.closest(".eu-toggle-all");
       if (ta) { if (ta.dataset.open === "1") { euFiltered().forEach((u) => euOpen.add(`${u.cat === "Voucher Owner" ? "vo" : "non"}|${u.agent}`)); } else euOpen.clear(); renderExtendUser(); return; }
-      const par = e.target.closest && e.target.closest(".eu-parent");
+      const sg = e.target.closest && e.target.closest("#euSeg button"); if (sg) { euAgView = sg.dataset.v; renderExtendUser(); return; }
+      const par = e.target.closest && e.target.closest(".eu-parent, .eu-chiprow");
       if (par) { const k = par.dataset.key; if (euOpen.has(k)) euOpen.delete(k); else euOpen.add(k); renderExtendUser(); return; }
       const td = e.target.closest && e.target.closest(".ct-click2"); if (!td) return;
       const sel = document.querySelector('.eu-f[data-f="agent"]'); const name = td.closest("tr").dataset.agent;

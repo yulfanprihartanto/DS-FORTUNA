@@ -1447,6 +1447,61 @@
       margin: 12px 0 16px;
     }
 
+
+    /* ---------- RAPOR KEHADIRAN BELAJAR ---------- */
+    .rp-btn { border: 1px solid #0f9aa0; background: #e6f7f8; color: #0b6f74; border-radius: 8px; padding: 4px 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .rp-btn:hover { background: #cdeff1; }
+    .rp-modal { position: fixed; inset: 0; background: rgba(8, 20, 28, .72); z-index: 9999; display: flex; align-items: flex-start; justify-content: center; overflow: auto; padding: 24px 12px; }
+    .rp-modal[hidden] { display: none; }
+    .rp-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .rp-actions { display: flex; gap: 8px; }
+    .rp-actions button { border: 0; border-radius: 10px; padding: 9px 18px; font-weight: 800; cursor: pointer; font-size: 13px; }
+    .rp-save { background: #ff8a1f; color: #fff; }
+    .rp-close { background: #fff; color: #17323a; }
+    .rp-card { width: 720px; max-width: 100%; background: #f3fbfb; border-radius: 22px; overflow: hidden; font-family: "Segoe UI", Arial, sans-serif; color: #17323a; box-shadow: 0 18px 50px rgba(0,0,0,.35); }
+    .rp-head { background: linear-gradient(135deg, #0b7c82 0%, #19b5bb 100%); color: #fff; padding: 22px 28px 26px; position: relative; }
+    .rp-head:after { content: ""; position: absolute; right: -40px; top: -50px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.1); }
+    .rp-brand { font-size: 12px; letter-spacing: .14em; font-weight: 800; text-transform: uppercase; opacity: .9; }
+    .rp-title { font-size: 26px; font-weight: 900; margin: 6px 0 2px; }
+    .rp-name { font-size: 17px; font-weight: 700; }
+    .rp-sub { font-size: 12px; opacity: .85; margin-top: 2px; }
+    .rp-hero { display: flex; gap: 22px; align-items: center; background: #fff; margin: -14px 20px 0; border-radius: 18px; padding: 18px 22px; box-shadow: 0 6px 18px rgba(11,124,130,.18); position: relative; z-index: 2; }
+    .rp-ring { position: relative; width: 112px; height: 112px; flex: none; }
+    .rp-ring svg { width: 112px; height: 112px; transform: rotate(-90deg); }
+    .rp-ring-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .rp-ring-num b { font-size: 30px; line-height: 1; }
+    .rp-ring-num span { font-size: 10px; font-weight: 700; color: #6b8087; margin-top: 2px; }
+    .rp-verdict { font-size: 28px; font-weight: 900; line-height: 1.1; }
+    .rp-msg { font-size: 14px; color: #44606a; margin-top: 6px; line-height: 1.45; }
+    .rp-row { display: grid; grid-template-columns: 1.25fr 1fr; gap: 12px; padding: 14px 20px 0; }
+    .rp-hadir { background: linear-gradient(135deg, #14a35c, #35c97f); color: #fff; border-radius: 16px; padding: 14px 18px; }
+    .rp-hadir small, .rp-konsis small { font-size: 11px; font-weight: 700; opacity: .9; display: block; }
+    .rp-hadir b { font-size: 40px; line-height: 1.05; }
+    .rp-hadir b i { font-size: 16px; font-style: normal; font-weight: 700; margin-left: 6px; }
+    .rp-hadir em { display: block; font-style: normal; font-size: 12px; margin-top: 2px; opacity: .95; }
+    .rp-konsis { background: #fff3e4; border: 2px solid #ffb868; border-radius: 16px; padding: 14px 18px; color: #7a4308; }
+    .rp-konsis b { font-size: 34px; line-height: 1.05; color: #e8710a; }
+    .rp-konsis em { display: block; font-style: normal; font-size: 12px; margin-top: 2px; }
+    .rp-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px 20px 0; }
+    .rp-tile { background: #fff; border-radius: 14px; padding: 11px 12px; border: 1px solid #d8eced; }
+    .rp-tile small { display: block; font-size: 10.5px; font-weight: 700; color: #6b8087; }
+    .rp-tile b { display: block; font-size: 19px; margin-top: 3px; color: #0b6f74; word-break: break-word; }
+    .rp-block { background: #fff; border: 1px solid #d8eced; border-radius: 16px; margin: 12px 20px 0; padding: 14px 16px; }
+    .rp-block h4 { margin: 0 0 10px; font-size: 13px; font-weight: 800; color: #0b6f74; display: flex; justify-content: space-between; }
+    .rp-block h4 span { font-weight: 600; color: #6b8087; font-size: 11px; }
+    .rp-bars { display: flex; gap: 8px; align-items: flex-end; height: 120px; }
+    .rp-bar { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+    .rp-bar i { display: block; width: 100%; max-width: 38px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #19b5bb, #0b7c82); min-height: 4px; }
+    .rp-bar i.zero { background: #dfe9ea; height: 4px !important; }
+    .rp-bar b { font-size: 12px; margin-bottom: 3px; color: #17323a; }
+    .rp-bar span { font-size: 10.5px; color: #6b8087; margin-top: 4px; font-weight: 700; }
+    .rp-subj { display: grid; gap: 7px; }
+    .rp-subj div { display: grid; grid-template-columns: 120px 1fr 34px; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 700; }
+    .rp-subj em { display: block; height: 10px; border-radius: 6px; background: #e3eff0; overflow: hidden; }
+    .rp-subj em i { display: block; height: 100%; background: linear-gradient(90deg, #ff9a3c, #ff7a00); border-radius: 6px; }
+    .rp-badges { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px 0; }
+    .rp-badge { background: #fff; border: 1px solid #ffc890; color: #8a4a06; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 800; }
+    .rp-foot { padding: 14px 24px 18px; font-size: 10.5px; color: #6b8087; line-height: 1.5; }
     .activity-load-button {
       border: 1px solid rgba(30, 151, 166, .42);
       border-radius: 10px;
@@ -6083,6 +6138,8 @@
       phone: ["user_cellphone_number", "user cellphone number", "cellphone number", "phone", "nomor"],
       product: ["product_type", "product type", "tipe produk"],
       baoType: ["bao_type", "bao type"],
+      week: ["MINGGU", "minggu", "week"],
+      subject: ["MATA PELAJARAN", "mata pelajaran", "subject_tag", "subject"],
       event: ["event_name", "event name", "nama event"]
     };
 
@@ -6206,6 +6263,10 @@
           _durationTotal: durationTotal,
           _durationCount: durationCount,
           _product: clean(row[header.product]) || clean(row[header.baoType]),
+          _bao: clean(row[header.baoType]),
+          _week: Math.round(activityRenewalNumber(row[header.week])) || Number(weekNumberFromDate(dateKey || rawDate)) || 0,
+          _subject: clean(row[header.subject]),
+          _detail: !isAggregated && Boolean(dateKey),
           _event: clean(row[header.event])
         };
       }).filter((row) => row._userKey || row._dateKey || row._event);
@@ -6269,6 +6330,7 @@
           _userName: name || email || "Kosong",
           _phone: phone,
           _userKey: normalizeName(email) || normalizeName(name),
+          _week: Number(weekNumberFromDate(dateKey || rawDate)) || 0,
           _booking: activityRenewalNumber(row[header.booking]),
           _attend: activityRenewalNumber(row[header.attend])
         };
@@ -6435,6 +6497,113 @@
       return Number.isFinite(value) ? `${decimal.format(value)}%` : "—";
     }
 
+
+    /* ---------- RAPOR KEHADIRAN BELAJAR (live teaching + sesi tutor digabung) ---------- */
+    const rpDec = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 });
+    function rpIsoWeek(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const day = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - day);
+      const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - ys) / 86400000) + 1) / 7);
+    }
+    function rpVerdict(score) {
+      if (score >= 80) return { label: "Sangat Rajin", color: "#14a35c", msg: "Kehadiranmu luar biasa! Ritme belajarmu konsisten, pertahankan terus ya." };
+      if (score >= 60) return { label: "Rajin", color: "#19a7ad", msg: "Kehadiranmu sudah bagus. Sedikit lagi lebih rutin tiap minggu, hasilnya akan makin terasa." };
+      if (score >= 40) return { label: "Cukup", color: "#f0a020", msg: "Sudah ada kemajuan. Yuk lebih rutin hadir di sesi mingguan supaya belajarmu makin kuat." };
+      return { label: "Perlu Ditingkatkan", color: "#e5533d", msg: "Kehadiranmu masih sedikit. Mulai dari 1-2 sesi per minggu, pelan-pelan pasti terbiasa!" };
+    }
+    function rpBuild(userKey) {
+      const live = activityRenewalRows.filter((r) => r._userKey === userKey && r._detail);
+      const tutor = tutorSessionRows.filter((r) => r._userKey === userKey || (live[0] && r._email && normalizeName(r._email) === normalizeName(live[0]._email)));
+      if (!live.length && !tutor.length) return null;
+      const liveCount = live.reduce((t, r) => t + (r._attendance || 1), 0);
+      const tutorAttend = tutor.reduce((t, r) => t + r._attend, 0);
+      const tutorBooking = tutor.reduce((t, r) => t + r._booking, 0);
+      const total = liveCount + tutorAttend;
+      const minutes = live.reduce((t, r) => t + r._minutes, 0);
+      const durRows = live.filter((r) => r._durationCount);
+      const avgDur = durRows.length ? durRows.reduce((t, r) => t + r._durationTotal, 0) / durRows.length : 0;
+      const perWeek = new Map();
+      live.forEach((r) => { if (r._week) perWeek.set(r._week, (perWeek.get(r._week) || 0) + (r._attendance || 1)); });
+      tutor.forEach((r) => { if (r._week && r._attend > 0) perWeek.set(r._week, (perWeek.get(r._week) || 0) + r._attend); });
+      const weeks = [...perWeek.keys()].sort((a, b) => a - b);
+      if (!weeks.length) return null;
+      const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+      let endWeek = Math.max(rpIsoWeek(yesterday), weeks[weeks.length - 1]);
+      if (endWeek - weeks[0] > 30) endWeek = weeks[weeks.length - 1];
+      const startWeek = weeks[0];
+      const span = endWeek - startWeek + 1;
+      const active = weeks.length;
+      const consistency = Math.min(1, active / span);
+      const volume = Math.min(1, (total / active) / 3);
+      const score = Math.round(100 * (0.5 * consistency + 0.3 * Math.min(1, avgDur / 100) + 0.2 * volume));
+      let best = 0, run = 0;
+      for (let w = startWeek; w <= endWeek; w++) { if (perWeek.has(w)) { run++; best = Math.max(best, run); } else run = 0; }
+      const shownStart = Math.max(startWeek, endWeek - 11);
+      const bars = [];
+      for (let w = shownStart; w <= endWeek; w++) bars.push({ week: w, n: perWeek.get(w) || 0 });
+      const subj = new Map();
+      live.forEach((r) => { if (r._subject) subj.set(r._subject, (subj.get(r._subject) || 0) + 1); });
+      const subjects = [...subj.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const bao = (live.find((r) => r._bao) || {})._bao || "";
+      const name = (live[0] && live[0]._userName) || (tutor[0] && tutor[0]._userName) || "Siswa";
+      return { name, bao, liveCount, tutorAttend, tutorBooking, total, minutes, avgDur, active, span, startWeek, endWeek, consistency, score, best, bars, subjects, verdict: rpVerdict(score) };
+    }
+    function rpCardHtml(d) {
+      const v = d.verdict;
+      const circ = 2 * Math.PI * 48;
+      const hours = d.minutes / 60;
+      const maxBar = Math.max(1, ...d.bars.map((b) => b.n));
+      const maxSubj = Math.max(1, ...d.subjects.map((x) => x[1]));
+      const badges = [];
+      if (d.best >= 3) badges.push(`Streak ${d.best} minggu beruntun`);
+      if (d.avgDur >= 80) badges.push("Fokus menonton sampai tuntas");
+      if (d.active === d.span && d.span >= 2) badges.push("Hadir setiap minggu");
+      if (d.liveCount >= 10) badges.push(`${d.liveCount}+ sesi live`);
+      if (d.tutorAttend >= 1) badges.push("Aktif konsultasi tutor");
+      const bao = d.bao ? d.bao.replace(/^BRAINACADEMYONLINE_/i, "").replace(/_/g, " ") : "";
+      return `<div class="rp-card" id="rpCard">
+        <div class="rp-head"><div class="rp-brand">Brain Academy Online</div><div class="rp-title">Rapor Kehadiran Belajar</div><div class="rp-name">${escapeHtml(d.name)}</div><div class="rp-sub">Minggu ke-${d.startWeek} s.d. ke-${d.endWeek}${bao ? ` · Paket ${escapeHtml(bao)}` : ""}</div></div>
+        <div class="rp-hero"><div class="rp-ring"><svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="48" fill="none" stroke="#e3eff0" stroke-width="12"/><circle cx="56" cy="56" r="48" fill="none" stroke="${v.color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(circ * d.score / 100).toFixed(1)} ${circ.toFixed(1)}"/></svg><div class="rp-ring-num"><b style="color:${v.color}">${d.score}</b><span>SKOR</span></div></div>
+          <div><div class="rp-verdict" style="color:${v.color}">${escapeHtml(v.label)}</div><div class="rp-msg">${escapeHtml(v.msg)}</div></div></div>
+        <div class="rp-row"><div class="rp-hadir"><small>TOTAL KEHADIRAN</small><b>${number.format(d.total)}<i>sesi</i></b><em>Live teaching ${number.format(d.liveCount)} · Sesi tutor ${number.format(d.tutorAttend)}</em></div>
+          <div class="rp-konsis"><small>KONSISTENSI MINGGUAN</small><b>${d.active}<i style="font-size:16px;font-style:normal;font-weight:700"> / ${d.span}</i></b><em>minggu aktif belajar</em></div></div>
+        <div class="rp-tiles"><div class="rp-tile"><small>Jam belajar</small><b>${rpDec.format(hours)} jam</b></div><div class="rp-tile"><small>Rata-rata tonton</small><b>${rpDec.format(d.avgDur)}%</b></div><div class="rp-tile"><small>Rata-rata / minggu aktif</small><b>${rpDec.format(d.total / d.active)} sesi</b></div><div class="rp-tile"><small>Rekor beruntun</small><b>${d.best} minggu</b></div></div>
+        <div class="rp-block"><h4>Kehadiran per minggu <span>jumlah sesi (live + tutor)</span></h4><div class="rp-bars">${d.bars.map((b) => `<div class="rp-bar">${b.n ? `<b>${b.n}</b>` : ""}<i class="${b.n ? "" : "zero"}" style="height:${b.n ? Math.max(8, Math.round(b.n / maxBar * 84)) : 4}px"></i><span>M${b.week}</span></div>`).join("")}</div></div>
+        ${d.subjects.length ? `<div class="rp-block"><h4>Mata pelajaran favorit <span>dari sesi live</span></h4><div class="rp-subj">${d.subjects.map(([n, c]) => `<div><span>${escapeHtml(n)}</span><em><i style="width:${Math.round(c / maxSubj * 100)}%"></i></em><span>${c}x</span></div>`).join("")}</div></div>` : ""}
+        ${badges.length ? `<div class="rp-badges">${badges.map((b) => `<span class="rp-badge">${escapeHtml(b)}</span>`).join("")}</div>` : ""}
+        <div class="rp-foot">Skor = 50% konsistensi hadir tiap minggu + 30% rata-rata durasi menonton + 20% jumlah sesi per minggu aktif. Kehadiran live teaching dan sesi tutor digabung. Dibuat ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}.</div>
+      </div>`;
+    }
+    function rpOpen(userKey) {
+      const d = rpBuild(userKey);
+      if (!d) return;
+      let modal = document.getElementById("rpModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "rpModal"; modal.className = "rp-modal"; modal.hidden = true;
+        modal.addEventListener("click", (e) => { if (e.target === modal || e.target.closest(".rp-close")) modal.hidden = true; });
+        document.body.appendChild(modal);
+      }
+      modal.innerHTML = `<div class="rp-wrap"><div class="rp-actions"><button type="button" class="rp-save">Simpan gambar (PNG)</button><button type="button" class="rp-close">Tutup</button></div>${rpCardHtml(d)}</div>`;
+      modal.hidden = false;
+      modal.querySelector(".rp-save").onclick = async (e) => {
+        const btn = e.currentTarget; btn.disabled = true; btn.textContent = "Menyiapkan...";
+        try {
+          const canvas = await html2canvas(document.getElementById("rpCard"), { scale: 3, backgroundColor: null, useCORS: true });
+          canvas.toBlob((blob) => {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = `rapor-kehadiran-${d.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "siswa"}.png`;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+          }, "image/png");
+        } finally { btn.disabled = false; btn.textContent = "Simpan gambar (PNG)"; }
+      };
+    }
+    document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest(".rp-btn"); if (b) rpOpen(b.dataset.rp); });
+
     function renderActivityRenewalPage() {
       const summary = document.getElementById("activityRenewalSummary");
       const title = document.getElementById("activityRenewalTableTitle");
@@ -6466,6 +6635,8 @@
         const key = row._userKey || `row-${grouped.size}`;
         if (!grouped.has(key)) {
           grouped.set(key, {
+            key,
+            detail: false,
             name: row._userName,
             email: row._email,
             minutes: 0,
@@ -6476,6 +6647,7 @@
           });
         }
         const item = grouped.get(key);
+        if (row._detail) item.detail = true;
         item.minutes += row._minutes;
         item.attendance += row._attendance;
         item.months[row._month] = (item.months[row._month] || 0) + row._attendance;
@@ -6516,17 +6688,18 @@
         <div class="coach-stat"><span>Filter</span><strong>${escapeHtml(emailFilter || phoneFilter || "Semua user")}</strong></div>
       `;
 
-      if (head) head.innerHTML = `<tr><th>User</th><th>Email</th>${monthKeys.map((month) => `<th class="right">${escapeHtml(activityRenewalMonthLabel(month))}</th>`).join("")}<th class="right">Total Kehadiran</th><th class="right">Menit Belajar</th><th class="right">Rata-rata % Durasi</th></tr>`;
+      const showRp = rows.some((row) => row._detail);
+      if (head) head.innerHTML = `<tr><th>User</th><th>Email</th>${monthKeys.map((month) => `<th class="right">${escapeHtml(activityRenewalMonthLabel(month))}</th>`).join("")}<th class="right">Total Kehadiran</th><th class="right">Menit Belajar</th><th class="right">Rata-rata % Durasi</th>${showRp ? "<th>Rapor</th>" : ""}</tr>`;
       if (body) {
         body.innerHTML = items.length ? items.map((item) => {
           const average = item.durationCount ? item.durationSum / item.durationCount : NaN;
           const monthlyCells = monthKeys.map((month) => `<td class="right">${number.format(item.months[month] || 0)}</td>`).join("");
-          return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td>${monthlyCells}<td class="right">${number.format(item.attendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(item.minutes)}</td><td class="right">${formatActivityRenewalPercent(average)}</td></tr>`;
-        }).join("") : `<tr><td colspan="${monthKeys.length + 5}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
+          return `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email || "—")}</td>${monthlyCells}<td class="right">${number.format(item.attendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(item.minutes)}</td><td class="right">${formatActivityRenewalPercent(average)}</td>${showRp ? `<td>${item.detail ? `<button type="button" class="rp-btn" data-rp="${escapeHtml(item.key)}">Rapor</button>` : ""}</td>` : ""}</tr>`;
+        }).join("") : `<tr><td colspan="${monthKeys.length + 6}" class="empty">Tidak ada data sesuai filter.</td></tr>`;
       }
       if (foot) {
         const monthTotals = monthKeys.map((month) => `<td class="right">${number.format(rows.filter((row) => row._month === month).reduce((total, row) => total + row._attendance, 0))}</td>`).join("");
-        foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td>${monthTotals}<td class="right">${number.format(totalAttendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(totalMinutes)}</td><td class="right">${formatActivityRenewalPercent(averageDuration)}</td></tr>`;
+        foot.innerHTML = `<tr><td>Total</td><td>${number.format(items.length)} user</td>${monthTotals}<td class="right">${number.format(totalAttendance)}</td><td class="right activity-revenue">${formatActivityRenewalMinutes(totalMinutes)}</td><td class="right">${formatActivityRenewalPercent(averageDuration)}</td>${showRp ? "<td></td>" : ""}</tr>`;
       }
       const table = document.getElementById("activityRenewalTable");
       if (table) table.style.minWidth = "0";
@@ -8648,9 +8821,9 @@
       const escapedEmail = requestedEmail.replace(/'/g, "''");
       const escapedPhone = requestedPhone.replace(/'/g, "''");
       const activityQuery = requestedPhone
-        ? `select A,C,M,N,R,S,T where T = '${escapedPhone}' label A 'BULAN', C 'TANGGAL', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number'`
+        ? `select A,B,C,G,M,N,R,S,T,U where T = '${escapedPhone}' label A 'BULAN', B 'MINGGU', C 'TANGGAL', G 'MATA PELAJARAN', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number', U 'BAO TYPE'`
         : requestedEmail
-          ? `select A,C,M,N,R,S,T where M = '${escapedEmail}' label A 'BULAN', C 'TANGGAL', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number'`
+          ? `select A,B,C,G,M,N,R,S,T,U where M = '${escapedEmail}' label A 'BULAN', B 'MINGGU', C 'TANGGAL', G 'MATA PELAJARAN', M 'user_email', N 'user_name', R '% DURASI', S 'MENIT BELAJAR', T 'user_cellphone_number', U 'BAO TYPE'`
         : "select A,C,N,M,count(A),sum(S),sum(R) group by A,C,N,M label A 'BULAN', C 'TANGGAL', N 'user_name', M 'user_email', count(A) 'Kehadiran', sum(S) 'Menit Belajar', sum(R) 'Total Durasi'";
       const query = `&tq=${encodeURIComponent(activityQuery)}`;
       script.src = `https://docs.google.com/spreadsheets/d/${ACTIVITY_RENEWAL_SHEET_ID}/gviz/tq?gid=${ACTIVITY_RENEWAL_GID}&headers=1&tqx=out:json;responseHandler:${callbackName}${query}`;

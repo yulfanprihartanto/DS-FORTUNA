@@ -8716,9 +8716,14 @@
       return euCoachCache;
     }
     /* coach per agent: data transaksi dulu, lalu Call Tracking; nama yang mirip (beda ejaan) ikut dicocokkan */
+    /* Extend User hanya dipegang coach Faizal dan Arif Pambudi; sebagian agent dipetakan manual */
+    const EU_COACHES = ["Faizal Fahmi Arridai", "Arif Pambudi"];
+    const EU_COACH_OVERRIDE = [{ re: /dhian\s+catur|diffany/i, coach: "Arif Pambudi" }];
     function euCoachOfAgent(name) {
       const maps = euCoachMaps(), k = normalizeName(name);
       if (euCoachMemo.has(k)) return euCoachMemo.get(k);
+      const ov = EU_COACH_OVERRIDE.find((o) => o.re.test(k));
+      if (ov) { euCoachMemo.set(k, ov.coach); return ov.coach; }
       let res = "";
       for (const m of maps) {
         if (m.has(k)) { res = m.get(k); break; }
@@ -8726,6 +8731,7 @@
         m.forEach((label, key) => { if (key[0] !== k[0]) return; const d = euLev(k, key); if (d < best) { best = d; bl = label; } });
         if (best <= 2 && k.length >= 6) { res = bl; break; }
       }
+      if (!EU_COACHES.includes(res)) res = "";
       euCoachMemo.set(k, res); return res;
     }
     function euEnrich() {
@@ -8765,7 +8771,7 @@
       euEnrich();
       const agents = [...new Set(euUsers.map((u) => u.agent))].sort();
       const sel = document.querySelector('.eu-f[data-f="agent"]');
-      const coachLabels = [...CT_COACHES.map((c) => c.label), "Belum terpetakan"].filter((l) => euUsers.some((u) => u.coach === l));
+      const coachLabels = [...EU_COACHES, "Belum terpetakan"].filter((l) => euUsers.some((u) => u.coach === l));
       setFilterEntries("euCoachF", coachLabels.map((l) => ({ value: l, label: l })), "Semua coach");
       const coachSel = splitFilterValue(euVal("coach"));
       const agentOpts = agents.filter((a) => !coachSel.length || euUsers.some((u) => u.agent === a && coachSel.includes(u.coach)));

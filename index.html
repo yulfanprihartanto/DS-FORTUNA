@@ -3046,6 +3046,14 @@
     .eu-m-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--line, #dbe3ef); font-size: 16px; }
     .eu-m-head button { margin-left: 8px; border: 1px solid #38bdf8; background: #e0f2fe; color: #0f2744; border-radius: 10px; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer; }
     .eu-m-count { display: inline-block; margin-left: 8px; background: #fde68a; color: #78350f; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 800; }
+    .eu-m-filters { display: grid; grid-template-columns: 1fr 1.6fr 1.2fr; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--line, #dbe3ef); }
+    .eu-m-filters label { display: grid; gap: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .eu-m-filters select, .eu-m-filters input { width: 100%; height: 40px; padding: 8px 10px; font: inherit; font-size: 14px; font-weight: 600; text-transform: none; letter-spacing: 0; border-radius: 8px; border: 1px solid #94a3b8; background-color: #fff !important; background-image: none; color: #0b1220 !important; -webkit-appearance: none; appearance: none; box-shadow: none; }
+    .eu-m-filters select { padding-right: 30px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%230b1220' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .eu-m-filters select::before, .eu-m-filters select::after { display: none; }
+    .eu-m-cat { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+    .eu-m-cat.vo { background: #dbeafe; color: #1e3a8a; } .eu-m-cat.non { background: #fce7f3; color: #831843; }
+    @media (max-width: 800px) { .eu-m-filters { grid-template-columns: 1fr; } }
     .eu-m-body { overflow: auto; padding: 0 12px 14px; }
     .eu-m-name small { opacity: .75; }
     .eu-coachcell { font-size: 12.5px; white-space: nowrap; }
@@ -3406,11 +3414,11 @@
             <label>Coach<select id="euCoachF" class="eu-f ct-sel" data-f="coach"></select></label>
             <label>Agent<select id="euAgentF" class="eu-f ct-sel" data-f="agent"></select></label>
             <label>Status call<select class="eu-f ct-sel" data-f="status">
-              <option value="">Semua status</option><option value="none">Belum pernah di-call</option><option value="once">Baru di-call 1 kali, belum terhubung</option><option value="noconn">Sudah di-call, belum terhubung</option><option value="noconn3">Di-call 3x atau lebih, belum terhubung</option><option value="partial">Ada nomor yang belum pernah di-call</option><option value="conn">Sudah terhubung</option><option value="sisOnly">Terhubung ke siswa, belum ke ortu</option><option value="ortOnly">Terhubung ke ortu, belum ke siswa</option><option value="sisNoOrtu">Siswa terhubung, user tidak punya no ortu</option><option value="sisOrtuBelum">Siswa terhubung, no ortu ada tapi belum terhubung</option><option value="ortNoSiswa">Ortu terhubung, user tidak punya no siswa</option><option value="ortSiswaBelum">Ortu terhubung, no siswa ada tapi belum terhubung</option><option value="bothConn">Terhubung ke siswa dan ortu</option><option value="nonum">Tanpa nomor valid</option></select></label>
+              <option value="">Semua status</option><option value="none">Belum pernah di-call</option><option value="once">Baru di-call 1 kali, belum terhubung</option><option value="noconn">Sudah di-call, belum terhubung</option><option value="noconn3">Di-call 3x atau lebih, belum terhubung</option><option value="partial">Ada nomor yang belum pernah di-call</option><option value="conn">Sudah terhubung</option><option value="sisOnly">Terhubung ke siswa, belum ke ortu</option><option value="ortOnly">Terhubung ke ortu, belum ke siswa</option><option value="sisNoOrtu">Siswa terhubung, user tidak punya no ortu</option><option value="sisOrtuBelum">Siswa terhubung, no ortu ada tapi belum terhubung</option><option value="ortNoSiswa">Ortu terhubung, user tidak punya no siswa</option><option value="ortSiswaBelum">Ortu terhubung, no siswa ada tapi belum terhubung</option><option value="bothConn">Terhubung ke siswa dan ortu</option><option value="dial1">Sudah di-call 1 kali (semua)</option><option value="dial2">Sudah di-call 2 kali (semua)</option><option value="dial3">Sudah di-call 3 kali atau lebih (semua)</option><option value="nonum">Tanpa nomor valid</option></select></label>
             <label>Cari nama<input class="eu-f ct-sel" data-f="q" type="search" placeholder="nama user..."></label>
             <button type="button" class="eu-toggle-all" data-open="1">Buka semua</button>
             <button type="button" class="eu-toggle-all" data-open="0">Tutup semua</button>
-            <button type="button" class="eu-export">Export CSV</button>
+            <button type="button" class="eu-export">Export Excel</button>
           </div>
         </div>
         <div class="ut-an-stats eu-stats" id="euSummary"><div class="ut-an-stat"><span>Status</span><b>Memuat kontak...</b></div></div>
@@ -8704,14 +8712,14 @@
       try {
         const cols = response.table.cols.map((c) => clean(c.label));
         const idx = (label) => cols.findIndex((c) => c.toLowerCase() === label.toLowerCase());
-        const iCat = 0, iName = idx("User Name"), iAgent = idx("Agent"), iKelas = idx("Kelas"), iLog = idx("Log"), iAssign = idx("Assign date");
+        const iCat = 0, iName = idx("User Name"), iAgent = idx("Agent"), iKelas = idx("Kelas"), iLog = idx("Log"), iAssign = idx("Assign date"), iOrtu = idx("Nama Ortu"), iSma = idx("Sma"), iKota = idx("Kota");
         const phoneIdx = cols.map((c, i) => ({ c, i })).filter((x) => /^no\s?(siswa|ortu|\d+)$/i.test(x.c));
         euUsers = response.table.rows.map((row) => {
           const cell = (i) => { const c = row.c[i]; return c ? (c.v ?? c.f ?? "") : ""; };
           const name = clean(cell(iName)); if (!name) return null;
           const seen = new Set(), nums = [];
           phoneIdx.forEach(({ c, i }) => { const n = euNorm(cell(i)); if (!n || seen.has(n)) return; seen.add(n); nums.push({ role: /siswa/i.test(c) ? "Siswa" : /ortu/i.test(c) ? "Ortu" : "Lain", n }); });
-          return { cat: clean(cell(iCat)), name, agent: clean(cell(iAgent)) || "Tanpa agent", kelas: clean(cell(iKelas)), log: clean(cell(iLog)), assign: clean(cell(iAssign)), nums };
+          return { cat: clean(cell(iCat)), name, agent: clean(cell(iAgent)) || "Tanpa agent", kelas: clean(cell(iKelas)), log: clean(cell(iLog)), assign: clean(cell(iAssign)), ortuName: iOrtu >= 0 ? clean(cell(iOrtu)) : "", sma: iSma >= 0 ? clean(cell(iSma)) : "", kota: iKota >= 0 ? clean(cell(iKota)) : "", nums };
         }).filter(Boolean);
         euLoaded = true; euLoading = false;
         if (activePageId() === "pageExtendUser") renderExtendUser();
@@ -8789,12 +8797,28 @@
       const coach = euVal("coach"), agent = euVal("agent");
       return euUsers.filter((u) => filterMatches(coach, u.coach) && filterMatches(agent, u.agent));
     }
+    function euStatusPred(st, u) {
+      if (!st) return true;
+      switch (st) {
+        case "partial": return u.nums.length > 1 && u.untouched > 0 && u.dial > 0;
+        case "noconn3": return u.status !== "conn" && u.dial >= 3;
+        case "sisOnly": return u.connS > 0 && !u.connO;
+        case "ortOnly": return u.connO > 0 && !u.connS;
+        case "sisNoOrtu": return u.who === "sis" && !u.hasOrtu;
+        case "sisOrtuBelum": return u.who === "sis" && u.hasOrtu;
+        case "ortNoSiswa": return u.who === "ort" && !u.hasSiswa;
+        case "ortSiswaBelum": return u.who === "ort" && u.hasSiswa;
+        case "bothConn": return u.connS > 0 && u.connO > 0;
+        case "dial1": return u.dial === 1;
+        case "dial2": return u.dial === 2;
+        case "dial3": return u.dial >= 3;
+        default: return u.status === st;
+      }
+    }
     function euFiltered() {
       const g = euVal;
       const cat = g("cat"), st = g("status"), q = g("q").toLowerCase().trim();
-      return euScope().filter((u) => (!cat || u.cat === cat)
-        && (!st || (st === "partial" ? (u.nums.length > 1 && u.untouched > 0 && u.dial > 0) : st === "noconn3" ? (u.status !== "conn" && u.dial >= 3) : st === "sisOnly" ? (u.connS > 0 && !u.connO) : st === "ortOnly" ? (u.connO > 0 && !u.connS) : st === "sisNoOrtu" ? (u.who === "sis" && !u.hasOrtu) : st === "sisOrtuBelum" ? (u.who === "sis" && u.hasOrtu) : st === "ortNoSiswa" ? (u.who === "ort" && !u.hasSiswa) : st === "ortSiswaBelum" ? (u.who === "ort" && u.hasSiswa) : st === "bothConn" ? (u.connS > 0 && u.connO > 0) : u.status === st))
-        && (!q || u.name.toLowerCase().includes(q)));
+      return euScope().filter((u) => (!cat || u.cat === cat) && euStatusPred(st, u) && (!q || u.name.toLowerCase().includes(q)));
     }
     function euCell(x) {
       return `<div class="eu-num"><span class="eu-n">0${x.n}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b><small>angkat ${x.ans} · ≥2 mnt ${x.conn}</small></div>`;
@@ -8868,26 +8892,66 @@
       section(true, "euTableVO", "euCountVO");
       section(false, "euTableNon", "euCountNon");
     }
+    /* ---- penulis file .xlsx sederhana (tanpa library luar) ---- */
+    const XLSX_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+    function xlsxCrc(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = XLSX_CRC[(c ^ bytes[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+    function xlsxZip(files) {
+      const enc = new TextEncoder(), parts = [], central = [];
+      let offset = 0;
+      const u16 = (v) => [v & 255, (v >>> 8) & 255], u32 = (v) => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+      files.forEach(([name, text]) => {
+        const nameB = enc.encode(name), data = enc.encode(text), crc = xlsxCrc(data);
+        const local = new Uint8Array([0x50, 0x4b, 3, 4, ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(nameB.length), ...u16(0)]);
+        parts.push(local, nameB, data);
+        central.push(new Uint8Array([0x50, 0x4b, 1, 2, ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(nameB.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)]), nameB);
+        offset += local.length + nameB.length + data.length;
+      });
+      const cdSize = central.reduce((t, b) => t + b.length, 0);
+      const end = new Uint8Array([0x50, 0x4b, 5, 6, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
+      return new Blob([...parts, ...central, end], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    }
+    function xlsxBlob(sheetName, header, rows, widths) {
+      const esc = (v) => String(v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const colName = (i) => { let n = i + 1, s2 = ""; while (n > 0) { const m = (n - 1) % 26; s2 = String.fromCharCode(65 + m) + s2; n = Math.floor((n - 1) / 26); } return s2; };
+      const cellXml = (v, r, c, style) => {
+        const ref = colName(c) + r, st = style ? ` s="${style}"` : "";
+        if (typeof v === "number" && isFinite(v)) return `<c r="${ref}"${st}><v>${v}</v></c>`;
+        if (v === "" || v == null) return st ? `<c r="${ref}"${st}/>` : "";
+        return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
+      };
+      const rowXml = (arr, r, style) => `<row r="${r}"${style ? ' ht="30" customHeight="1"' : ""}>${arr.map((v, c) => cellXml(v, r, c, style)).join("")}</row>`;
+      const data = [rowXml(header, 1, 1), ...rows.map((row, i) => rowXml(row, i + 2, 0))].join("");
+      const lastRef = colName(header.length - 1) + (rows.length + 1);
+      const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>${data}</sheetData><autoFilter ref="A1:${lastRef}"/></worksheet>`;
+      const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0F2744"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+      const nm = esc(sheetName).slice(0, 31);
+      return xlsxZip([
+        ["[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+        ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+        ["xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${nm}" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+        ["xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+        ["xl/styles.xml", styles],
+        ["xl/worksheets/sheet1.xml", sheet]
+      ]);
+    }
     function euExport(listArg, tag) {
       euEnrich();
       const list = listArg || euFiltered();
-      const q = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-      const num = (n) => `="0${n}"`;
       const pick = (u, role) => u.calls.filter((x) => x.role === role);
-      const cell = (u, role, f) => pick(u, role).map(f).join(" | ");
-      const head = ["Agent", "Coach", "User", "Kategori", "Kelas", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "Terhubung Via", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log"];
-      const lines = [head.map(q).join(",")];
-      list.forEach((u) => {
-        lines.push([u.agent, u.coach, u.name, u.cat, u.kelas, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn, ({ both: "Siswa dan ortu", sis: "Siswa saja", ort: "Ortu saja", lain: "Nomor lain saja" }[u.who] || ""),
-          cell(u, "Siswa", (x) => x.n) ? num(pick(u, "Siswa")[0].n) : "", pick(u, "Siswa").reduce((s, x) => s + x.dial, 0), pick(u, "Siswa").reduce((s, x) => s + x.ans, 0), pick(u, "Siswa").reduce((s, x) => s + x.conn, 0),
-          pick(u, "Ortu").length ? num(pick(u, "Ortu")[0].n) : "", pick(u, "Ortu").reduce((s, x) => s + x.dial, 0), pick(u, "Ortu").reduce((s, x) => s + x.ans, 0), pick(u, "Ortu").reduce((s, x) => s + x.conn, 0),
-          pick(u, "Lain").map((x) => `0${x.n}`).join(" | "), cell(u, "Lain", (x) => x.dial), cell(u, "Lain", (x) => x.conn), u.log].map(q).join(","));
+      const sum = (arr, k) => arr.reduce((t, x) => t + x[k], 0);
+      const nums = (arr) => arr.map((x) => `0${x.n}`).join(" | ");
+      const head = ["Agent", "Coach", "User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "Terhubung Via", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log", "Hasil Call", "Catatan"];
+      const widths = [24, 22, 26, 24, 18, 8, 22, 16, 14, 24, 10, 12, 14, 18, 16, 9, 9, 11, 16, 9, 9, 11, 22, 9, 11, 18, 18, 30];
+      const rows = list.map((u) => {
+        const S = pick(u, "Siswa"), O = pick(u, "Ortu"), L = pick(u, "Lain");
+        return [u.agent, u.coach, u.name, u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn, ({ both: "Siswa dan ortu", sis: "Siswa saja", ort: "Ortu saja", lain: "Nomor lain saja" }[u.who] || ""),
+          nums(S), sum(S, "dial"), sum(S, "ans"), sum(S, "conn"), nums(O), sum(O, "dial"), sum(O, "ans"), sum(O, "conn"), nums(L), sum(L, "dial"), sum(L, "conn"), u.log, "", ""];
       });
-      const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const blob = xlsxBlob("Extend User", head, rows, widths);
       const av = splitFilterValue(euVal("agent")), cv = splitFilterValue(euVal("coach"));
       const agent = av.length === 1 ? av[0] : av.length ? "beberapa-agent" : cv.length === 1 ? cv[0] : cv.length ? "beberapa-coach" : "semua-agent";
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-      a.download = `extend-user-${tag ? tag + "-" : ""}${agent.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `extend-user-${tag ? tag + "-" : ""}${agent.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     }
     const EU_PRED = {
@@ -8896,20 +8960,32 @@
     };
     const EU_PRED_LABEL = { n: "Semua kontak", none: "Belum di-call", d1: "Di-call 1×", d2: "Di-call 2×", d3: "Di-call 3×+", once: "Baru 1× belum terhubung", noconn: "Sudah di-call, belum terhubung", conn: "Total terhubung (user)", ts: "Terhubung ke siswa", to: "Terhubung ke ortu", ws: "Siswa terhubung, ortu belum terhubung", sh: "Siswa terhubung, ortu belum terhubung (punya no ortu)", wo: "Ortu terhubung, siswa belum terhubung", wb: "Siswa dan ortu terhubung", wl: "Terhubung hanya lewat nomor lain" };
     let euModalList = [], euModalTag = "";
+    let euModalBase = [], euModalAgent = "";
+    function euModalRender() {
+      const cat = document.querySelector('#euModal [data-mf="cat"]')?.value || "", st = document.querySelector('#euModal [data-mf="status"]')?.value || "", q = (document.querySelector('#euModal [data-mf="q"]')?.value || "").toLowerCase().trim();
+      const list = euModalBase.filter((u) => (!cat || u.cat === cat) && euStatusPred(st, u) && (!q || u.name.toLowerCase().includes(q) || u.ortuName.toLowerCase().includes(q)));
+      euModalList = list;
+      const all = euModalAgent === "*";
+      const shown = list.slice(0, 500);
+      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}${[all ? u.agent : "", u.ortuName ? "Ortu: " + u.ortuName : "", u.sma, u.kota, u.assign ? "assign " + u.assign : ""].filter(Boolean).map((t) => `<br><small>${escapeHtml(t)}</small>`).join("")}</td><td><span class="eu-m-cat ${u.cat === "Voucher Owner" ? "vo" : "non"}">${u.cat === "Voucher Owner" ? "VO" : "Non VO"}</span></td><td>${euRoleCell(u, "Siswa")}</td><td>${euRoleCell(u, "Ortu")}</td><td>${euRoleCell(u, "Lain")}</td><td><span class="ct-pill ${EU_STATUS[u.status].c}">${EU_STATUS[u.status].t}</span></td></tr>`).join("");
+      document.getElementById("euMBody").innerHTML = `<table class="ct-table eu-table"><thead><tr><th class="ct-first">User</th><th>Kategori</th><th>No Siswa</th><th>No Ortu</th><th>Nomor lain</th><th>Status</th></tr></thead><tbody>${rows || `<tr><td colspan="6" class="empty">Tidak ada user sesuai filter.</td></tr>`}</tbody></table>${list.length > shown.length ? `<div class="eu-foot">Menampilkan ${shown.length} dari ${list.length} user. Export Excel untuk daftar lengkap.</div>` : ""}`;
+      const c = document.getElementById("euMCount"); if (c) c.textContent = `${list.length} user` + (list.length !== euModalBase.length ? ` dari ${euModalBase.length}` : "");
+    }
     function euOpenModal(agent, k) {
       euEnrich();
-      const list = euScope().filter((u) => (agent === "*" || u.agent === agent) && EU_PRED[k](u));
-      list.sort((a, b) => a.agent.localeCompare(b.agent) || a.name.localeCompare(b.name));
-      euModalList = list; euModalTag = k;
+      const base = euScope().filter((u) => (agent === "*" || u.agent === agent) && EU_PRED[k](u));
+      base.sort((a, b) => a.agent.localeCompare(b.agent) || a.name.localeCompare(b.name));
+      euModalBase = base; euModalTag = k; euModalAgent = agent;
       let box = document.getElementById("euModal");
       if (!box) { box = document.createElement("div"); box.id = "euModal"; document.body.appendChild(box); }
-      const shown = list.slice(0, 500);
-      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}${agent === "*" ? `<br><small>${escapeHtml(u.agent)}</small>` : ""}</td><td>${euRoleCell(u, "Siswa")}</td><td>${euRoleCell(u, "Ortu")}</td><td>${euRoleCell(u, "Lain")}</td><td><span class="ct-pill ${EU_STATUS[u.status].c}">${EU_STATUS[u.status].t}</span></td></tr>`).join("");
-      box.innerHTML = `<div class="eu-m-back" data-close="1"><div class="eu-m-card" role="dialog" aria-label="Daftar user"><div class="eu-m-head"><div><b>${escapeHtml(agent === "*" ? "Semua agent" : agent)}</b> · ${escapeHtml(EU_PRED_LABEL[k])} <span class="eu-m-count">${list.length} user</span></div><div><button type="button" class="eu-export-list">Export CSV</button><button type="button" data-close="1">Tutup</button></div></div><div class="eu-m-body"><table class="ct-table eu-table"><thead><tr><th class="ct-first">User</th><th>No Siswa</th><th>No Ortu</th><th>Nomor lain</th><th>Status</th></tr></thead><tbody>${rows || `<tr><td colspan="5" class="empty">Tidak ada user.</td></tr>`}</tbody></table>${list.length > shown.length ? `<div class="eu-foot">Menampilkan ${shown.length} dari ${list.length} user. Export CSV untuk daftar lengkap.</div>` : ""}</div></div></div>`;
+      const stOpts = document.querySelector('.eu-f[data-f="status"]')?.innerHTML || "";
+      box.innerHTML = `<div class="eu-m-back" data-close="1"><div class="eu-m-card" role="dialog" aria-label="Daftar user"><div class="eu-m-head"><div><b>${escapeHtml(agent === "*" ? "Semua agent" : agent)}</b> · ${escapeHtml(EU_PRED_LABEL[k])} <span class="eu-m-count" id="euMCount"></span></div><div><button type="button" class="eu-export-list">Export Excel</button><button type="button" data-close="1">Tutup</button></div></div><div class="eu-m-filters"><label>Kategori leads<select class="eu-mf" data-mf="cat"><option value="">Semua (VO dan Non VO)</option><option value="Voucher Owner">Voucher Owner</option><option value="Non Voucher Owner">Non Voucher Owner</option></select></label><label>Status call / dial<select class="eu-mf" data-mf="status">${stOpts}</select></label><label>Cari nama user / ortu<input class="eu-mf" data-mf="q" type="search" placeholder="nama..."></label></div><div class="eu-m-body" id="euMBody"></div></div></div>`;
       box.style.display = "block";
+      euModalRender();
     }
     function euCloseModal() { const b = document.getElementById("euModal"); if (b) b.style.display = "none"; }
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") euCloseModal(); });
+    document.addEventListener("input", (e) => { if (e.target.closest && e.target.closest("#euModal [data-mf]")) euModalRender(); });
     document.addEventListener("click", (e) => {
       if (e.target.closest && e.target.closest(".eu-export-list")) { euExport(euModalList, euModalTag); return; }
       const cl = e.target.closest && e.target.closest("#euModal [data-close]");

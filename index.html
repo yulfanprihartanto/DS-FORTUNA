@@ -3000,7 +3000,8 @@
     .gr-table td.gr-meta { font-size: 12.5px; text-align: left; }
     .gr-table .ct-first { min-width: 150px; }
     .gr-spark { display: block; margin: 0 auto; }
-    .eu-filters { grid-template-columns: 1.2fr 1.6fr 1.2fr auto auto auto !important; }
+    .eu-filters { grid-template-columns: 1.2fr 1.6fr 1.2fr 1.2fr auto auto auto !important; }
+    .eu-filterbar { margin-bottom: 14px; }
     .eu-toggle-all { background: #e0f2fe; border: 1px solid #38bdf8; color: #0f2744; border-radius: 10px; padding: 10px 14px; font: inherit; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .eu-parent td { background: #dbeafe !important; font-weight: 800; cursor: pointer; border-top: 2px solid #93c5fd; }
     .eu-parent.open td { background: #bfdbfe !important; }
@@ -3013,6 +3014,7 @@
     .eu-child td:first-child { padding-left: 30px !important; }
     .eu-uname small { font-weight: 600; opacity: .7; margin-left: 4px; }
     .eu-stats { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .eu-coachcell { font-size: 12.5px; white-space: nowrap; }
     .eu-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 10px; align-items: end; }
     .eu-filters label { display: grid; gap: 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
     .eu-filters .ct-sel { width: 100%; box-sizing: border-box; padding: 8px 10px; font-size: 14px; text-transform: none; letter-spacing: 0; }
@@ -3365,15 +3367,10 @@
           <h2>EXTEND USER</h2>
           <span class="note">kontak prioritas dicocokkan dengan data Call Tracking · nomor diseragamkan (tanpa 0 / 62) · terhubung = call 2 menit ke atas</span>
         </div>
-        <div class="ut-an-stats eu-stats" id="euSummary"><div class="ut-an-stat"><span>Status</span><b>Memuat kontak...</b></div></div>
-        <div class="ct-block">
-          <div class="panel-head"><h2>Per Agent</h2><span class="note">klik nama agent untuk memfilter daftar kontak di bawah</span></div>
-          <div id="euAgents"></div>
-        </div>
-        <div class="ct-block">
-          <div class="panel-head"><h2>Daftar Kontak</h2><span class="note" id="euCount"></span></div>
+        <div class="ct-block eu-filterbar">
           <div class="eu-filters">
-            <label>Agent<select class="eu-f ct-sel" data-f="agent"></select></label>
+            <label>Coach<select id="euCoachF" class="eu-f ct-sel" data-f="coach"></select></label>
+            <label>Agent<select id="euAgentF" class="eu-f ct-sel" data-f="agent"></select></label>
             <label>Status call<select class="eu-f ct-sel" data-f="status">
               <option value="">Semua status</option><option value="none">Belum pernah di-call</option><option value="once">Baru di-call 1 kali, belum terhubung</option><option value="noconn">Sudah di-call, belum terhubung</option><option value="noconn3">Di-call 3x atau lebih, belum terhubung</option><option value="partial">Ada nomor yang belum pernah di-call</option><option value="conn">Sudah terhubung</option><option value="nonum">Tanpa nomor valid</option></select></label>
             <label>Cari nama<input class="eu-f ct-sel" data-f="q" type="search" placeholder="nama user..."></label>
@@ -3381,6 +3378,14 @@
             <button type="button" class="eu-toggle-all" data-open="0">Tutup semua</button>
             <button type="button" class="eu-export">Export CSV</button>
           </div>
+        </div>
+        <div class="ut-an-stats eu-stats" id="euSummary"><div class="ut-an-stat"><span>Status</span><b>Memuat kontak...</b></div></div>
+        <div class="ct-block">
+          <div class="panel-head"><h2>Per Agent</h2><span class="note">klik nama agent untuk memfilter daftar kontak di bawah</span></div>
+          <div id="euAgents"></div>
+        </div>
+        <div class="ct-block">
+          <div class="panel-head"><h2>Daftar Kontak</h2><span class="note" id="euCount"></span></div>
         </div>
         <div class="ct-block">
           <div class="panel-head"><h2>Voucher Owner</h2><span class="note" id="euCountVO"></span></div>
@@ -8627,6 +8632,7 @@
       try {
         allRows = rowsFromGoogleTable(response.table);
         initialize();
+        if (typeof activePageId === "function" && activePageId() === "pageExtendUser") renderExtendUser();
       } catch (error) {
         showError(error.message);
       }
@@ -8683,9 +8689,49 @@
       script.onerror = () => { euLoading = false; document.getElementById("euSummary").innerHTML = `<div class="empty">Sheet Extend User tidak bisa diakses dari halaman ini.</div>`; };
       document.body.appendChild(script);
     }
+    let euCoachCache = null, euCoachSig = "", euCoachMemo = new Map();
+    function euLev(a, b) {
+      const m = a.length, n = b.length; if (Math.abs(m - n) > 2) return 9;
+      let prev = Array.from({ length: n + 1 }, (_, i) => i);
+      for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+      return prev[n];
+    }
+    function euCoachMaps() {
+      const sig = `${allRows.length}|${callRows.length}`;
+      if (euCoachCache && euCoachSig === sig) return euCoachCache;
+      const build = (rows, agentOf, leaderOf) => {
+        const tally = new Map();
+        rows.forEach((r) => {
+          const c = ctCoachOf(leaderOf(r)); if (!c) return;
+          const k = normalizeName(agentOf(r)); if (!k) return;
+          let m = tally.get(k); if (!m) { m = new Map(); tally.set(k, m); }
+          m.set(c.label, (m.get(c.label) || 0) + 1);
+        });
+        const out = new Map();
+        tally.forEach((m, k) => out.set(k, [...m.entries()].sort((x, y) => y[1] - x[1])[0][0]));
+        return out;
+      };
+      euCoachCache = [build(allRows, (r) => r[fields.agent], (r) => r[fields.leader]), build(callRows, (r) => r["Agent Name"], (r) => r.COACH)];
+      euCoachSig = sig; euCoachMemo = new Map();
+      return euCoachCache;
+    }
+    /* coach per agent: data transaksi dulu, lalu Call Tracking; nama yang mirip (beda ejaan) ikut dicocokkan */
+    function euCoachOfAgent(name) {
+      const maps = euCoachMaps(), k = normalizeName(name);
+      if (euCoachMemo.has(k)) return euCoachMemo.get(k);
+      let res = "";
+      for (const m of maps) {
+        if (m.has(k)) { res = m.get(k); break; }
+        let best = 9, bl = "";
+        m.forEach((label, key) => { if (key[0] !== k[0]) return; const d = euLev(k, key); if (d < best) { best = d; bl = label; } });
+        if (best <= 2 && k.length >= 6) { res = bl; break; }
+      }
+      euCoachMemo.set(k, res); return res;
+    }
     function euEnrich() {
       const idx = euBuildIndex();
       euUsers.forEach((u) => {
+        u.coach = euCoachOfAgent(u.agent) || "Belum terpetakan";
         u.calls = u.nums.map((x) => ({ ...x, ...(idx.get(x.n) || { dial: 0, ans: 0, conn: 0 }) }));
         u.dial = u.calls.reduce((s, x) => s + x.dial, 0); u.ans = u.calls.reduce((s, x) => s + x.ans, 0); u.conn = u.calls.reduce((s, x) => s + x.conn, 0);
         u.untouched = u.calls.filter((x) => !x.dial).length;
@@ -8693,10 +8739,15 @@
       });
     }
     const EU_STATUS = { none: { t: "Belum di-call", c: "bad" }, once: { t: "Baru 1x, belum terhubung", c: "warn" }, noconn: { t: "Belum terhubung", c: "warn" }, conn: { t: "Sudah terhubung", c: "good" }, nonum: { t: "Tanpa nomor valid", c: "mute" } };
+    const euVal = (k) => document.querySelector(`.eu-f[data-f="${k}"]`)?.value || "";
+    function euScope() {
+      const coach = euVal("coach"), agent = euVal("agent");
+      return euUsers.filter((u) => filterMatches(coach, u.coach) && filterMatches(agent, u.agent));
+    }
     function euFiltered() {
-      const g = (k) => document.querySelector(`.eu-f[data-f="${k}"]`)?.value || "";
-      const agent = g("agent"), cat = g("cat"), st = g("status"), q = g("q").toLowerCase().trim();
-      return euUsers.filter((u) => (!agent || u.agent === agent) && (!cat || u.cat === cat)
+      const g = euVal;
+      const cat = g("cat"), st = g("status"), q = g("q").toLowerCase().trim();
+      return euScope().filter((u) => (!cat || u.cat === cat)
         && (!st || (st === "partial" ? (u.nums.length > 1 && u.untouched > 0 && u.dial > 0) : st === "noconn3" ? (u.status !== "conn" && u.dial >= 3) : u.status === st))
         && (!q || u.name.toLowerCase().includes(q)));
     }
@@ -8714,11 +8765,15 @@
       euEnrich();
       const agents = [...new Set(euUsers.map((u) => u.agent))].sort();
       const sel = document.querySelector('.eu-f[data-f="agent"]');
-      if (sel && sel.dataset.sig !== String(agents.length)) { const cur = sel.value; sel.dataset.sig = String(agents.length); sel.innerHTML = `<option value="">Semua agent</option>` + agents.map((a) => `<option>${escapeHtml(a)}</option>`).join(""); sel.value = agents.includes(cur) ? cur : ""; }
+      const coachLabels = [...CT_COACHES.map((c) => c.label), "Belum terpetakan"].filter((l) => euUsers.some((u) => u.coach === l));
+      setFilterEntries("euCoachF", coachLabels.map((l) => ({ value: l, label: l })), "Semua coach");
+      const coachSel = splitFilterValue(euVal("coach"));
+      const agentOpts = agents.filter((a) => !coachSel.length || euUsers.some((u) => u.agent === a && coachSel.includes(u.coach)));
+      setFilterEntries("euAgentF", agentOpts.map((a) => ({ value: a, label: a })), "Semua agent");
       const cats = [...new Set(euUsers.map((u) => u.cat).filter(Boolean))];
       const cs = document.querySelector('.eu-f[data-f="cat"]');
       if (cs && cs.dataset.sig !== String(cats.length)) { cs.dataset.sig = String(cats.length); cs.innerHTML = `<option value="">Semua kategori</option>` + cats.map((a) => `<option>${escapeHtml(a)}</option>`).join(""); }
-      const all = euUsers, list = euFiltered();
+      const all = euScope(), list = euFiltered();
       const cnt = (arr, k) => arr.filter((u) => u.status === k).length;
       const stat = (label, v, sub, cls) => `<div class="ut-an-stat ${cls || ""}"><span>${label}</span><b>${number.format(v)}</b><small>${sub}</small></div>`;
       const pc = (a, b) => (b ? `${Math.round(a / b * 100)}%` : "0%");
@@ -8730,10 +8785,10 @@
         stat("Sudah di-call, belum terhubung", cnt(all, "noconn"), pc(cnt(all, "noconn"), all.length)) +
         stat("Sudah terhubung", cnt(all, "conn"), pc(cnt(all, "conn"), all.length) + " (≥ 2 menit)");
       /* ringkasan per agent */
-      const byAgent = agents.map((a) => { const us = all.filter((u) => u.agent === a); return { a, n: us.length, none: cnt(us, "none"), once: cnt(us, "once"), noconn: cnt(us, "noconn"), conn: cnt(us, "conn"), dial: us.reduce((s, u) => s + u.dial, 0), ...({ d1: us.filter((u) => u.dial === 1).length, d2: us.filter((u) => u.dial === 2).length, d3: us.filter((u) => u.dial >= 3).length }) }; }).sort((x, y) => y.n - x.n);
-      const selAgent = sel?.value || "";
+      const byAgent = [...new Set(all.map((u) => u.agent))].sort().map((a) => { const us = all.filter((u) => u.agent === a); return { a, coach: us[0]?.coach || "", n: us.length, none: cnt(us, "none"), once: cnt(us, "once"), noconn: cnt(us, "noconn"), conn: cnt(us, "conn"), dial: us.reduce((s, u) => s + u.dial, 0), ...({ d1: us.filter((u) => u.dial === 1).length, d2: us.filter((u) => u.dial === 2).length, d3: us.filter((u) => u.dial >= 3).length }) }; }).sort((x, y) => y.n - x.n);
+      const selAgents = splitFilterValue(sel?.value || "");
       
-      document.getElementById("euAgents").innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Agent</th><th>Kontak</th><th>Total dial</th><th class="ct-off">Belum di-call</th><th>Di-call 1×</th><th>Di-call 2×</th><th>Di-call 3×+</th><th>Baru 1x</th><th>Belum terhubung</th><th class="ct-key">Terhubung</th><th class="ct-key">% terhubung</th><th>% tersentuh</th></tr></thead><tbody>${byAgent.map((x) => `<tr class="eu-arow${selAgent === x.a ? " open" : ""}" data-agent="${escapeHtml(x.a)}"><td class="ct-first ct-click2">${escapeHtml(x.a)}</td><td>${x.n}</td><td>${number.format(x.dial)}</td><td class="ct-off">${x.none}</td><td>${x.d1}</td><td>${x.d2}</td><td>${x.d3}</td><td>${x.once}</td><td>${x.noconn}</td><td class="ct-key">${x.conn}</td><td class="ct-key">${pc(x.conn, x.n)}</td><td>${pc(x.n - x.none, x.n)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("euAgents").innerHTML = `<div class="table-wrap ct-wrap"><table class="ct-table"><thead><tr><th class="ct-first">Agent</th><th>Coach</th><th>Kontak</th><th>Total dial</th><th class="ct-off">Belum di-call</th><th>Di-call 1×</th><th>Di-call 2×</th><th>Di-call 3×+</th><th>Baru 1x</th><th>Belum terhubung</th><th class="ct-key">Terhubung</th><th class="ct-key">% terhubung</th><th>% tersentuh</th></tr></thead><tbody>${byAgent.map((x) => `<tr class="eu-arow${selAgents.includes(x.a) ? " open" : ""}" data-agent="${escapeHtml(x.a)}"><td class="ct-first ct-click2">${escapeHtml(x.a)}</td><td class="eu-coachcell">${escapeHtml(x.coach)}</td><td>${x.n}</td><td>${number.format(x.dial)}</td><td class="ct-off">${x.none}</td><td>${x.d1}</td><td>${x.d2}</td><td>${x.d3}</td><td>${x.once}</td><td>${x.noconn}</td><td class="ct-key">${x.conn}</td><td class="ct-key">${pc(x.conn, x.n)}</td><td>${pc(x.n - x.none, x.n)}</td></tr>`).join("")}</tbody></table></div>`;
       /* tabel kontak: dua tabel (VO dan non VO), baris induk per agent */
       document.getElementById("euCount").textContent = `${number.format(list.length)} kontak sesuai filter · klik nama agent untuk membuka user-nya`;
       const prio = { none: 0, once: 1, noconn: 2, conn: 3, nonum: 4 };
@@ -8761,16 +8816,17 @@
       const num = (n) => `="0${n}"`;
       const pick = (u, role) => u.calls.filter((x) => x.role === role);
       const cell = (u, role, f) => pick(u, role).map(f).join(" | ");
-      const head = ["Agent", "User", "Kategori", "Kelas", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log"];
+      const head = ["Agent", "Coach", "User", "Kategori", "Kelas", "Status", "Total Dial", "Kelompok Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Dial Siswa", "Angkat Siswa", "Terhubung Siswa", "No Ortu", "Dial Ortu", "Angkat Ortu", "Terhubung Ortu", "Nomor Lain", "Dial Lain", "Terhubung Lain", "Log"];
       const lines = [head.map(q).join(",")];
       list.forEach((u) => {
-        lines.push([u.agent, u.name, u.cat, u.kelas, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn,
+        lines.push([u.agent, u.coach, u.name, u.cat, u.kelas, EU_STATUS[u.status].t, u.dial, (u.dial === 0 ? "0x" : u.dial === 1 ? "1x" : u.dial === 2 ? "2x" : "3x+"), u.conn,
           cell(u, "Siswa", (x) => x.n) ? num(pick(u, "Siswa")[0].n) : "", pick(u, "Siswa").reduce((s, x) => s + x.dial, 0), pick(u, "Siswa").reduce((s, x) => s + x.ans, 0), pick(u, "Siswa").reduce((s, x) => s + x.conn, 0),
           pick(u, "Ortu").length ? num(pick(u, "Ortu")[0].n) : "", pick(u, "Ortu").reduce((s, x) => s + x.dial, 0), pick(u, "Ortu").reduce((s, x) => s + x.ans, 0), pick(u, "Ortu").reduce((s, x) => s + x.conn, 0),
           pick(u, "Lain").map((x) => `0${x.n}`).join(" | "), cell(u, "Lain", (x) => x.dial), cell(u, "Lain", (x) => x.conn), u.log].map(q).join(","));
       });
       const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
-      const agent = document.querySelector('.eu-f[data-f="agent"]')?.value || "semua-agent";
+      const av = splitFilterValue(euVal("agent")), cv = splitFilterValue(euVal("coach"));
+      const agent = av.length === 1 ? av[0] : av.length ? "beberapa-agent" : cv.length === 1 ? cv[0] : cv.length ? "beberapa-coach" : "semua-agent";
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
       a.download = `extend-user-${agent.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);

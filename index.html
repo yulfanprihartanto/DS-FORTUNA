@@ -3542,6 +3542,8 @@
         </div>
         <div class="ct-block eu-filterbar">
           <div class="eu-filters">
+            <label>Tipe<select id="plVoF" class="pl-f ct-sel" data-f="vo"></select></label>
+            <label>Prio<select id="plPrioF" class="pl-f ct-sel" data-f="prio"></select></label>
             <label>Coach<select id="plCoachF" class="pl-f ct-sel" data-f="coach"></select></label>
             <label>Agent<select id="plAgentF" class="pl-f ct-sel" data-f="agent"></select></label>
             <button type="button" class="pl-export">Export Excel (semua)</button>
@@ -9253,7 +9255,7 @@
 
     /* ---------- PRIORITAS LEADS: user BELUM PAID, dikategorikan prio 1-3 ---------- */
         const PL_ROWS = ["Aktif", "Cukup aktif", "Tidur"];
-    const PL_COLS = ["Sudah pernah ngobrol (Terhubung / Terhubung dekat)", "Belum ngobrol, attempt 0–5", "Belum ngobrol, attempt 6–10"];
+    const PL_COLS = ["Sudah pernah ngobrol (Terhubung / Terhubung lama)", "Belum ngobrol, attempt 0–5", "Belum ngobrol, attempt 6–10"];
     const PL_LABELS = ["1A", "1B", "1C", "2A", "2B", "2C", "3A", "3B", "3C"];
     const PL_CATS = [];
     PL_ROWS.forEach((r, ri) => PL_COLS.forEach((c, ci) => PL_CATS.push({ id: ri * 3 + ci + 1, row: ri, col: ci, p: ri * 3 + ci + 1, t: `${r} · ${ci === 0 ? "sudah pernah ngobrol" : ci === 1 ? "belum ngobrol, attempt 0–5" : "belum ngobrol, attempt 6–10"}` })));
@@ -9372,7 +9374,10 @@
     }
     function plBand(n) { return n === 0 ? "Belum disentuh" : n <= 2 ? "Baru dicoba" : n <= 5 ? "Cukup dicoba" : n <= 10 ? "Sudah maksimal" : "Berlebih"; }
     const PL_CONN_ORDER = { dekat: 3, terhubung: 2, angkat: 1, belum: 0 };
-    const PL_CONN_LABEL = { dekat: "Terhubung dekat", terhubung: "Terhubung", angkat: "Sekadar angkat", belum: "Belum terhubung" };
+    const plDur = (sec) => (sec >= 60 ? `${Math.floor(sec / 60)} mnt ${sec % 60} dtk` : `${sec} dtk`);
+    const plDay = (d) => (d > 0 ? new Date(d * 864e5).toISOString().slice(0, 10) : "-");
+    const plConnInfo = (u) => (u.dial ? `talktime terlama ${plDur(u.talkMax)} · total ${plDur(u.talkTot)}${u.lastTalk ? " · ngobrol terakhir " + plDay(u.lastTalk) : ""}` : "belum ada call");
+    const PL_CONN_LABEL = { dekat: "Terhubung lama", terhubung: "Terhubung", angkat: "Sekadar angkat", belum: "Belum terhubung" };
     function plCallIndex() {
       const m = new Map(); let anchor = -Infinity;
       callRows.forEach((r) => {
@@ -9419,11 +9424,13 @@
           const maxDur = arr.reduce((t, c) => Math.max(t, c.dur), 0);
           const ans = arr.filter((c) => c.dur > 0).length, conn = arr.filter((c) => c.dur >= CT_CONN_SEC).length;
           const talk7 = arr.some((c) => c.dur >= 60 && c.d >= ci.anchor - 6), talk = arr.some((c) => c.dur >= 60);
+          const totDur = arr.reduce((t, c) => t + c.dur, 0), lastTalk = arr.reduce((t, c) => (c.dur >= 60 ? Math.max(t, c.d) : t), 0);
           const lvl = (maxDur >= 600 || talk7) ? "dekat" : talk ? "terhubung" : ans ? "angkat" : "belum";
-          return { ...x, dial: arr.length, ans, conn, att14, lvl, maxDur, talk7 };
+          return { ...x, dial: arr.length, ans, conn, att14, lvl, maxDur, talk7, totDur, lastTalk };
         });
         u.dial = u.calls.reduce((s, x) => s + x.dial, 0); u.conn = u.calls.reduce((s, x) => s + x.conn, 0);
         u.connLvl = u.calls.reduce((b, x) => (PL_CONN_ORDER[x.lvl] > PL_CONN_ORDER[b] ? x.lvl : b), "belum");
+        u.talkMax = u.calls.reduce((t, x) => Math.max(t, x.maxDur), 0); u.talkTot = u.calls.reduce((t, x) => t + x.totDur, 0); u.lastTalk = u.calls.reduce((t, x) => Math.max(t, x.lastTalk), 0);
         u.att = u.calls.reduce((t, x) => Math.max(t, x.att14), 0);
         u.band = plBand(u.att);
         /* live teaching 4 minggu */
@@ -9486,9 +9493,10 @@
       return pl.memo;
     }
     const plPrioKey = (u) => (u.prio ? String(u.prio) : "x");
+    const plType = (u) => (u.cat === "Voucher Owner" ? "vo" : "non");
     function plScope(list) {
-      const coach = plVal("coach"), agent = plVal("agent");
-      return list.filter((u) => filterMatches(coach, u.coach) && filterMatches(agent, u.agent));
+      const coach = plVal("coach"), agent = plVal("agent"), vo = plVal("vo"), prio = plVal("prio");
+      return list.filter((u) => filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent));
     }
     function plDetailHtml(all) {
       const tone = (p) => { const g = Number(PL_LABELS[p - 1]?.[0] || 9); return g <= 1 ? "p1" : g <= 2 ? "p2" : "p3"; };
@@ -9502,7 +9510,7 @@
         <div class="pl-stop"><b>Berhenti telepon</b><span>Belum pernah ngobrol dan attempt >10 dalam 14 hari. ${escapeHtml(PL_ACTION[10])}</span><em class="${stopUs.length ? "pl-num" : ""}" data-k="cat10">${number.format(stopUs.length)} user</em></div>
         <div class="pl-legend"><b>Cara membaca</b>
           <p><b>Baris</b> = seberapa aktif belajar 4 minggu terakhir. <b>Aktif:</b> aktivitas ≥2 dari 4 minggu dan ada di minggu terakhir. <b>Cukup aktif:</b> 1 dari 4 minggu (atau ≥2 minggu tapi tidak di minggu terakhir). <b>Tidur:</b> 0. (Sumber: sheet Activity Renewal.)</p>
-          <p><b>Kolom</b> = hubungan dengan agent. <b>Sudah pernah ngobrol:</b> Terhubung dekat (≥10 menit, atau ≥1 menit dalam 7 hari terakhir) atau Terhubung (≥1 menit, lebih dari 7 hari lalu). <b>Belum ngobrol:</b> Sekadar angkat (<1 menit) atau Belum terhubung, lalu dibagi menurut attempt 14 hari (angka tertinggi di antara nomor ortu dan siswa).</p>
+          <p><b>Kolom</b> = hubungan dengan agent. <b>Sudah pernah ngobrol:</b> Terhubung lama (≥10 menit, atau ≥1 menit dalam 7 hari terakhir) atau Terhubung (≥1 menit, lebih dari 7 hari lalu). <b>Belum ngobrol:</b> Sekadar angkat (<1 menit) atau Belum terhubung, lalu dibagi menurut attempt 14 hari (angka tertinggi di antara nomor ortu dan siswa).</p>
           <p><b>Urutan prio:</b> 1A, 1B, 2A, 2B, 2C, 3A, 3B, 3C, 4 (mengikuti urutan baca matriks). <b>Naik/turun prio (geser satu tingkat, mis. 2B naik jadi 2A):</b> naik jika baru di-assign (≤4 minggu), pelanggan lama, atau ada janji follow-up; turun jika attempt >10. Kelas akhir (6 SD, 9 SMP, 12 SMA) hanya label.</p>
           <p><b>Skor indikatif:</b> hanya untuk mengurutkan user di dalam satu prio (live teaching ikut di sini). Dikali dari kelipatan peluang renew di artifak Pemicu Renewal: aktif app 3,2×, tidak aktif 0,28×, ikut live 2,8×, ngobrol ≥10 menit 3,4× atau ≤7 hari 2,7×, baru di-assign 2,4×, kelas akhir 0,6×. Itu hubungan, bukan sebab. Arahkan kursor ke skor untuk melihat rinciannya.</p>
         </div>`;
@@ -9517,10 +9525,14 @@
         return;
       }
       const memo = plCompute();
-      const coaches = [...EU_COACHES, "Belum terpetakan"].filter((l) => memo.list.some((u) => u.coach === l));
+      setFilterEntries("plVoF", [{ value: "vo", label: "VO (Voucher Owner)" }, { value: "non", label: "Non VO" }], "Semua (VO + Non VO)");
+      setFilterEntries("plPrioF", [...PL_LABELS.map((l, i) => ({ value: String(i + 1), label: `Prio ${l}` })), { value: "10", label: "Berhenti telepon" }], "Semua prio");
+      const vs = splitFilterValue(plVal("vo"));
+      const byVo = memo.list.filter((u) => !vs.length || vs.includes(plType(u)));
+      const coaches = [...EU_COACHES, "Belum terpetakan"].filter((l) => byVo.some((u) => u.coach === l));
       setFilterEntries("plCoachF", coaches.map((l) => ({ value: l, label: l })), "Semua coach");
       const cs = splitFilterValue(plVal("coach"));
-      const agents = [...new Set(memo.list.filter((u) => !cs.length || cs.includes(u.coach)).map((u) => u.agent))].sort();
+      const agents = [...new Set(byVo.filter((u) => !cs.length || cs.includes(u.coach)).map((u) => u.agent))].sort();
       setFilterEntries("plAgentF", agents.map((a) => ({ value: a, label: a })), "Semua agent");
       const all = plScope(memo.list);
       const cnt = (arr, k) => arr.filter((u) => plPrioKey(u) === k).length;
@@ -9563,7 +9575,7 @@
       const list = plModalBase.filter((u) => (!cat || u.catName === cat) && (!q || u.name.toLowerCase().includes(q) || (u.ortuName || "").toLowerCase().includes(q)));
       window.plModalList = list;
       const shown = list.slice(0, 400);
-      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}<br><small>${escapeHtml(u.agent)}${u.ortuName ? " · Ortu: " + escapeHtml(u.ortuName) : ""}</small></td><td><b>${u.prio ? plPrioLabel(u.prio) : "-"}</b><br><small>${escapeHtml(u.catName)}</small>${u.prio ? `<br><small title="${escapeHtml(u.scoreWhy || "tanpa pengali")}">skor indikatif ${u.score}</small>` : ""}${u.labels.length ? `<br><small>${u.labels.map(escapeHtml).join(" · ")}</small>` : ""}</td><td><b>${u.att}×</b><br><small>${escapeHtml(u.band)} (14 hari)</small></td><td>${escapeHtml(PL_CONN_LABEL[u.connLvl])}</td><td>${u.act || "-"}${u.actInfo ? `<br><small>${u.actInfo.w}/4 minggu</small>` : ""}</td><td>${u.live || "-"}${u.liveN != null ? `<br><small>${u.liveN} kelas</small>` : ""}</td><td>${plNums(u, "Siswa")}</td><td>${plNums(u, "Ortu")}</td></tr>`).join("");
+      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}<br><small>${escapeHtml(u.agent)}${u.ortuName ? " · Ortu: " + escapeHtml(u.ortuName) : ""}</small></td><td><b>${u.prio ? plPrioLabel(u.prio) : "-"}</b><br><small>${escapeHtml(u.catName)}</small>${u.prio ? `<br><small title="${escapeHtml(u.scoreWhy || "tanpa pengali")}">skor indikatif ${u.score}</small>` : ""}${u.labels.length ? `<br><small>${u.labels.map(escapeHtml).join(" · ")}</small>` : ""}</td><td><b>${u.att}×</b><br><small>${escapeHtml(u.band)} (14 hari)</small></td><td><b>${escapeHtml(PL_CONN_LABEL[u.connLvl])}</b><br><small>${escapeHtml(plConnInfo(u))}</small></td><td>${u.act || "-"}${u.actInfo ? `<br><small>${u.actInfo.w}/4 minggu</small>` : ""}</td><td>${u.live || "-"}${u.liveN != null ? `<br><small>${u.liveN} kelas</small>` : ""}</td><td>${plNums(u, "Siswa")}</td><td>${plNums(u, "Ortu")}</td></tr>`).join("");
       document.getElementById("plMBody").innerHTML = `<table class="ct-table eu-table"><thead><tr><th class="ct-first">User</th><th>Kategori</th><th>Band attempt</th><th>Keterhubungan</th><th>Aktivitas app</th><th>Live 4 mgg</th><th>No Siswa</th><th>No Ortu</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="empty">Tidak ada user.</td></tr>`}</tbody></table>${list.length > shown.length ? `<div class="eu-foot">Menampilkan ${shown.length} dari ${list.length} user. Export Excel memuat semuanya.</div>` : ""}`;
       document.getElementById("plMCount").textContent = `${list.length} user` + (list.length !== plModalBase.length ? ` dari ${plModalBase.length}` : "");
     }
@@ -9582,11 +9594,11 @@
     function plExport(list, tag) {
       const sum = (arr, k) => arr.reduce((t, x) => t + x[k], 0);
       const nums = (arr) => arr.map((x) => `0${x.n}`).join(" | ");
-      const head = ["Prio", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
-      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 10, 14, 10, 24, 22, 26, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
+      const head = ["Prio", "Tipe (VO/Non VO)", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Talktime terlama (detik)", "Talktime total (detik)", "Ngobrol terakhir", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
+      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 14, 14, 14, 10, 14, 10, 24, 22, 26, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
       const rows = list.map((u) => {
         const S = u.calls.filter((x) => x.role === "Siswa"), O = u.calls.filter((x) => x.role === "Ortu"), L = u.calls.filter((x) => x.role === "Lain");
-        return [u.prio ? plPrioLabel(u.prio) : "", u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
+        return [u.prio ? plPrioLabel(u.prio) : "", plType(u) === "vo" ? "VO" : "Non VO", u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.talkMax, u.talkTot, plDay(u.lastTalk), u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
       });
       const blob = xlsxBlob("Prioritas Leads", head, rows, widths);
       const av = splitFilterValue(plVal("agent"));

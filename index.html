@@ -3563,6 +3563,10 @@
           <div class="panel-head"><h2>Ringkasan per Kategori</h2><span class="note">9 sel matriks + berhenti telepon · satu user hanya masuk satu</span></div>
           <div id="plCats"></div>
         </div>
+        <div class="ct-block">
+          <div class="panel-head"><h2>User PAID per Kategori</h2><span class="note" id="plPaidNote"></span></div>
+          <div id="plPaid"></div>
+        </div>
       </section>
     </section>
 
@@ -9309,13 +9313,15 @@
       plFetch(plGv(EXTEND_SHEET_ID, "PAID")).then((t) => {
         const T = plTable(t), iE = T.idx("email user"), iF = T.idx("no user"), iO = T.idx("no ortu");
         if (iE < 0 && iF < 0) throw new Error("kolom tab PAID tidak dikenali");
-        const emails = new Set(), phones = new Set(), ortuPhones = new Set();
+        const emails = new Set(), phones = new Set(), ortuPhones = new Set(), info = new Map();
+        const iPk = T.idx("paket"), iTg = T.idx("tanggal payment"), iAm = T.idx("amount"), iIv = T.idx("invoice"), iAg = T.idx("nama agent");
         T.rows.forEach((r) => {
-          if (iE >= 0) { const e = clean(r[iE]).toLowerCase(); if (e.includes("@")) emails.add(e); }
-          if (iF >= 0) { const n = euNorm(r[iF]); if (n) phones.add(n); }
-          if (iO >= 0) { const n = euNorm(r[iO]); if (n) ortuPhones.add(n); }
+          const inf = { paket: iPk >= 0 ? clean(r[iPk]) : "", tgl: iTg >= 0 ? (plDateKey(r[iTg]) || clean(r[iTg])) : "", amount: iAm >= 0 ? clean(r[iAm]) : "", invoice: iIv >= 0 ? clean(r[iIv]) : "", agent: iAg >= 0 ? clean(r[iAg]) : "" };
+          if (iE >= 0) { const e = clean(r[iE]).toLowerCase(); if (e.includes("@")) { emails.add(e); if (!info.has("e:" + e)) info.set("e:" + e, inf); } }
+          if (iF >= 0) { const n = euNorm(r[iF]); if (n) { phones.add(n); if (!info.has("p:" + n)) info.set("p:" + n, inf); } }
+          if (iO >= 0) { const n = euNorm(r[iO]); if (n) { ortuPhones.add(n); if (!info.has("o:" + n)) info.set("o:" + n, inf); } }
         });
-        pl.paid = { emails, phones, ortuPhones, rows: T.rows.length };
+        pl.paid = { emails, phones, ortuPhones, info, rows: T.rows.length };
       }).catch((e) => { pl.errs.paid = e.message; pl.paid = { emails: new Set(), phones: new Set(), ortuPhones: new Set(), rows: 0, failed: true }; }).then(done);
       /* jendela 4 minggu mengikuti data terakhir di sheet (minggu terakhir yang sudah lengkap), bukan kalender */
       const calWeek = Number(weekNumberFromDate(new Date()));
@@ -9403,7 +9409,7 @@
       euUsers.forEach((u) => { u.src = "extend user"; all.push(u); });
       pl.nonvo.forEach((u) => all.push(u));
       let paidOut = 0, paidOrtuOnly = 0;
-      const list = [];
+      const list = [], paidList = [];
       const canon = new Map();
       const pretty = (n) => (n === n.toUpperCase() || n === n.toLowerCase() ? n.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) : n);
       all.forEach((u0) => { const k = normalizeName(u0.agent); const cur = canon.get(k); if (!cur || (cur === cur.toUpperCase() && u0.agent !== u0.agent.toUpperCase())) canon.set(k, pretty(clean(u0.agent))); });
@@ -9413,10 +9419,13 @@
         const sisNums = u.nums.filter((x) => x.role === "Siswa").map((x) => x.n), ortNums = u.nums.filter((x) => x.role === "Ortu").map((x) => x.n);
         const paidSis = (emailKey && pl.paid.emails.has(emailKey)) || sisNums.some((n) => pl.paid.phones.has(n));
         const paidOrt = ortNums.some((n) => pl.paid.ortuPhones.has(n));
-        if (paidSis || paidOrt) { paidOut++; if (!paidSis) paidOrtuOnly++; return; }
+        const isPaid = !!(paidSis || paidOrt);
+        if (isPaid) { paidOut++; if (!paidSis) paidOrtuOnly++; }
         const dk = `${u.name}|${u.agent}|${u.nums.map((x) => x.n).join(",")}`;
         if (seenKey.has(dk)) return; seenKey.add(dk);
         u.coach = euCoachOfAgent(u.agent) || "Belum terpetakan";
+        u.paid = isPaid; u.paidInfo = null;
+        if (isPaid && pl.paid.info) u.paidInfo = (emailKey && pl.paid.info.get("e:" + emailKey)) || sisNums.map((n) => pl.paid.info.get("p:" + n)).find(Boolean) || ortNums.map((n) => pl.paid.info.get("o:" + n)).find(Boolean) || null;
         /* call per nomor */
         u.calls = u.nums.map((x) => {
           const arr = ci.m.get(x.n) || [];
@@ -9486,9 +9495,9 @@
             u.adj = [up ? "naik 1 prio (baru di-assign / janji follow-up)" : "", down ? "turun 1 prio (attempt >10)" : ""].filter(Boolean).join(", ");
           }
         } else { u.prio = 0; u.adj = ""; }
-        list.push(u);
+        (isPaid ? paidList : list).push(u);
       });
-      pl.memo = { list, paidOut, paidOrtuOnly, anchor: ci.anchor, sig };
+      pl.memo = { list, paidList, paidOut, paidOrtuOnly, anchor: ci.anchor, sig };
       pl.memoSig = sig;
       return pl.memo;
     }
@@ -9560,6 +9569,15 @@
       const det = document.getElementById("plDetail"); if (det) det.innerHTML = plDetailHtml(all);
       const catRows = PL_CATS.map((c) => ({ c, us: all.filter((u) => u.catId === c.id) }));
       const x0 = all.filter((u) => u.catId === 0);
+      const paidAll = plScope(memo.paidList);
+      const paidRows = [...PL_CATS.map((c) => ({ id: c.id, k: `cat${c.id}`, t: c.t, p: c.p })), { id: 0, k: "x", t: PL_X, p: 0 }].map((r) => ({ ...r, pu: paidAll.filter((u) => u.catId === r.id).length, un: all.filter((u) => u.catId === r.id).length }));
+      const paidBox = document.getElementById("plPaid");
+      if (paidBox) {
+        const tot = paidAll.length;
+        paidBox.innerHTML = `<table class="ct-table eu-table"><thead><tr><th class="ct-first">Kategori (kondisi sekarang)</th><th>Prio</th><th>Sudah paid</th><th>Belum paid</th><th>% sudah paid</th></tr></thead><tbody>${paidRows.filter((r) => r.pu || r.un).map((r) => `<tr data-cat="${r.id}"><td class="ct-first"><b>${escapeHtml(r.t)}</b></td><td class="ct-num">${r.p ? plPrioLabel(r.p) : "-"}</td><td class="ct-num ${r.pu ? "pl-num" : ""}" data-k="paid:${r.k}">${r.pu ? `<b>${number.format(r.pu)}</b>` : `<span class="eu-none">0</span>`}</td><td class="ct-num">${number.format(r.un)}</td><td class="ct-num">${r.pu + r.un ? (r.pu * 100 / (r.pu + r.un)).toFixed(1) + "%" : "-"}</td></tr>`).join("")}<tr class="eu-total" data-cat="all"><td class="ct-first"><b>TOTAL PAID</b></td><td class="ct-num"></td><td class="ct-num ${tot ? "pl-num" : ""}" data-k="paid:all"><b>${number.format(tot)}</b></td><td class="ct-num">${number.format(all.length)}</td><td class="ct-num">${tot + all.length ? (tot * 100 / (tot + all.length)).toFixed(1) + "%" : "-"}</td></tr></tbody></table>`;
+        const pn = document.getElementById("plPaidNote");
+        if (pn) pn.textContent = `tab PAID ${number.format(pl.paid.rows)} baris · cocok dengan daftar leads: ${number.format(memo.paidList.length)} user · kategori dihitung dari kondisi sekarang, bukan saat bayar`;
+      }
       document.getElementById("plCats").innerHTML = `<table class="ct-table eu-table"><thead><tr><th class="ct-first">Kategori</th><th>Prio dasar</th><th>Jumlah user</th><th>Naik / tetap / turun prio</th></tr></thead><tbody>${catRows.map(({ c, us }) => `<tr data-cat="${c.id}"><td class="ct-first"><b>${escapeHtml(c.t)}</b></td><td class="ct-num">${plPrioLabel(c.p)}</td><td class="ct-num ${us.length ? "pl-num" : ""}" data-k="cat${c.id}">${us.length ? `<b>${number.format(us.length)}</b>` : `<span class="eu-none">0</span>`}</td><td class="ct-num">${c.id === 10 ? "-" : `${us.filter((u) => u.prio < c.p).length} / ${us.filter((u) => u.prio === c.p).length} / ${us.filter((u) => u.prio > c.p).length}`}</td></tr>`).join("")}${Object.keys(PL_WHY).map((k) => { const n = x0.filter((u) => u.whyKey === k).length; return n ? `<tr><td class="ct-first"><b>${escapeHtml(PL_X)}</b><br><small>${escapeHtml(PL_WHY[k])}</small></td><td class="ct-num">-</td><td class="ct-num pl-num" data-k="why:${k}"><b>${number.format(n)}</b></td><td class="ct-num">-</td></tr>` : ""; }).join("")}</tbody></table>`;
     }
     const PL_PRED = (k) => {
@@ -9575,18 +9593,19 @@
       const list = plModalBase.filter((u) => (!cat || u.catName === cat) && (!q || u.name.toLowerCase().includes(q) || (u.ortuName || "").toLowerCase().includes(q)));
       window.plModalList = list;
       const shown = list.slice(0, 400);
-      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}<br><small>${escapeHtml(u.agent)}${u.ortuName ? " · Ortu: " + escapeHtml(u.ortuName) : ""}</small></td><td><b>${u.prio ? plPrioLabel(u.prio) : "-"}</b><br><small>${escapeHtml(u.catName)}</small>${u.prio ? `<br><small title="${escapeHtml(u.scoreWhy || "tanpa pengali")}">skor indikatif ${u.score}</small>` : ""}${u.labels.length ? `<br><small>${u.labels.map(escapeHtml).join(" · ")}</small>` : ""}</td><td><b>${u.att}×</b><br><small>${escapeHtml(u.band)} (14 hari)</small></td><td><b>${escapeHtml(PL_CONN_LABEL[u.connLvl])}</b><br><small>${escapeHtml(plConnInfo(u))}</small></td><td>${u.act || "-"}${u.actInfo ? `<br><small>${u.actInfo.w}/4 minggu</small>` : ""}</td><td>${u.live || "-"}${u.liveN != null ? `<br><small>${u.liveN} kelas</small>` : ""}</td><td>${plNums(u, "Siswa")}</td><td>${plNums(u, "Ortu")}</td></tr>`).join("");
+      const rows = shown.map((u) => `<tr><td class="eu-m-name"><b>${escapeHtml(u.name)}</b>${u.kelas ? ` <small>kelas ${escapeHtml(u.kelas)}</small>` : ""}<br><small>${escapeHtml(u.agent)}${u.ortuName ? " · Ortu: " + escapeHtml(u.ortuName) : ""}</small>${u.email ? `<br><small class="pl-email">${escapeHtml(u.email)}</small>` : ""}${u.paid ? `<br><small style="color:#15803d"><b>PAID</b>${u.paidInfo ? " · " + escapeHtml([u.paidInfo.paket, u.paidInfo.tgl, u.paidInfo.amount].filter(Boolean).join(" · ")) : ""}</small>` : ""}</td><td><b>${u.prio ? plPrioLabel(u.prio) : "-"}</b><br><small>${escapeHtml(u.catName)}</small>${u.prio ? `<br><small title="${escapeHtml(u.scoreWhy || "tanpa pengali")}">skor indikatif ${u.score}</small>` : ""}${u.labels.length ? `<br><small>${u.labels.map(escapeHtml).join(" · ")}</small>` : ""}</td><td><b>${u.att}×</b><br><small>${escapeHtml(u.band)} (14 hari)</small></td><td><b>${escapeHtml(PL_CONN_LABEL[u.connLvl])}</b><br><small>${escapeHtml(plConnInfo(u))}</small></td><td>${u.act || "-"}${u.actInfo ? `<br><small>${u.actInfo.w}/4 minggu</small>` : ""}</td><td>${u.live || "-"}${u.liveN != null ? `<br><small>${u.liveN} kelas</small>` : ""}</td><td>${plNums(u, "Siswa")}</td><td>${plNums(u, "Ortu")}</td></tr>`).join("");
       document.getElementById("plMBody").innerHTML = `<table class="ct-table eu-table"><thead><tr><th class="ct-first">User</th><th>Kategori</th><th>Band attempt</th><th>Keterhubungan</th><th>Aktivitas app</th><th>Live 4 mgg</th><th>No Siswa</th><th>No Ortu</th></tr></thead><tbody>${rows || `<tr><td colspan="8" class="empty">Tidak ada user.</td></tr>`}</tbody></table>${list.length > shown.length ? `<div class="eu-foot">Menampilkan ${shown.length} dari ${list.length} user. Export Excel memuat semuanya.</div>` : ""}`;
       document.getElementById("plMCount").textContent = `${list.length} user` + (list.length !== plModalBase.length ? ` dari ${plModalBase.length}` : "");
     }
     function plOpenModal(agent, k) {
       const memo = plCompute();
-      const base = plScope(memo.list).filter((u) => (agent === "*" || u.agent === agent) && PL_PRED(k)(u));
+      const isPaidK = k.startsWith("paid:"), kk = isPaidK ? k.slice(5) : k;
+      const base = plScope(isPaidK ? memo.paidList : memo.list).filter((u) => (agent === "*" || u.agent === agent) && PL_PRED(kk)(u));
       base.sort((a, b) => (a.prio || 99) - (b.prio || 99) || b.score - a.score || a.name.localeCompare(b.name));
       plModalBase = base; plModalTag = k;
       let box = document.getElementById("plModal"); if (!box) { box = document.createElement("div"); box.id = "plModal"; document.body.appendChild(box); }
       const cats = [...new Set(base.map((u) => u.catName))];
-      const label = k === "all" ? "Semua leads belum paid" : k === "x" ? PL_X : k.startsWith("why:") ? `${PL_X}: ${PL_WHY[k.slice(4)]}` : /^cat/.test(k) ? PL_CATS.find((c) => c.id === Number(k.slice(3))).t : plPrioLabel(Number(k));
+      const label = (isPaidK ? "PAID · " : "") + (kk === "all" ? (isPaidK ? "Semua user paid" : "Semua leads belum paid") : kk === "x" ? PL_X : kk.startsWith("why:") ? `${PL_X}: ${PL_WHY[kk.slice(4)]}` : /^cat/.test(kk) ? PL_CATS.find((c) => c.id === Number(kk.slice(3))).t : plPrioLabel(Number(kk)));
       box.innerHTML = `<div class="eu-m-back" data-close="1"><div class="eu-m-card" role="dialog" aria-label="Daftar user"><div class="eu-m-head"><div><b>${escapeHtml(agent === "*" ? "Semua agent" : agent)}</b> · ${escapeHtml(label)} <span class="eu-m-count" id="plMCount"></span></div><div><button type="button" class="pl-export-list">Export Excel</button><button type="button" data-close="1">Tutup</button></div></div><div class="eu-m-filters"><label>Kategori prioritas<select class="eu-mf" data-mf="cat"><option value="">Semua kategori</option>${cats.map((c) => `<option>${escapeHtml(c)}</option>`).join("")}</select></label><label>Cari nama user / ortu<input class="eu-mf" data-mf="q" type="search" placeholder="nama..."></label></div><div class="eu-m-body" id="plMBody"></div></div></div>`;
       box.style.display = "block";
       plModalRender();
@@ -9594,11 +9613,11 @@
     function plExport(list, tag) {
       const sum = (arr, k) => arr.reduce((t, x) => t + x[k], 0);
       const nums = (arr) => arr.map((x) => `0${x.n}`).join(" | ");
-      const head = ["Prio", "Tipe (VO/Non VO)", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Talktime terlama (detik)", "Talktime total (detik)", "Ngobrol terakhir", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
-      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 14, 14, 14, 10, 14, 10, 24, 22, 26, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
+      const head = ["Prio", "Tipe (VO/Non VO)", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Talktime terlama (detik)", "Talktime total (detik)", "Ngobrol terakhir", "Status bayar", "Paket (PAID)", "Tgl payment (PAID)", "Amount (PAID)", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Email User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
+      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 14, 14, 14, 12, 20, 14, 14, 10, 14, 10, 24, 22, 26, 30, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
       const rows = list.map((u) => {
         const S = u.calls.filter((x) => x.role === "Siswa"), O = u.calls.filter((x) => x.role === "Ortu"), L = u.calls.filter((x) => x.role === "Lain");
-        return [u.prio ? plPrioLabel(u.prio) : "", plType(u) === "vo" ? "VO" : "Non VO", u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.talkMax, u.talkTot, plDay(u.lastTalk), u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
+        return [u.prio ? plPrioLabel(u.prio) : "", plType(u) === "vo" ? "VO" : "Non VO", u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.talkMax, u.talkTot, plDay(u.lastTalk), u.paid ? "PAID" : "Belum paid", u.paidInfo ? u.paidInfo.paket : "", u.paidInfo ? u.paidInfo.tgl : "", u.paidInfo ? u.paidInfo.amount : "", u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.email || "", u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
       });
       const blob = xlsxBlob("Prioritas Leads", head, rows, widths);
       const av = splitFilterValue(plVal("agent"));

@@ -7019,16 +7019,16 @@
       const currentStatus = statusSelect.value;
       setOptions(`${prefix}CoachFilter`, callRows.map((row) => row.COACH), "coach");
       if (currentCoach) coachSelect.value = currentCoach;
-      const coachRows = callRows.filter((row) => filterMatches(coachSelect.value, row.COACH));
+      const coachRows = (() => { const sel = coachSelect.value; return callRows.filter((row) => filterMatches(sel, row.COACH)); })();
       setOptions(`${prefix}AgentFilter`, coachRows.map((row) => row["Agent Name"]), "agent");
       if (currentAgent) agentSelect.value = currentAgent;
-      const agentRows = coachRows.filter((row) => filterMatches(agentSelect.value, row["Agent Name"]));
+      const agentRows = (() => { const sel = agentSelect.value; return coachRows.filter((row) => filterMatches(sel, row["Agent Name"])); })();
       setMonthOptions(`${prefix}MonthFilter`, agentRows);
       if (currentMonth) monthSelect.value = currentMonth;
-      const monthRows = agentRows.filter((row) => filterMatches(monthSelect?.value || "", row._weekMonth));
+      const monthRows = (() => { const sel = monthSelect?.value || ""; return agentRows.filter((row) => filterMatches(sel, row._weekMonth)); })();
       setOptions(`${prefix}DateFilter`, monthRows.map((row) => row._date), "daily");
       if (currentDate) dateSelect.value = currentDate;
-      const dateRows = monthRows.filter((row) => filterMatches(dateSelect.value, row._date));
+      const dateRows = (() => { const sel = dateSelect.value; return monthRows.filter((row) => filterMatches(sel, row._date)); })();
       setOptions(`${prefix}StatusFilter`, dateRows.map((row) => row.Status), "status");
       if (currentStatus) statusSelect.value = currentStatus;
     }
@@ -9097,7 +9097,7 @@
       const cnt = (arr, k) => arr.filter((u) => u.status === k).length;
       const stat = (label, v, sub, cls) => `<div class="ut-an-stat ${cls || ""}"><span>${label}</span><b>${number.format(v)}</b><small>${sub}</small></div>`;
       const pc = (a, b) => (b ? `${Math.round(a / b * 100)}%` : "0%");
-      const lastCall = callRows.map((r) => r._date).filter(Boolean).sort().pop() || "-";
+      const lastCall = callRows.reduce((m, r) => (r._date && r._date > m ? r._date : m), "") || "-";
       document.getElementById("euSummary").innerHTML =
         stat("Total kontak", all.length, `data call sampai ${lastCall}`, "hot") +
         stat("Belum di-call", cnt(all, "none"), pc(cnt(all, "none"), all.length) + " dari kontak") +

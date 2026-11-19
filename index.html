@@ -3608,7 +3608,7 @@
             <label>Total dial<select id="pnDialF" class="pn-f ct-sel" data-f="dial"></select></label>
             <label>Attempt 14 hari<select id="pnAttF" class="pn-f ct-sel" data-f="att"></select></label>
             <label>Kondisi nomor<select id="pnCondF" class="pn-f ct-sel" data-f="cond"></select></label>
-            <label>Cari nama<input type="search" id="pnQ" class="pn-f ct-sel" data-f="q" placeholder="nama siswa..."></label>
+            <label>Cari (nama, email, nomor, agent, coach, kelas, kategori...)<textarea id="pnQ" class="pn-f ct-sel" data-f="q" rows="1" spellcheck="false" style="resize:none;height:32px;min-height:32px;overflow:hidden;white-space:nowrap;padding-top:6px;font-family:inherit" placeholder="tempel nama / email / nomor / agent / coach / kelas / kategori..." autocomplete="off"></textarea></label>
             <button type="button" id="pnReset" class="pl-export">Reset filter</button>
             <button type="button" id="pnExport" class="pl-export">Export Excel (sesuai filter)</button>
           </div>
@@ -9673,12 +9673,34 @@
       if (!u.inFull) t.push("tidak_di_full");
       return t;
     }
+    /* pencarian gabungan: nama siswa, email siswa, atau nomor (siswa/ortu/lain); boleh tempel banyak sekaligus (pisah baris, koma, titik koma, atau spasi untuk nomor/email) */
+    function pnTokens(raw) {
+      const out = [];
+      String(raw || "").split(/[\n\r,;\t|]+/).forEach((part) => {
+        const p = part.trim(); if (!p) return;
+        const sub = p.split(/\s+/);
+        if (sub.length > 1 && sub.every((x) => /^[+\d\-().]{6,}$/.test(x) || x.includes("@"))) sub.forEach((x) => out.push(x));
+        else out.push(p);
+      });
+      return out.map((t) => {
+        const low = t.toLowerCase();
+        if (low.includes("@")) return { k: "email", v: low };
+        const digits = t.replace(/\D/g, "");
+        if (digits.length >= 6 && /^[+\d\s\-().]+$/.test(t)) return { k: "num", v: euNorm(t), d: digits.replace(/^(62|0)+/, "") };
+        return { k: "name", v: low };
+      });
+    }
+    function pnSearchMatch(u, toks, pd) {
+      const nums = u.calls.concat(u.extra || []).map((x) => x.n);
+      const email = (u.email || "").toLowerCase(), hay = [u.name, u.agent, u.coach, u.kelas, u.catName, u.prio ? plPrioLabel(u.prio) : "", plType(u) === "vo" ? "VO voucher owner" : "Non VO", pd ? "paid sudah paid" : "belum paid"].join(" | ").toLowerCase();
+      return toks.some((t) => t.k === "email" ? email.includes(t.v) : t.k === "num" ? (t.v ? nums.includes(t.v) : false) || (t.d.length >= 6 && nums.some((n) => n.includes(t.d))) : hay.includes(t.v));
+    }
     function pnFiltered(memo) {
-      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnVal("q").trim().toLowerCase(), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att");
+      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att");
       const all = memo.list.map((u) => ({ u, paid: false })).concat(memo.paidList.map((u) => ({ u, paid: true })));
       return all.filter(({ u, paid: pd }) => {
         if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(u.dial)) && filterMatches(att, pnBandOf(u.att)))) return false;
-        if (q && !u.name.toLowerCase().includes(q)) return false;
+        if (q.length && !pnSearchMatch(u, q, pd)) return false;
         if (cond.length) { const t = pnTags(u, pnSlots(u)); if (!cond.some((c) => t.includes(c))) return false; }
         return true;
       }).sort((a, b) => a.paid - b.paid || (a.u.prio || 99) - (b.u.prio || 99) || a.u.agent.localeCompare(b.u.agent) || a.u.name.localeCompare(b.u.name));

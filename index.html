@@ -3611,6 +3611,7 @@
             <label>Dial Nomor lain<select id="pnDialLF" class="pn-f ct-sel" data-f="diall"></select></label>
             <label>Attempt 14 hari<select id="pnAttF" class="pn-f ct-sel" data-f="att"></select></label>
             <label>Kondisi nomor<select id="pnCondF" class="pn-f ct-sel" data-f="cond"></select></label>
+            <label>Log activity<select id="pnLogF" class="pn-f ct-sel" data-f="log"></select></label>
             <label>Cari (nama, email, nomor, agent, coach, kelas, kategori...)<textarea id="pnQ" class="pn-f ct-sel" data-f="q" rows="1" spellcheck="false" style="resize:none;height:32px;min-height:32px;overflow:hidden;white-space:nowrap;padding-top:6px;font-family:inherit" placeholder="tempel nama / email / nomor / agent / coach / kelas / kategori..." autocomplete="off"></textarea></label>
             <button type="button" id="pnReset" class="pl-export">Reset filter</button>
             <button type="button" id="pnExport" class="pl-export">Export Excel (sesuai filter)</button>
@@ -3627,6 +3628,7 @@
             <label>Dial No Ortu<select id="rfDialOF" class="rf-f ct-sel" data-f="dialo"></select></label>
             <label>Dial Nomor lain<select id="rfDialLF" class="rf-f ct-sel" data-f="diall"></select></label>
             <label>Kondisi nomor<select id="rfCondF" class="rf-f ct-sel" data-f="cond"></select></label>
+            <label>Log activity<select id="rfLogF" class="rf-f ct-sel" data-f="log"></select></label>
             <label>Cari (nama, email, nomor, agent, campaign...)<textarea id="rfQ" class="rf-f ct-sel" data-f="q" rows="1" spellcheck="false" style="resize:none;height:32px;min-height:32px;overflow:hidden;white-space:nowrap;padding-top:6px;font-family:inherit" placeholder="tempel nama / email / nomor / agent..." autocomplete="off"></textarea></label>
             <button type="button" id="rfReset" class="pl-export">Reset filter RF</button>
             <button type="button" id="rfExport" class="pl-export">Export Excel RF (sesuai filter)</button>
@@ -9432,14 +9434,25 @@
       }).catch((e) => { pl.errs.paid = e.message; pl.paid = { emails: new Set(), phones: new Set(), ortuPhones: new Set(), rows: 0, failed: true }; }).then(done);
       /* tab FAIZAL (sheet extend): keterangan tipe per email (VO / NON VO 1 / NON VO 2 / NON VO 3) */
       plFetch(plGv(EXTEND_SHEET_ID, "FAIZAL")).then((t) => {
-        const T = plTable(t), iE = T.idx("email"), iS = T.idx("status"), map = new Map();
+        const T = plTable(t), iE = T.idx("email"), iS = T.idx("status"), iAg = T.idx("agent name", "agent"), map = new Map();
         if (iE < 0 || iS < 0) throw new Error("kolom tab FAIZAL tidak dikenali");
         T.rows.forEach((r) => {
           const e = clean(r[iE]).toLowerCase(), st = clean(r[iS]).toUpperCase(); if (!e.includes("@") || !st) return;
-          const m = st.match(/NON\s*VO\s*(\d)/); map.set(e, m ? "non" + m[1] : /^VO\b/.test(st) ? "vo" : "");
+          const m = st.match(/NON\s*VO\s*(\d)/); map.set(e, { vt: m ? "non" + m[1] : /^VO\b/.test(st) ? "vo" : "", agent: iAg >= 0 ? clean(r[iAg]) : "" });
         });
         pl.fz = map;
       }).catch((e) => { pl.errs.fz = e.message; pl.fz = new Map(); }).then(done);
+      /* tab LOG (sheet extend): log activity terakhir per email = kolom I (Last Student Status) + kolom J (Last Student Sub Status), contoh "102-Busy Line" */
+      plFetch(plGv(EXTEND_SHEET_ID, "LOG")).then((t) => {
+        const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map();
+        if (iE < 0) throw new Error("kolom tab LOG tidak dikenali");
+        T.rows.forEach((r) => {
+          const e = clean(r[iE]).toLowerCase(); if (!e.includes("@")) return;
+          const code = clean(r[iC]), sub = clean(r[iS]), label = code && sub ? `${code}-${sub}` : sub || code;
+          if (label) map.set(e, label);
+        });
+        pl.log = map;
+      }).catch((e) => { pl.errs.log = e.message; pl.log = new Map(); }).then(done);
       /* tab DATA LENGKAP (sheet extend): nomor tambahan per email, untuk menandai nomor yang baru ditemukan */
       plFetch(plGv(EXTEND_SHEET_ID, "DATA LENGKAP"), "select E, AJ, AL, AK, AM, AN, AO").then((t) => {
         const T = plTable(t), map = new Map(); const roles = ["", "Siswa", "Siswa", "Ortu", "Ortu", "Lain", "Lain"];
@@ -9537,13 +9550,28 @@
       return row * 3 + (pernah ? 0 : att <= 5 ? 1 : 2) + 1;
     }
     function plCompute() {
-      const sig = `${euUsers.length}|${pl.fz ? pl.fz.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
+      const sig = `${euUsers.length}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
       if (pl.memo && pl.memoSig === sig) return pl.memo;
       const ci = plCallIndex(), today = new Date(); today.setHours(0, 0, 0, 0);
       const todayNum = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) / 864e5;
-      const seenKey = new Set(), all = [];
+      const seenKey = new Set(); let all = [];
       euUsers.forEach((u) => { u.src = "extend user"; all.push(u); });
       pl.nonvo.forEach((u) => all.push(u));
+      /* tim Faizal: email yang ada di tab FAIZAL cukup satu baris; agent mengikuti tab itu, nomor dari baris ganda digabung */
+      let fzMerged = 0;
+      if (pl.fz && pl.fz.size) {
+        const byE = new Map(), rest = [];
+        all.forEach((u) => { const e = (u.email || "").toLowerCase(); if (e && pl.fz.has(e)) { let a = byE.get(e); if (!a) { a = []; byE.set(e, a); } a.push(u); } else rest.push(u); });
+        byE.forEach((arr, e) => {
+          const f = pl.fz.get(e), nk = normalizeName(f.agent || "");
+          const keep = (nk && arr.find((u) => normalizeName(u.agent) === nk)) || arr[0];
+          const k = { ...keep, agent: f.agent || keep.agent, nums: keep.nums.slice() };
+          const have = new Set(k.nums.map((x) => x.n));
+          arr.forEach((d) => { if (d === keep) return; fzMerged++; d.nums.forEach((x) => { if (!have.has(x.n)) { have.add(x.n); k.nums.push(x); } }); ["kelas", "ortuName", "sma", "kota"].forEach((p) => { if (!k[p] && d[p]) k[p] = d[p]; }); });
+          rest.push(k);
+        });
+        all = rest;
+      }
       let paidOut = 0, paidOrtuOnly = 0;
       const list = [], paidList = [];
       const canon = new Map();
@@ -9560,7 +9588,7 @@
         const dk = `${u.name}|${u.agent}|${u.nums.map((x) => x.n).join(",")}`;
         if (seenKey.has(dk)) return; seenKey.add(dk);
         u.coach = euCoachOfAgent(u.agent) || "Belum terpetakan";
-        u.paid = isPaid; u.paidInfo = null; u.vt = (emailKey && pl.fz && pl.fz.get(emailKey)) || "";
+        u.paid = isPaid; u.paidInfo = null; u.vt = (emailKey && pl.fz && pl.fz.has(emailKey) && pl.fz.get(emailKey).vt) || ""; u.llog = (emailKey && pl.log && pl.log.get(emailKey)) || "";
         if (isPaid && pl.paid.info) u.paidInfo = (emailKey && pl.paid.info.get("e:" + emailKey)) || sisNums.map((n) => pl.paid.info.get("p:" + n)).find(Boolean) || ortNums.map((n) => pl.paid.info.get("o:" + n)).find(Boolean) || null;
         /* call per nomor */
         const statOf = (x) => {
@@ -9729,14 +9757,15 @@
     }
     function pnSearchMatch(u, toks, pd) {
       const nums = u.calls.concat(u.extra || []).map((x) => x.n);
-      const email = (u.email || "").toLowerCase(), hay = [u.name, u.agent, u.coach, u.kelas, u.catName, u.prio ? plPrioLabel(u.prio) : "", (plType(u) === "vo" ? "VO voucher owner" : plTypeLabel(u)), pd ? "paid sudah paid" : "belum paid"].join(" | ").toLowerCase();
+      const email = (u.email || "").toLowerCase(), hay = [u.name, u.agent, u.coach, u.kelas, u.catName, u.prio ? plPrioLabel(u.prio) : "", (plType(u) === "vo" ? "VO voucher owner" : plTypeLabel(u)), pd ? "paid sudah paid" : "belum paid", u.llog || ""].join(" | ").toLowerCase();
       return toks.some((t) => t.k === "email" ? email.includes(t.v) : t.k === "num" ? (t.v ? nums.includes(t.v) : false) || (t.d.length >= 6 && nums.some((n) => n.includes(t.d))) : hay.includes(t.v));
     }
     function pnFiltered(memo) {
-      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall");
+      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall"), lg = pnVal("log");
       const all = memo.list.map((u) => ({ u, paid: false })).concat(memo.paidList.map((u) => ({ u, paid: true })));
       return all.filter(({ u, paid: pd }) => {
         if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(u.dial)) && filterMatches(att, pnBandOf(u.att)))) return false;
+        if (lg && !filterMatches(lg, u.llog || "__none")) return false;
         if (q.length && !pnSearchMatch(u, q, pd)) return false;
         if (dS || dO || dL) {
           const sl = pnSlots(u);
@@ -9748,6 +9777,9 @@
         return true;
       }).sort((a, b) => a.paid - b.paid || (a.u.prio || 99) - (b.u.prio || 99) || a.u.agent.localeCompare(b.u.agent) || a.u.name.localeCompare(b.u.name));
     }
+    const plLogEntries = (pool) => { const c = new Map(); pool.forEach((u) => { const k = u.llog || "__none"; c.set(k, (c.get(k) || 0) + 1); });
+      const num = (l) => (parseInt(l, 10) || 9999);
+      return [...c.keys()].sort((a, b) => (a === "__none") - (b === "__none") || num(a) - num(b) || a.localeCompare(b)).map((k) => ({ value: k, label: `${k === "__none" ? "Tanpa log" : k} (${c.get(k)})` })); };
     const pnAssign = (u) => { const a = String(u.assign || "").trim(); return plPaidKey(a.split(" - ")[0]) || a || "-"; };
     function pnCell(x) {
       if (!x) return `<span class="eu-none">-</span>`;
@@ -9771,6 +9803,7 @@
       setFilterEntries("pnAttF", PN_BANDS.map(([v, l]) => ({ value: v, label: l })), "Semua attempt");
       setFilterEntries("pnPaidF", [{ value: "belum", label: "Belum paid" }, { value: "paid", label: "Sudah paid" }], "Semua status");
       setFilterEntries("pnCondF", PN_COND.map(([v, l]) => ({ value: v, label: l })), "Semua kondisi");
+      setFilterEntries("pnLogF", plLogEntries(pool), "Semua log activity");
       const box = document.getElementById("plNumList"); if (!box) return;
       const rows = pnFiltered(memo);
       const maxL = Math.min(9, rows.reduce((m, r) => Math.max(m, pnSlots(r.u).lain.length), 0));
@@ -9778,21 +9811,21 @@
       const shown = rows.slice(pnPage * PN_PAGE, (pnPage + 1) * PN_PAGE);
       const body = shown.map(({ u, paid }) => {
         const sl = pnSlots(u);
-        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}</tr>`;
+        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${escapeHtml(u.llog || "-")}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}</tr>`;
       }).join("");
       const more = rows.some((r) => pnSlots(r.u).lain.length > 9) ? ` · ada user dengan lebih dari 9 nomor lain (lengkapnya di export)` : "";
       const pager = `<div class="note pn-pager">${number.format(rows.length)} user · halaman ${pnPage + 1} dari ${pages}${more} <button type="button" class="pl-export" data-pn-page="-1" ${pnPage ? "" : "disabled"}>‹ Sebelumnya</button> <button type="button" class="pl-export" data-pn-page="1" ${pnPage < pages - 1 ? "" : "disabled"}>Berikutnya ›</button></div>`;
-      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${690 + (2 + maxL) * 175}px"><colgroup><col style="width:12%"><col style="width:12%"><col style="width:8%"><col style="width:6.5%"><col style="width:3.5%"><col style="width:4.5%">${Array.from({ length: 2 + maxL }, () => `<col style="width:${(53.5 / (2 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Agent</th><th>Assign</th><th>Prio</th><th>Bayar</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
+      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${770 + (2 + maxL) * 175}px"><colgroup><col style="width:12%"><col style="width:12%"><col style="width:8%"><col style="width:6.5%"><col style="width:8%"><col style="width:3.5%"><col style="width:4.5%">${Array.from({ length: 2 + maxL }, () => `<col style="width:${(45.5 / (2 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Agent</th><th>Assign</th><th>Log activity</th><th>Prio</th><th>Bayar</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
     }
     function pnExport() {
       const memo = plCompute(), rows = pnFiltered(memo);
       const maxL = rows.reduce((m, r) => Math.max(m, pnSlots(r.u).lain.length), 0);
       const slotHead = (lb) => [lb, `Dial ${lb}`, `Dial 14 hari ${lb}`, `Angkat ${lb}`, `Status ${lb}`];
-      const head = ["Siswa", "Kelas", "Agent", "Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Nomor baru dari sheet lain (jumlah)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
+      const head = ["Siswa", "Kelas", "Agent", "Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
       const cells = (x) => (x ? [`62${x.n}`, x.dial, x.att14, x.ans, pnStat(x)[0]] : ["", "", "", "", ""]);
       const baruTxt = (sl) => [sl.siswa && sl.siswa.baru ? `No Siswa (${sl.siswa.src})` : "", sl.ortu && sl.ortu.baru ? `No Ortu (${sl.ortu.src})` : "", ...sl.lain.map((x, i) => (x.baru ? `Nomor ${i + 1} (${x.src})` : ""))].filter(Boolean).join("; ");
-      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), (u.extra || []).length].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
-      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 16].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
+      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
+      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
       const blob = xlsxBlob("Daftar Nomor", head, out, widths);
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `daftar-nomor-user-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -9825,7 +9858,7 @@
       }).catch((e) => { rf.err = e.message; rf.rows = []; }).then(done);
     }
     function rfCompute() {
-      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}`;
+      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}|${pl.log ? pl.log.size : -1}`;
       if (rfMemo && rfMemoSig === sig) return rfMemo;
       const ci = plCallIndex();
       const list = rf.rows.map((u) => {
@@ -9846,20 +9879,21 @@
         if (calls.every((x) => x.dial === 0)) tags.push("belum_dial");
         if (!connected && calls.some((x) => x.dial < 2)) tags.push("blm_conn_dial_kurang");
         const best = PN_LVL_ORDER.find((l) => calls.some((x) => x.lvl === l)) || "belum";
-        return { ...u, coach: euCoachOfAgent(u.agent) || "Belum terpetakan", calls, sl, tags, best, dial: calls.reduce((s, x) => s + x.dial, 0) };
+        return { ...u, llog: (u.email && pl.log && pl.log.get(u.email)) || "", coach: euCoachOfAgent(u.agent) || "Belum terpetakan", calls, sl, tags, best, dial: calls.reduce((s, x) => s + x.dial, 0) };
       });
       rfMemo = { list }; rfMemoSig = sig; return rfMemo;
     }
     function rfFiltered(memo) {
-      const camp = rfVal("camp"), coach = rfVal("coach"), agent = rfVal("agent"), lvl = rfVal("lvl"), dial = rfVal("dial"), dS = rfVal("dials"), dO = rfVal("dialo"), dL = rfVal("diall"), cond = splitFilterValue(rfVal("cond")), q = pnTokens(rfVal("q"));
+      const camp = rfVal("camp"), coach = rfVal("coach"), agent = rfVal("agent"), lvl = rfVal("lvl"), dial = rfVal("dial"), dS = rfVal("dials"), dO = rfVal("dialo"), dL = rfVal("diall"), cond = splitFilterValue(rfVal("cond")), q = pnTokens(rfVal("q")), lg = rfVal("log");
       return memo.list.filter((u) => {
         if (!(filterMatches(camp, u.camp) && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(lvl, u.best) && filterMatches(dial, pnBandOf(u.dial)))) return false;
         if (dS && !(u.sl.siswa && filterMatches(dS, pnBandOf(u.sl.siswa.dial)))) return false;
         if (dO && !(u.sl.ortu && filterMatches(dO, pnBandOf(u.sl.ortu.dial)))) return false;
         if (dL && !u.sl.lain.some((x) => filterMatches(dL, pnBandOf(x.dial)))) return false;
         if (cond.length && !cond.some((c) => u.tags.includes(c))) return false;
+        if (lg && !filterMatches(lg, u.llog || "__none")) return false;
         if (q.length) {
-          const hay = [u.name, u.agent, u.coach, u.kelas, u.camp, u.vo, u.log].join(" | ").toLowerCase(), nums = u.calls.map((x) => x.n);
+          const hay = [u.name, u.agent, u.coach, u.kelas, u.camp, u.vo, u.log, u.llog].join(" | ").toLowerCase(), nums = u.calls.map((x) => x.n);
           if (!q.some((t) => t.k === "email" ? u.email.includes(t.v) : t.k === "num" ? (t.v ? nums.includes(t.v) : false) || (t.d.length >= 6 && nums.some((n) => n.includes(t.d))) : hay.includes(t.v))) return false;
         }
         return true;
@@ -9883,23 +9917,24 @@
       const bands = PN_BANDS.map(([v, l]) => ({ value: v, label: l }));
       setFilterEntries("rfDialF", bands, "Semua jumlah dial"); setFilterEntries("rfDialSF", bands, "Semua (siswa)"); setFilterEntries("rfDialOF", bands, "Semua (ortu)"); setFilterEntries("rfDialLF", bands, "Semua (nomor lain)");
       setFilterEntries("rfCondF", RF_COND.map(([v, l]) => ({ value: v, label: l })), "Semua kondisi");
+      setFilterEntries("rfLogF", plLogEntries(pool), "Semua log activity");
       const noteEl = document.getElementById("rfNote");
       if (noteEl) { const ci = plCallIndex(), dd = isFinite(ci.anchor) ? new Date(ci.anchor * 864e5).toISOString().slice(0, 10) : "-"; noteEl.textContent = `tab RF (sheet extend) · dial dihitung dari Call Tracking sejak tanggal assign di tab RF; "total" = semua dial nomor itu · data Call Tracking terakhir: ${dd} (dial setelah tanggal ini belum terhitung)`; }
       const rows = rfFiltered(memo);
       const maxL = Math.min(10, rows.reduce((m, u) => Math.max(m, u.sl.lain.length), 0));
       const pages = Math.max(1, Math.ceil(rows.length / RF_PAGE)); if (rfPage >= pages) rfPage = pages - 1; if (rfPage < 0) rfPage = 0;
       const shown = rows.slice(rfPage * RF_PAGE, (rfPage + 1) * RF_PAGE);
-      const body = shown.map((u) => `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas && u.kelas !== "-" ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.camp)}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(u.start || "-")}</td><td>${rfCell(u.sl.siswa)}</td><td>${rfCell(u.sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${rfCell(u.sl.lain[i])}</td>`).join("")}</tr>`).join("");
+      const body = shown.map((u) => `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas && u.kelas !== "-" ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.camp)}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(u.start || "-")}</td><td>${escapeHtml(u.llog || "-")}</td><td>${rfCell(u.sl.siswa)}</td><td>${rfCell(u.sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${rfCell(u.sl.lain[i])}</td>`).join("")}</tr>`).join("");
       const pager = `<div class="note pn-pager">${number.format(rows.length)} user dari ${number.format(pool.length)} · halaman ${rfPage + 1} dari ${pages} <button type="button" class="pl-export" data-rf-page="-1" ${rfPage ? "" : "disabled"}>‹ Sebelumnya</button> <button type="button" class="pl-export" data-rf-page="1" ${rfPage < pages - 1 ? "" : "disabled"}>Berikutnya ›</button></div>`;
-      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${700 + (2 + maxL) * 175}px"><colgroup><col style="width:11%"><col style="width:12%"><col style="width:5%"><col style="width:8%"><col style="width:6.5%">${Array.from({ length: 2 + maxL }, () => `<col style="width:${(57.5 / (2 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Campaign</th><th>Agent</th><th>Assign</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
+      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${780 + (2 + maxL) * 175}px"><colgroup><col style="width:11%"><col style="width:12%"><col style="width:5%"><col style="width:8%"><col style="width:6.5%"><col style="width:8%">${Array.from({ length: 2 + maxL }, () => `<col style="width:${(49.5 / (2 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Campaign</th><th>Agent</th><th>Assign</th><th>Log activity</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
     }
     function rfExport() {
       const rows = rfFiltered(rfCompute()), maxL = rows.reduce((m, u) => Math.max(m, u.sl.lain.length), 0);
       const slotHead = (lb) => [lb, `Dial ${lb} (sejak assign)`, `Dial total ${lb}`, `Dial 14 hari ${lb}`, `Angkat ${lb}`, `Status ${lb}`];
-      const head = ["Siswa", "Voucher Owner", "Email Siswa", "Kelas", "Campaign", "Agent", "Coach", "Assign date", "Total dial (sejak assign)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)));
+      const head = ["Siswa", "Voucher Owner", "Email Siswa", "Kelas", "Campaign", "Agent", "Coach", "Assign date", "Log activity", "Total dial (sejak assign)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)));
       const cells = (x) => (x ? [`62${x.n}`, x.dial, x.total, x.att14, x.ans, pnStat(x)[0]] : ["", "", "", "", "", ""]);
-      const out = rows.map((u) => [u.name, u.vo, u.email, u.kelas, u.camp, u.agent, u.coach, u.assign, u.dial].concat(cells(u.sl.siswa), cells(u.sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(u.sl.lain[i]))));
-      const widths = [24, 22, 28, 12, 12, 22, 20, 24, 12].concat(Array(2 + maxL).fill([16, 12, 10, 10, 9, 22]).flat());
+      const out = rows.map((u) => [u.name, u.vo, u.email, u.kelas, u.camp, u.agent, u.coach, u.assign, u.llog || "", u.dial].concat(cells(u.sl.siswa), cells(u.sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(u.sl.lain[i]))));
+      const widths = [24, 22, 28, 12, 12, 22, 20, 24, 22, 12].concat(Array(2 + maxL).fill([16, 12, 10, 10, 9, 22]).flat());
       const blob = xlsxBlob("RF per Nomor", head, out, widths);
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `rf-per-nomor-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -10069,9 +10104,9 @@
     });
     document.addEventListener("click", (e) => {
       const t = e.target; if (!t.closest) return;
-      if (t.closest("#pnReset")) { ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "att", "cond"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
+      if (t.closest("#pnReset")) { ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "att", "cond", "log"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
       if (t.closest("#pnExport")) { pnExport(); return; }
-      if (t.closest("#rfReset")) { ["camp", "coach", "agent", "lvl", "dial", "dials", "dialo", "diall", "cond"].forEach((k) => { const el = document.querySelector(`.rf-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("rfQ").value = ""; rfPage = 0; rfRender(); return; }
+      if (t.closest("#rfReset")) { ["camp", "coach", "agent", "lvl", "dial", "dials", "dialo", "diall", "cond", "log"].forEach((k) => { const el = document.querySelector(`.rf-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("rfQ").value = ""; rfPage = 0; rfRender(); return; }
       if (t.closest("#rfExport")) { if (rf.rows && !rf.err) rfExport(); return; }
       const rpg = t.closest("[data-rf-page]"); if (rpg && !rpg.disabled) { rfPage += Number(rpg.dataset.rfPage); rfRender(); return; }
       const pg = t.closest("[data-pn-page]"); if (pg && !pg.disabled) { pnPage += Number(pg.dataset.pnPage); renderPrioritasLeads(); return; }

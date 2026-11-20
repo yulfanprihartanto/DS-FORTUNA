@@ -9444,15 +9444,16 @@
       }).catch((e) => { pl.errs.fz = e.message; pl.fz = new Map(); }).then(done);
       /* tab LOG (sheet extend): log activity terakhir per email = kolom I (Last Student Status) + kolom J (Last Student Sub Status), contoh "102-Busy Line" */
       plFetch(plGv(EXTEND_SHEET_ID, "LOG")).then((t) => {
-        const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map();
+        const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map(), dmap = new Map();
         if (iE < 0) throw new Error("kolom tab LOG tidak dikenali");
         T.rows.forEach((r) => {
           const e = clean(r[iE]).toLowerCase(); if (!e.includes("@")) return;
           const code = clean(r[iC]), sub = clean(r[iS]), label = code && sub ? `${code}-${sub}` : sub || code;
           if (label) map.set(e, label);
+          const dk = plPaidKey(clean(r[0])); if (dk) dmap.set(e, dk); /* tanggal assign = kolom A tab LOG */
         });
-        pl.log = map;
-      }).catch((e) => { pl.errs.log = e.message; pl.log = new Map(); }).then(done);
+        pl.log = map; pl.logDate = dmap;
+      }).catch((e) => { pl.errs.log = e.message; pl.log = new Map(); pl.logDate = new Map(); }).then(done);
       /* tab DATA LENGKAP (sheet extend): nomor tambahan per email, untuk menandai nomor yang baru ditemukan */
       plFetch(plGv(EXTEND_SHEET_ID, "DATA LENGKAP"), "select E, AJ, AL, AK, AM, AN, AO").then((t) => {
         const T = plTable(t), map = new Map(); const roles = ["", "Siswa", "Siswa", "Ortu", "Ortu", "Lain", "Lain"];
@@ -9588,7 +9589,7 @@
         const dk = `${u.name}|${u.agent}|${u.nums.map((x) => x.n).join(",")}`;
         if (seenKey.has(dk)) return; seenKey.add(dk);
         u.coach = euCoachOfAgent(u.agent) || "Belum terpetakan";
-        u.paid = isPaid; u.paidInfo = null; u.vt = (emailKey && pl.fz && pl.fz.has(emailKey) && pl.fz.get(emailKey).vt) || ""; u.llog = (emailKey && pl.log && pl.log.get(emailKey)) || "";
+        u.paid = isPaid; u.paidInfo = null; u.vt = (emailKey && pl.fz && pl.fz.has(emailKey) && pl.fz.get(emailKey).vt) || ""; u.llog = (emailKey && pl.log && pl.log.get(emailKey)) || ""; u.logAssign = (emailKey && pl.logDate && pl.logDate.get(emailKey)) || "";
         if (isPaid && pl.paid.info) u.paidInfo = (emailKey && pl.paid.info.get("e:" + emailKey)) || sisNums.map((n) => pl.paid.info.get("p:" + n)).find(Boolean) || ortNums.map((n) => pl.paid.info.get("o:" + n)).find(Boolean) || null;
         /* call per nomor */
         const statOf = (x) => {
@@ -9779,12 +9780,13 @@
         }
         if (cond.length) { const t = pnTags(u, pnSlots(u)); if (!cond.some((c) => t.includes(c))) return false; }
         return true;
-      }).sort((a, b) => a.paid - b.paid || (a.u.prio || 99) - (b.u.prio || 99) || a.u.agent.localeCompare(b.u.agent) || a.u.name.localeCompare(b.u.name));
+      }).sort((a, b) => a.u.agent.localeCompare(b.u.agent, "id", { sensitivity: "base" }) || a.u.name.localeCompare(b.u.name, "id", { sensitivity: "base" }));
     }
     const plLogEntries = (pool) => { const c = new Map(); pool.forEach((u) => { const k = u.llog || "__none"; c.set(k, (c.get(k) || 0) + 1); });
       const num = (l) => (parseInt(l, 10) || 9999);
       return [...c.keys()].sort((a, b) => (a === "__none") - (b === "__none") || num(a) - num(b) || a.localeCompare(b)).map((k) => ({ value: k, label: `${k === "__none" ? "Tanpa log" : k} (${c.get(k)})` })); };
-    const pnAssign = (u) => { const a = String(u.assign || "").trim(); return plPaidKey(a.split(" - ")[0]) || a || "-"; };
+    /* tanggal assign Daftar Nomor diambil dari tab LOG kolom A (data lama di tab extend tidak konsisten) */
+    const pnAssign = (u) => u.logAssign || "-";
     function pnCell(x) {
       if (!x) return `<span class="eu-none">-</span>`;
       const st = pnStat(x);

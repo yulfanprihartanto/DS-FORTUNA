@@ -9710,7 +9710,11 @@
     const PN_COND = [["tanpa_ortu", "Tanpa nomor ortu (setelah dilengkapi Data Lengkap)"], ["ada_lain", "Punya nomor lain"], ["terhubung", "Sudah terhubung (label hijau: Terhubung / Terhubung lama)"], ["belum_terhubung", "Belum terhubung (tidak ada nomor berlabel hijau)"], ["belum_dial", "Belum pernah di-dial"], ["blm_conn_dial_kurang", "Belum pernah terhubung + ada nomor di-dial kurang dari 2× (0 atau 1×)"], ["baru_full", "Ada nomor baru (dari Data Lengkap / tab PAID)"], ["ortu_baru", "Nomor ortu baru (sebelumnya tanpa ortu)"], ["full_tanpa_baru", "Ada di Data Lengkap tapi tidak ada nomor baru"], ["tidak_di_full", "Tidak ditemukan di Data Lengkap"]];
     const PN_LVL_ORDER = ["dekat", "terhubung", "angkat", "belum"];
     const pnStat = (x) => (x.dial === 0 ? ["Belum di-dial", "ct-down"] : [PL_CONN_LABEL[x.lvl] || "Belum terhubung", x.lvl === "dekat" || x.lvl === "terhubung" ? "ct-up" : x.lvl === "angkat" ? "" : "ct-down"]);
-    const pnBest = (u) => PN_LVL_ORDER.find((l) => u.calls.some((x) => x.lvl === l)) || "belum";
+    /* keterhubungan, total dial, dan attempt di Daftar Nomor dihitung dari SEMUA nomor yang tampil (termasuk nomor BARU) */
+    const pnAllNums = (u) => u.calls.concat(u.extra || []);
+    const pnBest = (u) => PN_LVL_ORDER.find((l) => pnAllNums(u).some((x) => x.lvl === l)) || "belum";
+    const pnDialAll = (u) => pnAllNums(u).reduce((t, x) => t + x.dial, 0);
+    const pnAttAll = (u) => pnAllNums(u).reduce((t, x) => Math.max(t, x.att14), 0);
     const pnBandOf = (n) => (n === 0 ? "0" : n <= 2 ? "1-2" : n <= 5 ? "3-5" : n <= 10 ? "6-10" : "11+");
     const PN_BANDS = [["0", "0× (belum di-dial)"], ["1-2", "1–2×"], ["3-5", "3–5×"], ["6-10", "6–10×"], ["11+", "lebih dari 10×"]];
     function pnSlots(u) {
@@ -9730,7 +9734,7 @@
       if (sl.lain.length) t.push("ada_lain");
       const pnConn = u.calls.concat(u.extra || []).some((x) => x.lvl === "dekat" || x.lvl === "terhubung");
       t.push(pnConn ? "terhubung" : "belum_terhubung");
-      if (u.dial === 0) t.push("belum_dial");
+      if (pnDialAll(u) === 0) t.push("belum_dial");
       if (!pnConn && u.calls.concat(u.extra || []).some((x) => x.dial < 2)) t.push("blm_conn_dial_kurang");
       if ((u.extra || []).length) t.push("baru_full");
       if (u.extra && u.extra.some((x) => x.role === "Ortu") && !u.calls.some((x) => x.role === "Ortu")) t.push("ortu_baru");
@@ -9764,7 +9768,7 @@
       const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall"), lg = pnVal("log");
       const all = memo.list.map((u) => ({ u, paid: false })).concat(memo.paidList.map((u) => ({ u, paid: true })));
       return all.filter(({ u, paid: pd }) => {
-        if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(u.dial)) && filterMatches(att, pnBandOf(u.att)))) return false;
+        if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(pnDialAll(u))) && filterMatches(att, pnBandOf(pnAttAll(u))))) return false;
         if (lg && !filterMatches(lg, u.llog || "__none")) return false;
         if (q.length && !pnSearchMatch(u, q, pd)) return false;
         if (dS || dO || dL) {

@@ -9442,6 +9442,31 @@
         });
         pl.fz = map;
       }).catch((e) => { pl.errs.fz = e.message; pl.fz = new Map(); }).then(done);
+      /* tab NO ORTU (sheet extend): nomor ortu yang sudah dilengkapi; nomor yang belum ada ikut ditambahkan sebagai BARU, dan nomor ortu dari tab ini menjadi No Ortu di Daftar Nomor */
+      plFetch(plGv(EXTEND_SHEET_ID, "NO ORTU")).then((t) => {
+        const T = plTable(t), iE = T.idx("email siswa"), iS = T.idx("no siswa"), iO = T.idx("no ortu");
+        if (iE < 0 || iO < 0) throw new Error("kolom tab NO ORTU tidak dikenali");
+        const cols = [[iS, "Siswa"], ...["no1", "no2", "no3", "no4"].map((n) => [T.idx(n), "Lain"]), [iO, "Ortu"], ...["no 5", "no6", "no7", "no8", "no9", "no10"].map((n) => [T.idx(n), "Lain"])].filter(([i]) => i >= 0);
+        const ortu = new Map(), nums = new Map();
+        T.rows.forEach((r) => {
+          const e = clean(r[iE]).toLowerCase(); if (!e.includes("@")) return;
+          let m = nums.get(e); if (!m) { m = new Map(); nums.set(e, m); }
+          cols.forEach(([i, role]) => { const n = euNorm(r[i]); if (n && !m.has(n)) m.set(n, { role, src: "NO ORTU" }); });
+          const no = euNorm(r[iO]), ns = iS >= 0 ? euNorm(r[iS]) : ""; if (no && no !== ns && !ortu.has(e)) ortu.set(e, no);
+        });
+        pl.noOrtu = ortu; pl.noOrtuNums = nums;
+      }).catch((e) => { pl.errs.noOrtu = e.message; pl.noOrtu = new Map(); pl.noOrtuNums = new Map(); }).then(done);
+      /* tab LOG RF (sheet extend): log activity terakhir per email untuk tabel RF (kolom I + J, format "102-Busy Line") */
+      plFetch(plGv(EXTEND_SHEET_ID, "LOG RF")).then((t) => {
+        const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map();
+        if (iE < 0) throw new Error("kolom tab LOG RF tidak dikenali");
+        T.rows.forEach((r) => {
+          const e = clean(r[iE]).toLowerCase(); if (!e.includes("@")) return;
+          const code = clean(r[iC]), sub = clean(r[iS]), label = code && sub ? `${code}-${sub}` : sub || code;
+          if (label) map.set(e, label);
+        });
+        pl.logRf = map;
+      }).catch((e) => { pl.errs.logRf = e.message; pl.logRf = new Map(); }).then(() => { rfMemo = null; done(); });
       /* tab LOG (sheet extend): log activity terakhir per email = kolom I (Last Student Status) + kolom J (Last Student Sub Status), contoh "102-Busy Line" */
       plFetch(plGv(EXTEND_SHEET_ID, "LOG")).then((t) => {
         const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map(), dmap = new Map();
@@ -9551,7 +9576,7 @@
       return row * 3 + (pernah ? 0 : att <= 5 ? 1 : 2) + 1;
     }
     function plCompute() {
-      const sig = `${euUsers.length}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
+      const sig = `${euUsers.length}|${pl.noOrtu ? pl.noOrtu.size : -1}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
       if (pl.memo && pl.memoSig === sig) return pl.memo;
       const ci = plCallIndex(), today = new Date(); today.setHours(0, 0, 0, 0);
       const todayNum = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) / 864e5;
@@ -9612,6 +9637,10 @@
         if (emailKey && pl.paid.nums && pl.paid.nums.has(emailKey)) {
           const have = new Set(u.nums.concat(u.extra).map((x) => x.n));
           pl.paid.nums.get(emailKey).forEach((v, n) => { if (!have.has(n)) { have.add(n); u.extra.push({ ...statOf({ role: v.role, n }), baru: true, src: v.src }); } });
+        }
+        if (emailKey && pl.noOrtuNums && pl.noOrtuNums.has(emailKey)) {
+          const have = new Set(u.nums.concat(u.extra).map((x) => x.n));
+          pl.noOrtuNums.get(emailKey).forEach((v, n) => { if (!have.has(n)) { have.add(n); u.extra.push({ ...statOf({ role: v.role, n }), baru: true, src: v.src }); } });
         }
         u.dial = u.calls.reduce((s, x) => s + x.dial, 0); u.conn = u.calls.reduce((s, x) => s + x.conn, 0);
         u.connLvl = u.calls.reduce((b, x) => (PL_CONN_ORDER[x.lvl] > PL_CONN_ORDER[b] ? x.lvl : b), "belum");
@@ -9708,7 +9737,7 @@
     /* ===== Daftar Nomor per User ===== */
     const pnVal = (k) => document.querySelector(`.pn-f[data-f="${k}"]`)?.value || "";
     const PN_PAGE = 100; let pnPage = 0;
-    const PN_COND = [["tanpa_ortu", "Tanpa nomor ortu (setelah dilengkapi Data Lengkap)"], ["ada_lain", "Punya nomor lain"], ["terhubung", "Sudah terhubung (label hijau: Terhubung / Terhubung lama)"], ["belum_terhubung", "Belum terhubung (tidak ada nomor berlabel hijau)"], ["belum_dial", "Belum pernah di-dial"], ["blm_conn_dial_kurang", "Belum pernah terhubung + ada nomor di-dial kurang dari 2× (0 atau 1×)"], ["baru_full", "Ada nomor baru (dari Data Lengkap / tab PAID)"], ["ortu_baru", "Nomor ortu baru (sebelumnya tanpa ortu)"], ["full_tanpa_baru", "Ada di Data Lengkap tapi tidak ada nomor baru"], ["tidak_di_full", "Tidak ditemukan di Data Lengkap"]];
+    const PN_COND = [["tanpa_ortu", "Tanpa nomor ortu (setelah dilengkapi Data Lengkap)"], ["ada_lain", "Punya nomor lain"], ["terhubung", "Sudah terhubung (label hijau: Terhubung / Terhubung lama)"], ["belum_terhubung", "Belum terhubung (tidak ada nomor berlabel hijau)"], ["belum_dial", "Belum pernah di-dial"], ["blm_conn_dial_kurang", "Belum pernah terhubung + ada nomor di-dial kurang dari 2× (0 atau 1×)"], ["baru_full", "Ada nomor baru (dari Data Lengkap / tab PAID)"], ["ortu_baru", "Nomor ortu baru (sebelumnya tanpa ortu; termasuk dari tab NO ORTU)"], ["ortu_beda", "Nomor ortu diganti dari tab NO ORTU (beda dari data lama)"], ["full_tanpa_baru", "Ada di Data Lengkap tapi tidak ada nomor baru"], ["tidak_di_full", "Tidak ditemukan di Data Lengkap"]];
     const PN_LVL_ORDER = ["dekat", "terhubung", "angkat", "belum"];
     const pnStat = (x) => (x.dial === 0 ? ["Belum di-dial", "ct-down"] : [PL_CONN_LABEL[x.lvl] || "Belum terhubung", x.lvl === "dekat" || x.lvl === "terhubung" ? "ct-up" : x.lvl === "angkat" ? "" : "ct-down"]);
     /* keterhubungan, total dial, dan attempt di Daftar Nomor dihitung dari SEMUA nomor yang tampil (termasuk nomor BARU) */
@@ -9727,6 +9756,16 @@
         else if (x.role === "Siswa" && !sl.siswa) sl.siswa = x;
         else sl.lain.push(x);
       });
+      /* koreksi dari tab NO ORTU: nomor yang tertulis sebagai No Ortu di tab itu menjadi No Ortu di sini (fix = "baru" kalau sebelumnya tanpa ortu, "beda" kalau menggantikan ortu lama) */
+      const fixN = pl.noOrtu && u.email ? pl.noOrtu.get(u.email.toLowerCase()) : "";
+      if (fixN && !(sl.ortu && sl.ortu.n === fixN)) {
+        const tgt = sl.lain.find((x) => x.n === fixN);
+        if (tgt) {
+          sl.lain = sl.lain.filter((x) => x !== tgt);
+          if (sl.ortu) sl.lain.unshift(sl.ortu);
+          tgt.fix = sl.ortu ? "beda" : "baru"; sl.ortu = tgt;
+        }
+      }
       return sl;
     }
     function pnTags(u, sl) {
@@ -9738,7 +9777,8 @@
       if (pnDialAll(u) === 0) t.push("belum_dial");
       if (!pnConn && u.calls.concat(u.extra || []).some((x) => x.dial < 2)) t.push("blm_conn_dial_kurang");
       if ((u.extra || []).length) t.push("baru_full");
-      if (u.extra && u.extra.some((x) => x.role === "Ortu") && !u.calls.some((x) => x.role === "Ortu")) t.push("ortu_baru");
+      if ((sl.ortu && sl.ortu.fix === "baru") || (u.extra && u.extra.some((x) => x.role === "Ortu") && !u.calls.some((x) => x.role === "Ortu"))) t.push("ortu_baru");
+      if (sl.ortu && sl.ortu.fix === "beda") t.push("ortu_beda");
       if (u.inFull && !(u.extra || []).length) t.push("full_tanpa_baru");
       if (!u.inFull) t.push("tidak_di_full");
       return t;
@@ -9790,7 +9830,7 @@
     function pnCell(x) {
       if (!x) return `<span class="eu-none">-</span>`;
       const st = pnStat(x);
-      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">BARU</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}</small></div>`;
+      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">BARU</small>` : ""}${x.fix ? ` <small class="pn-new" title="nomor ortu menurut tab NO ORTU">${x.fix === "beda" ? "ORTU DIGANTI" : "ORTU BARU"}</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}</small></div>`;
     }
     function pnRender(memo) {
       const pool = memo.paidList.concat(memo.list);
@@ -9829,7 +9869,7 @@
       const slotHead = (lb) => [lb, `Dial ${lb}`, `Dial 14 hari ${lb}`, `Angkat ${lb}`, `Status ${lb}`];
       const head = ["Siswa", "Kelas", "Agent", "Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
       const cells = (x) => (x ? [`62${x.n}`, x.dial, x.att14, x.ans, pnStat(x)[0]] : ["", "", "", "", ""]);
-      const baruTxt = (sl) => [sl.siswa && sl.siswa.baru ? `No Siswa (${sl.siswa.src})` : "", sl.ortu && sl.ortu.baru ? `No Ortu (${sl.ortu.src})` : "", ...sl.lain.map((x, i) => (x.baru ? `Nomor ${i + 1} (${x.src})` : ""))].filter(Boolean).join("; ");
+      const baruTxt = (sl) => [sl.siswa && sl.siswa.baru ? `No Siswa (${sl.siswa.src})` : "", sl.ortu && sl.ortu.baru ? `No Ortu (${sl.ortu.src})` : sl.ortu && sl.ortu.fix ? `No Ortu (${sl.ortu.fix === "beda" ? "diganti" : "baru"} dari tab NO ORTU)` : "", ...sl.lain.map((x, i) => (x.baru ? `Nomor ${i + 1} (${x.src})` : ""))].filter(Boolean).join("; ");
       const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
       const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
       const blob = xlsxBlob("Daftar Nomor", head, out, widths);
@@ -9864,7 +9904,7 @@
       }).catch((e) => { rf.err = e.message; rf.rows = []; }).then(done);
     }
     function rfCompute() {
-      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}|${pl.log ? pl.log.size : -1}`;
+      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}|${pl.logRf ? pl.logRf.size : -1}`;
       if (rfMemo && rfMemoSig === sig) return rfMemo;
       const ci = plCallIndex();
       const list = rf.rows.map((u) => {
@@ -9885,7 +9925,7 @@
         if (calls.every((x) => x.dial === 0)) tags.push("belum_dial");
         if (!connected && calls.some((x) => x.dial < 2)) tags.push("blm_conn_dial_kurang");
         const best = PN_LVL_ORDER.find((l) => calls.some((x) => x.lvl === l)) || "belum";
-        return { ...u, llog: (u.email && pl.log && pl.log.get(u.email)) || "", coach: euCoachOfAgent(u.agent) || "Belum terpetakan", calls, sl, tags, best, dial: calls.reduce((s, x) => s + x.dial, 0) };
+        return { ...u, llog: (u.email && pl.logRf && pl.logRf.get(u.email)) || "", coach: euCoachOfAgent(u.agent) || "Belum terpetakan", calls, sl, tags, best, dial: calls.reduce((s, x) => s + x.dial, 0) };
       });
       rfMemo = { list }; rfMemoSig = sig; return rfMemo;
     }

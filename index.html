@@ -3566,6 +3566,8 @@
             <label>Coach<select id="plCoachF" class="pl-f ct-sel" data-f="coach"></select></label>
             <label>Agent<select id="plAgentF" class="pl-f ct-sel" data-f="agent"></select></label>
             <label>Lama terhubung<select id="plMinsF" class="pl-f ct-sel" data-f="mins"><option value="">Semua durasi</option><option value="3">Terhubung ≥ 3 menit</option><option value="5">Terhubung ≥ 5 menit</option><option value="7">Terhubung ≥ 7 menit</option><option value="10">Terhubung ≥ 10 menit</option></select></label>
+            <label>Rekomendasi jam telepon<select id="plRecF" class="pl-f ct-sel" data-f="rec"><option value="">Semua</option><option value="now">Cocok ditelepon sekarang (±1,5 jam)</option><option value="pagi">Pagi (sebelum 11.00)</option><option value="siang">Siang (11.00–15.00)</option><option value="sore">Sore (15.00–18.00)</option><option value="malam">Malam (setelah 18.00)</option><option value="none">Belum ada rekomendasi</option></select></label>
+            <label>Dasar rekomendasi<select id="plRecBF" class="pl-f ct-sel" data-f="recb"><option value="">Semua</option><option value="keduanya">Jam angkat + jam belajar cocok</option><option value="angkat">Jam angkat sebelumnya</option><option value="belajar">Jam belajar (live/tutor)</option></select></label>
             <label>Assign date dari<input type="date" id="plFrom" class="pl-f ct-sel" data-f="from"></label>
             <label>Sampai<input type="date" id="plTo" class="pl-f ct-sel" data-f="to"></label>
             <button type="button" id="plDateReset" class="pl-export">Reset assign date &amp; durasi</button>
@@ -3612,6 +3614,8 @@
             <label>Status bayar<select id="pnPaidF" class="pn-f ct-sel" data-f="paid"></select></label>
             <label>Keterhubungan<select id="pnLvlF" class="pn-f ct-sel" data-f="lvl"></select></label>
             <label>Lama terhubung<select id="pnMinsF" class="pn-f ct-sel" data-f="mins"><option value="">Semua durasi</option><option value="3">Terhubung ≥ 3 menit</option><option value="5">Terhubung ≥ 5 menit</option><option value="7">Terhubung ≥ 7 menit</option><option value="10">Terhubung ≥ 10 menit</option></select></label>
+            <label>Rekomendasi jam telepon<select id="pnRecF" class="pn-f ct-sel" data-f="rec"><option value="">Semua</option><option value="now">Cocok ditelepon sekarang (±1,5 jam)</option><option value="pagi">Pagi (sebelum 11.00)</option><option value="siang">Siang (11.00–15.00)</option><option value="sore">Sore (15.00–18.00)</option><option value="malam">Malam (setelah 18.00)</option><option value="none">Belum ada rekomendasi</option></select></label>
+            <label>Dasar rekomendasi<select id="pnRecBF" class="pn-f ct-sel" data-f="recb"><option value="">Semua</option><option value="keduanya">Jam angkat + jam belajar cocok</option><option value="angkat">Jam angkat sebelumnya</option><option value="belajar">Jam belajar (live/tutor)</option></select></label>
             <label>Total dial<select id="pnDialF" class="pn-f ct-sel" data-f="dial"></select></label>
             <label>Dial No Siswa<select id="pnDialSF" class="pn-f ct-sel" data-f="dials"></select></label>
             <label>Dial No Ortu<select id="pnDialOF" class="pn-f ct-sel" data-f="dialo"></select></label>
@@ -9537,12 +9541,22 @@
         rows.forEach((r) => { if (r.n) { (byP.get(r.n) || byP.set(r.n, []).get(r.n)).push(r); } if (r.e.includes("@")) { (byE.get(r.e) || byE.set(r.e, []).get(r.e)).push(r); } });
         pl.live = { byP, byE, weeks: [an.last - 3, an.last], cur: an.last + 1, an, rowCount: rows.length };
       }); }).catch((e) => { if (isCache) return; pl.errs.live = e.message; pl.live = null; }).then(() => { if (isCache) { if (pl.live) done(); return; } if (pl.live === null) pl.live = false; pl.swrFresh = true; done(); });
-      anchorP.then((an) => FX(plGv(ACTIVITY_RENEWAL_SHEET_ID, ACTIVITY_RENEWAL_TUTOR_SHEET_NAME), "select P,R,C,sum(T) where T > 0 group by P,R,C label P 'email', R 'phone', C 'date', sum(T) 'n'").then((t) => {
-        const T = plTable(t), iE = T.idx("email"), iP = T.idx("phone"), iD = T.idx("date"), iN = T.idx("n");
+      anchorP.then((an) => FX(`https://docs.google.com/spreadsheets/d/${ACTIVITY_RENEWAL_SHEET_ID}/gviz/tq?gid=${ACTIVITY_RENEWAL_GID}`, `select M,T,D,count(A) where B >= ${an.last - 3} and B <= ${an.last} group by M,T,D label M 'email', T 'phone', D 'jam', count(A) 'n'`).then((t) => {
+        const T = plTable(t), iM = T.idx("email"), iT = T.idx("phone"), iJ = T.idx("jam"), iN = T.idx("n");
+        const byP = new Map(), byE = new Map();
+        T.rows.forEach((r) => {
+          const h = plHourOf(r[iJ]); if (h == null) return; const o = { h, c: Number(r[iN]) || 1 };
+          const n = euNorm(r[iT]); if (n) (byP.get(n) || byP.set(n, []).get(n)).push(o);
+          const e = clean(r[iM]).toLowerCase(); if (e.includes("@")) (byE.get(e) || byE.set(e, []).get(e)).push(o);
+        });
+        pl.liveH = { byP, byE, n: T.rows.length };
+      })).catch(() => null).then(() => { if (isCache && !pl.liveH) return; done(); });
+      anchorP.then((an) => FX(plGv(ACTIVITY_RENEWAL_SHEET_ID, ACTIVITY_RENEWAL_TUTOR_SHEET_NAME), "select P,R,C,D,sum(T) where T > 0 group by P,R,C,D label P 'email', R 'phone', C 'date', D 'jam', sum(T) 'n'").then((t) => {
+        const T = plTable(t), iE = T.idx("email"), iP = T.idx("phone"), iD = T.idx("date"), iN = T.idx("n"), iJ = T.idx("jam");
         const byP = new Map(), byE = new Map();
         T.rows.forEach((r) => {
           const w = Number(weekNumberFromDate(plDateKey(r[iD]) || r[iD])) || 0; if (w < an.last - 3 || w > an.last) return;
-          const o = { w, c: Number(r[iN]) || 0 };
+          const o = { w, c: Number(r[iN]) || 0, h: plHourOf(iJ >= 0 ? r[iJ] : "") };
           const n = euNorm(r[iP]); if (n) (byP.get(n) || byP.set(n, []).get(n)).push(o);
           const e = clean(r[iE]).toLowerCase(); if (e.includes("@")) (byE.get(e) || byE.set(e, []).get(e)).push(o);
         });
@@ -9586,8 +9600,34 @@
     const PL_CONN_ORDER = { dekat: 3, terhubung: 2, angkat: 1, belum: 0 };
     const plDur = (sec) => (sec >= 60 ? `${Math.floor(sec / 60)} mnt ${sec % 60} dtk` : `${sec} dtk`);
     const plDay = (d) => (d > 0 ? new Date(d * 864e5).toISOString().slice(0, 10) : "-");
-    const plConnInfo = (u) => (u.dial ? `talktime terlama ${plDur(u.talkMax)} · total ${plDur(u.talkTot)}${u.lastTalk ? " · ngobrol terakhir " + plDay(u.lastTalk) : ""}` : "belum ada call");
+    const plConnInfo = (u) => (u.dial ? `${u.rec ? `rekomendasi telepon ${plRecText(u)} (${PL_REC_BASIS[u.rec.basis]}) · ` : ""}talktime terlama ${plDur(u.talkMax)} · total ${plDur(u.talkTot)}${u.lastTalk ? " · ngobrol terakhir " + plDay(u.lastTalk) : ""}` : "belum ada call");
     const PL_CONN_LABEL = { dekat: "Terhubung lama", terhubung: "Terhubung", angkat: "Sekadar angkat", belum: "Belum terhubung" };
+    /* ===== Rekomendasi jam telepon ===== */
+    const plHourOf = (v) => { const m = String(v == null ? "" : v).match(/(\d{1,2})[.:](\d{2})/); return m ? Number(m[1]) + Number(m[2]) / 60 : null; };
+    const plHDist = (a, b) => { const d = Math.abs(a - b); return Math.min(d, 24 - d); };
+    /* jam puncak = titik tengah dengan bobot terbanyak dalam jendela ±1,5 jam; items = [[jam, bobot], ...] */
+    function plPeak(items) {
+      const it = items.filter((x) => x[0] != null && isFinite(x[0])); if (!it.length) return null;
+      let best = null;
+      for (let c = 0; c < 24; c += 0.5) { let w = 0; it.forEach((x) => { if (plHDist(x[0], c) <= 1.5) w += x[1]; }); if (!best || w > best.w + 1e-9) best = { c, w }; }
+      const near = it.filter((x) => plHDist(x[0], best.c) <= 1.5), tot = it.reduce((t, x) => t + x[1], 0);
+      const mean = near.reduce((t, x) => t + x[0] * x[1], 0) / (near.reduce((t, x) => t + x[1], 0) || 1);
+      return { c: mean, share: best.w / (tot || 1), n: it.length };
+    }
+    const plFmtH = (h) => { const t = Math.round(((h % 24) + 24) % 24 * 2) / 2; return `${String(Math.floor(t)).padStart(2, "0")}.${t % 1 ? "30" : "00"}`; };
+    const plRecBucket = (c) => (c < 11 ? "pagi" : c < 15 ? "siang" : c < 18 ? "sore" : "malam");
+    const PL_REC_LABEL = { pagi: "Pagi (sebelum 11.00)", siang: "Siang (11.00–15.00)", sore: "Sore (15.00–18.00)", malam: "Malam (setelah 18.00)" };
+    /* A = jam terakhir/riwayat angkat telepon (>=1 menit), L = jam kelas live & sesi tutor; angkat dipilih lebih dulu karena lebih akurat */
+    function plRecommend(ansItems, learnItems) {
+      const A = plPeak(ansItems), L = learnItems.length >= 2 ? plPeak(learnItems) : null;
+      if (A && L && plHDist(A.c, L.c) <= 1.5) { const c = (A.c + L.c) / 2; return { c, basis: "keduanya", a: A, l: L }; }
+      if (A) return { c: A.c, basis: "angkat", a: A, l: L };
+      if (L) return { c: L.c, basis: "belajar", a: A, l: L };
+      return null;
+    }
+    const PL_REC_BASIS = { keduanya: "jam angkat + jam belajar cocok", angkat: "jam angkat sebelumnya", belajar: "jam belajar (live/tutor)" };
+    const plRecText = (u) => (u.rec ? `${plFmtH(u.rec.c - 1)}–${plFmtH(u.rec.c + 1)}` : "");
+    const plRecNow = (u) => { if (!u.rec) return false; const n = new Date(); return plHDist(n.getHours() + n.getMinutes() / 60, u.rec.c) <= 1.5; };
     function plCallIndex() {
       const m = new Map(); let anchor = -Infinity;
       callRows.forEach((r) => {
@@ -9595,7 +9635,7 @@
         const d = plDayNum(r._date); if (isNaN(d)) return;
         if (d > anchor) anchor = d;
         let a = m.get(n); if (!a) { a = []; m.set(n, a); }
-        a.push({ d, dur: r._duration });
+        a.push({ d, dur: r._duration, h: Number(r._hour) + (Number(r._min) || 0) / 60 });
       });
       return { m, anchor };
     }
@@ -9605,7 +9645,7 @@
       return row * 3 + (pernah ? 0 : att <= 5 ? 1 : 2) + 1;
     }
     function plCompute() {
-      const sig = `${euUsers.length}|${pl.noOrtu ? pl.noOrtu.size : -1}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
+      const sig = `${euUsers.length}|${pl.noOrtu ? pl.noOrtu.size : -1}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.liveH ? pl.liveH.n : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
       if (pl.memo && pl.memoSig === sig) return pl.memo;
       const ci = plCallIndex(), today = new Date(); today.setHours(0, 0, 0, 0);
       const todayNum = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) / 864e5;
@@ -9674,6 +9714,14 @@
         u.dial = u.calls.reduce((s, x) => s + x.dial, 0); u.conn = u.calls.reduce((s, x) => s + x.conn, 0);
         u.connLvl = u.calls.reduce((b, x) => (PL_CONN_ORDER[x.lvl] > PL_CONN_ORDER[b] ? x.lvl : b), "belum");
         u.talkMax = u.calls.reduce((t, x) => Math.max(t, x.maxDur), 0); u.talkTot = u.calls.reduce((t, x) => t + x.totDur, 0); u.lastTalk = u.calls.reduce((t, x) => Math.max(t, x.lastTalk), 0);
+        /* rekomendasi jam telepon: riwayat angkat semua nomor + jam kelas live/sesi tutor */
+        { const ansI = [], lrnI = [];
+          u.calls.concat(u.extra).forEach((x) => (ci.m.get(x.n) || []).forEach((c) => { if (c.dur >= 60 && c.h != null && isFinite(c.h)) ansI.push([c.h, 1]); }));
+          const refsL = new Set();
+          if (pl.liveH) { u.nums.forEach((x) => (pl.liveH.byP.get(x.n) || []).forEach((r) => refsL.add(r))); if (emailKey) (pl.liveH.byE.get(emailKey) || []).forEach((r) => refsL.add(r)); }
+          if (pl.tutor) { u.nums.forEach((x) => (pl.tutor.byP.get(x.n) || []).forEach((r) => refsL.add(r))); if (emailKey) (pl.tutor.byE.get(emailKey) || []).forEach((r) => refsL.add(r)); }
+          refsL.forEach((r) => { if (r.h != null) lrnI.push([r.h, r.c || 1]); });
+          u.rec = plRecommend(ansI, lrnI); u.recBucket = u.rec ? plRecBucket(u.rec.c) : "none"; }
         u.att = u.calls.reduce((t, x) => Math.max(t, x.att14), 0);
         u.band = plBand(u.att);
         /* live teaching 4 minggu */
@@ -9742,9 +9790,11 @@
     const plTypeLabel = (u) => PL_TYPE_LABEL[plType(u)] || "Non VO";
     const PL_TYPE_ENTRIES = [{ value: "vo", label: "VO (Voucher Owner)" }, { value: "non1", label: "NON VO 1 (tab Faizal)" }, { value: "non2", label: "NON VO 2 (tab Faizal)" }, { value: "non3", label: "NON VO 3 (tab Faizal)" }, { value: "non", label: "Non VO (lainnya, belum dirinci)" }];
     function plScope(list) {
-      const coach = plVal("coach"), agent = plVal("agent"), vo = plVal("vo"), prio = plVal("prio"), from = plVal("from"), to = plVal("to"), mins = Number(plVal("mins")) || 0;
+      const coach = plVal("coach"), agent = plVal("agent"), vo = plVal("vo"), prio = plVal("prio"), from = plVal("from"), to = plVal("to"), mins = Number(plVal("mins")) || 0, rec = plVal("rec"), recb = plVal("recb");
       return list.filter((u) => {
         if (mins && (u.talkMax || 0) < mins * 60) return false;
+        if (rec && (rec === "now" ? !plRecNow(u) : u.recBucket !== rec)) return false;
+        if (recb && (!u.rec || u.rec.basis !== recb)) return false;
         if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent))) return false;
         return plAsgPass(u, from, to);
       });
@@ -9843,10 +9893,12 @@
     function pnFiltered(memo) {
       const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall"), lg = pnVal("log");
       const all = memo.list.map((u) => ({ u, paid: false })).concat(memo.paidList.map((u) => ({ u, paid: true })));
-      const aF = pnVal("afrom"), aT = pnVal("ato"), mins = Number(pnVal("mins")) || 0;
+      const aF = pnVal("afrom"), aT = pnVal("ato"), mins = Number(pnVal("mins")) || 0, rec = pnVal("rec"), recb = pnVal("recb");
       return all.filter(({ u, paid: pd }) => {
         if (!plAsgPass(u, aF, aT)) return false;
         if (mins && pnMaxTalk(u) < mins * 60) return false;
+        if (rec && (rec === "now" ? !plRecNow(u) : (u.recBucket || "none") !== rec)) return false;
+        if (recb && (!u.rec || u.rec.basis !== recb)) return false;
         if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(pnDialAll(u))) && filterMatches(att, pnBandOf(pnAttAll(u))))) return false;
         if (lg && !filterMatches(lg, u.llog || "__none")) return false;
         if (q.length && !pnSearchMatch(u, q, pd)) return false;
@@ -9895,7 +9947,7 @@
       const shown = rows.slice(pnPage * PN_PAGE, (pnPage + 1) * PN_PAGE);
       const body = shown.map(({ u, paid }) => {
         const sl = pnSlots(u);
-        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${escapeHtml(u.llog || "-")}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}</tr>`;
+        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}${u.rec ? `<small style="color:#0f766e;font-weight:700" title="${escapeHtml(PL_REC_BASIS[u.rec.basis])}">Telepon ${plRecText(u)} · ${u.rec.basis === "keduanya" ? "angkat+belajar" : u.rec.basis === "angkat" ? "jam angkat" : "jam belajar"}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${escapeHtml(u.llog || "-")}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}</tr>`;
       }).join("");
       const more = rows.some((r) => pnSlots(r.u).lain.length > 9) ? ` · ada user dengan lebih dari 9 nomor lain (lengkapnya di export)` : "";
       const pager = `<div class="note pn-pager">${number.format(rows.length)} user · halaman ${pnPage + 1} dari ${pages}${more} <button type="button" class="pl-export" data-pn-page="-1" ${pnPage ? "" : "disabled"}>‹ Sebelumnya</button> <button type="button" class="pl-export" data-pn-page="1" ${pnPage < pages - 1 ? "" : "disabled"}>Berikutnya ›</button></div>`;
@@ -9905,11 +9957,11 @@
       const memo = plCompute(), rows = pnFiltered(memo);
       const maxL = rows.reduce((m, r) => Math.max(m, pnSlots(r.u).lain.length), 0);
       const slotHead = (lb) => [lb, `Dial ${lb}`, `Dial 14 hari ${lb}`, `Angkat ${lb}`, `Status ${lb}`];
-      const head = ["Siswa", "Kelas", "Agent", "Leader Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)", "Talktime terlama (menit)"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
+      const head = ["Siswa", "Kelas", "Agent", "Leader Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)", "Talktime terlama (menit)", "Rekomendasi jam telepon", "Dasar rekomendasi"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
       const cells = (x) => (x ? [`62${x.n}`, x.dial, x.att14, x.ans, pnStat(x)[0]] : ["", "", "", "", ""]);
       const baruTxt = (sl) => [sl.siswa && sl.siswa.baru ? `No Siswa (${sl.siswa.src})` : "", sl.ortu && sl.ortu.baru ? `No Ortu (${sl.ortu.src})` : sl.ortu && sl.ortu.fix ? `No Ortu (${sl.ortu.fix === "beda" ? "diganti" : "baru"} dari tab NO ORTU)` : "", ...sl.lain.map((x, i) => (x.baru ? `Nomor ${i + 1} (${x.src})` : ""))].filter(Boolean).join("; ");
-      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length, Math.round(pnMaxTalk(u) / 6) / 10].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
-      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16, 14].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
+      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length, Math.round(pnMaxTalk(u) / 6) / 10, plRecText(u), u.rec ? PL_REC_BASIS[u.rec.basis] : ""].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
+      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16, 14, 16, 26].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
       const blob = xlsxBlob("Daftar Nomor", head, out, widths);
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `daftar-nomor-user-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -10039,6 +10091,7 @@
           <p><b>Baris</b> = seberapa aktif belajar 4 minggu terakhir. <b>Aktif:</b> aktivitas ≥2 dari 4 minggu dan ada di minggu terakhir. <b>Cukup aktif:</b> 1 dari 4 minggu (atau ≥2 minggu tapi tidak di minggu terakhir). <b>Tidur:</b> 0. (Sumber: sheet Activity Renewal.)</p>
           <p><b>Kolom</b> = hubungan dengan agent. <b>Sudah pernah ngobrol:</b> Terhubung lama (≥10 menit, atau ≥1 menit dalam 7 hari terakhir) atau Terhubung (≥1 menit, lebih dari 7 hari lalu). <b>Belum ngobrol:</b> Sekadar angkat (<1 menit) atau Belum terhubung, lalu dibagi menurut attempt 14 hari (angka tertinggi di antara nomor ortu dan siswa).</p>
           <p><b>Urutan prio:</b> 1A, 1B, 2A, 2B, 2C, 3A, 3B, 3C, 4 (mengikuti urutan baca matriks). <b>Naik/turun prio (geser satu tingkat, mis. 2B naik jadi 2A):</b> naik jika baru di-assign (≤4 minggu), pelanggan lama, atau ada janji follow-up; turun jika attempt >10. Kelas akhir (6 SD, 9 SMP, 12 SMA) hanya label.</p>
+          <p><b>Rekomendasi jam telepon:</b> jendela ±1 jam dari jam puncak. Dasar utama = jam user mengangkat telepon (durasi minimal 1 menit, semua nomor, termasuk angkat ke-2, ke-3 dst). Kalau belum pernah angkat, dipakai jam kelas live teaching dan sesi tutor (data Activity Renewal 4 minggu terakhir, minimal 2 sesi). Kalau keduanya cocok, ditandai "jam angkat + jam belajar cocok". Hasil uji data: sinyal dari jam angkat sebelumnya ada tapi kecil (tingkat angkat sekitar 39% bila jam telepon dekat vs 35% bila jauh); jam belajar belum terbukti kuat. Pakai sebagai bahan prioritas jam, bukan jaminan.</p>
           <p><b>Skor indikatif:</b> hanya untuk mengurutkan user di dalam satu prio (live teaching ikut di sini). Dikali dari kelipatan peluang renew di artifak Pemicu Renewal: aktif app 3,2×, tidak aktif 0,28×, ikut live 2,8×, ngobrol ≥10 menit 3,4× atau ≤7 hari 2,7×, baru di-assign 2,4×, kelas akhir 0,6×. Itu hubungan, bukan sebab. Arahkan kursor ke skor untuk melihat rinciannya.</p>
         </div>`;
     }
@@ -10205,11 +10258,11 @@
     function plExport(list, tag) {
       const sum = (arr, k) => arr.reduce((t, x) => t + x[k], 0);
       const nums = (arr) => arr.map((x) => `0${x.n}`).join(" | ");
-      const head = ["Prio", "Tipe (VO / NON VO 1-3)", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Talktime terlama (detik)", "Talktime total (detik)", "Ngobrol terakhir", "Status bayar", "Paket (PAID)", "Tgl payment (PAID)", "Amount (PAID)", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Email User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
-      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 14, 14, 14, 12, 20, 14, 14, 10, 14, 10, 24, 22, 26, 30, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
+      const head = ["Prio", "Tipe (VO / NON VO 1-3)", "Kategori Prioritas", "Skor indikatif (urutan dalam prio)", "Saran tindakan", "Label tambahan", "Penyesuaian prio", "Band attempt", "Attempt 14 hari (tertinggi per nomor)", "Keterhubungan", "Talktime terlama (detik)", "Talktime total (detik)", "Ngobrol terakhir", "Rekomendasi jam telepon", "Dasar rekomendasi", "Status bayar", "Paket (PAID)", "Tgl payment (PAID)", "Amount (PAID)", "Aktivitas app (4 mgg)", "Minggu aktif app", "Live teaching (4 mgg)", "Kelas live (4 mgg)", "Agent", "Coach", "User", "Email User", "Nama Ortu", "Kategori", "Kelas", "Sekolah", "Kota", "Tgl Assign", "Total Dial", "Total Terhubung (>=2 mnt)", "No Siswa", "Attempt 14hr Siswa", "Terhubung Siswa", "No Ortu", "Attempt 14hr Ortu", "Terhubung Ortu", "Nomor Lain", "Attempt 14hr Lain", "Sumber", "Log", "Hasil Call", "Catatan"];
+      const widths = [7, 28, 14, 48, 30, 22, 16, 12, 18, 14, 14, 14, 14, 16, 26, 12, 20, 14, 14, 10, 14, 10, 24, 22, 26, 30, 24, 18, 8, 22, 16, 14, 10, 12, 16, 10, 10, 16, 10, 10, 22, 10, 12, 24, 18, 30];
       const rows = list.map((u) => {
         const S = u.calls.filter((x) => x.role === "Siswa"), O = u.calls.filter((x) => x.role === "Ortu"), L = u.calls.filter((x) => x.role === "Lain");
-        return [u.prio ? plPrioLabel(u.prio) : "", plTypeLabel(u), u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.talkMax, u.talkTot, plDay(u.lastTalk), u.paid ? "PAID" : "Belum paid", u.paidInfo ? u.paidInfo.paket : "", u.paidInfo ? u.paidInfo.tgl : "", u.paidInfo ? u.paidInfo.amount : "", u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.email || "", u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
+        return [u.prio ? plPrioLabel(u.prio) : "", plTypeLabel(u), u.catName, u.prio ? u.score : "", u.prio ? PL_ACTION[u.catId] : "", u.labels.join(", "), u.adj, u.band, u.att, PL_CONN_LABEL[u.connLvl], u.talkMax, u.talkTot, plDay(u.lastTalk), plRecText(u), u.rec ? PL_REC_BASIS[u.rec.basis] : "", u.paid ? "PAID" : "Belum paid", u.paidInfo ? u.paidInfo.paket : "", u.paidInfo ? u.paidInfo.tgl : "", u.paidInfo ? u.paidInfo.amount : "", u.act || "", u.actInfo ? u.actInfo.w : "", u.live || "", u.liveN == null ? "" : u.liveN, u.agent, u.coach, u.name, u.email || "", u.ortuName, u.cat, u.kelas, u.sma, u.kota, u.assign, u.dial, u.conn, nums(S), Math.max(0, ...S.map((x) => x.att14)), sum(S, "conn"), nums(O), Math.max(0, ...O.map((x) => x.att14)), sum(O, "conn"), nums(L), Math.max(0, ...L.map((x) => x.att14)), u.src, u.log, "", ""];
       });
       const blob = xlsxBlob("Prioritas Leads", head, rows, widths);
       const av = splitFilterValue(plVal("agent"));
@@ -10228,7 +10281,7 @@
     });
     document.addEventListener("click", (e) => {
       const t = e.target; if (!t.closest) return;
-      if (t.closest("#pnReset")) { document.getElementById("pnAFrom").value = ""; document.getElementById("pnATo").value = ""; document.getElementById("pnMinsF").value = "";  ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "att", "cond", "log"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
+      if (t.closest("#pnReset")) { document.getElementById("pnAFrom").value = ""; document.getElementById("pnATo").value = ""; document.getElementById("pnMinsF").value = ""; document.getElementById("pnRecF").value = ""; document.getElementById("pnRecBF").value = "";  ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "att", "cond", "log"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
       if (t.closest("#pnExport")) { pnExport(); return; }
       if (t.closest("#rfReset")) { document.getElementById("rfAFrom").value = ""; document.getElementById("rfATo").value = "";  ["camp", "coach", "agent", "lvl", "dial", "dials", "dialo", "diall", "cond", "log"].forEach((k) => { const el = document.querySelector(`.rf-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("rfQ").value = ""; rfPage = 0; rfRender(); return; }
       if (t.closest("#rfExport")) { if (rf.rows && !rf.err) rfExport(); return; }
@@ -10236,7 +10289,7 @@
       const pg = t.closest("[data-pn-page]"); if (pg && !pg.disabled) { pnPage += Number(pg.dataset.pnPage); renderPrioritasLeads(); return; }
       const cpr = t.closest("tr.cp-coach"); if (cpr) { const k = cpr.dataset.coach; if (cpOpen.has(k)) cpOpen.delete(k); else cpOpen.add(k); renderPrioritasLeads(); return; }
       if (t.closest("#cpReset")) { document.getElementById("cpFrom").value = ""; document.getElementById("cpTo").value = ""; document.getElementById("cpPFrom").value = ""; document.getElementById("cpPTo").value = ""; setFilterValues("cpCoachF", []); renderPrioritasLeads(); return; }
-      if (t.closest("#plDateReset")) { document.getElementById("plFrom").value = ""; document.getElementById("plTo").value = ""; const m = document.getElementById("plMinsF"); if (m) m.value = ""; renderPrioritasLeads(); return; }
+      if (t.closest("#plDateReset")) { document.getElementById("plFrom").value = ""; document.getElementById("plTo").value = ""; const m = document.getElementById("plMinsF"); if (m) m.value = ""; ["plRecF", "plRecBF"].forEach((i) => { const e = document.getElementById(i); if (e) e.value = ""; }); renderPrioritasLeads(); return; }
       if (t.closest("#pdReset")) { document.getElementById("pdAFrom").value = ""; document.getElementById("pdATo").value = "";  ["vo", "prio", "coach", "agent", "week"].forEach((k) => { const el = document.querySelector(`.pd-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pdFrom").value = ""; document.getElementById("pdTo").value = ""; renderPrioritasLeads(); return; }
       if (t.closest(".pl-export-list")) { plExport(window.plModalList || plModalBase, plModalTag); return; }
       if (t.closest(".pl-export")) { const memo = plCompute(); plExport(plScope(memo.list).sort((a, b) => (a.prio || 99) - (b.prio || 99) || a.agent.localeCompare(b.agent) || b.score - a.score), "semua"); return; }

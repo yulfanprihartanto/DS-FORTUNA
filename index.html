@@ -3604,7 +3604,7 @@
           </div>
           <div id="plPaid"></div>
           <div id="plPaidDays"></div>
-          <div class="panel-head" style="margin-top:22px"><h2>Daftar Nomor per User</h2><span class="note">gabungan semua nomor user dari sheet extend (tab extend user, NON VO, PAID, dan DATA LENGKAP; unik) · label BARU = nomor yang hanya ditemukan di DATA LENGKAP atau tab PAID · di bawah tiap nomor: berapa kali di-dial dan status terhubung dari Call Tracking</span></div>
+          <div class="panel-head" style="margin-top:22px"><h2>Daftar Nomor per User</h2><span class="note">gabungan semua nomor user dari sheet extend (tab extend user, NON VO, PAID, dan DATA LENGKAP; unik) · label BARU = nomor yang hanya ditemukan di DATA LENGKAP atau tab PAID · kolom NOMOR BARU = nomor dari tab new parent (sheet extend) yang belum ada di nomor user mana pun di tabel ini, unik · di bawah tiap nomor: berapa kali di-dial dan status terhubung dari Call Tracking</span></div>
           <div class="eu-filters pn-filterbar">
             <label>Tipe<select id="pnVoF" class="pn-f ct-sel" data-f="vo"></select></label>
             <label>Prio<select id="pnPrioF" class="pn-f ct-sel" data-f="prio"></select></label>
@@ -3620,6 +3620,7 @@
             <label>Dial No Siswa<select id="pnDialSF" class="pn-f ct-sel" data-f="dials"></select></label>
             <label>Dial No Ortu<select id="pnDialOF" class="pn-f ct-sel" data-f="dialo"></select></label>
             <label>Dial Nomor lain<select id="pnDialLF" class="pn-f ct-sel" data-f="diall"></select></label>
+            <label>Dial Nomor baru<select id="pnDialNF" class="pn-f ct-sel" data-f="dialn"></select></label>
             <label>Attempt 14 hari<select id="pnAttF" class="pn-f ct-sel" data-f="att"></select></label>
             <label>Kondisi nomor<select id="pnCondF" class="pn-f ct-sel" data-f="cond"></select></label>
             <label>Log activity<select id="pnLogF" class="pn-f ct-sel" data-f="log"></select></label>
@@ -9170,7 +9171,7 @@
     }
     const euMin = (sec) => (sec >= 60 ? `${Math.floor(sec / 60)}m${String(sec % 60).padStart(2, "0")}s` : `${sec}s`);
     function euCell(x) {
-      return `<div class="eu-num"><span class="eu-n">0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">BARU</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b><small>angkat ${x.ans} · ≥2 mnt ${x.conn}${x.max ? ` · terlama ${euMin(x.max)}` : ""}</small></div>`;
+      return `<div class="eu-num"><span class="eu-n">0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">${x.src === "NOMOR BARU" ? "NOMOR BARU" : "BARU"}</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b><small>angkat ${x.ans} · ≥2 mnt ${x.conn}${x.max ? ` · terlama ${euMin(x.max)}` : ""}</small></div>`;
     }
     function euRoleCell(u, role) {
       const items = u.calls.filter((x) => x.role === role);
@@ -9489,6 +9490,20 @@
         });
         pl.noOrtu = ortu; pl.noOrtuNums = nums;
       }).catch((e) => { pl.errs.noOrtu = e.message; pl.noOrtu = new Map(); pl.noOrtuNums = new Map(); }).then(done);
+      /* tab new parent (sheet extend): nomor ortu baru per email; hanya ditambahkan bila belum ada di nomor user mana pun di Daftar Nomor */
+      plFetch(plGv(EXTEND_SHEET_ID, "new parent")).then((t) => {
+        const T = plTable(t);
+        /* judul kolom tab ini bisa terbaca kosong (judul masuk sebagai baris data): pakai posisi kolom B (email) dan E (new_parent_phone) sebagai cadangan */
+        const iE = T.idx("email") >= 0 ? T.idx("email") : 1, iN = T.idx("new_parent_phone") >= 0 ? T.idx("new_parent_phone") : 4;
+        if (T.cols.length <= Math.max(iE, iN)) throw new Error("kolom tab new parent tidak dikenali");
+        const map = new Map(); let rows = 0;
+        T.rows.forEach((r) => {
+          const e = clean(r[iE]).toLowerCase(), n = euNorm(r[iN]); if (!e.includes("@") || !n) return; rows++;
+          let m = map.get(e); if (!m) { m = new Map(); map.set(e, m); }
+          if (!m.has(n)) m.set(n, { role: "Ortu", src: "NOMOR BARU" });
+        });
+        pl.newParent = { map, rows };
+      }).catch((e) => { pl.errs.newParent = e.message; pl.newParent = { map: new Map(), rows: 0, failed: true }; }).then(done);
       /* tab LOG RF (sheet extend): log activity terakhir per email untuk tabel RF (kolom I + J, format "102-Busy Line") */
       plFetch(plGv(EXTEND_SHEET_ID, "LOG RF")).then((t) => {
         const T = plTable(t), iE = T.idx("user email"), iC = T.idx("last student status") >= 0 ? T.idx("last student status") : 8, iS = T.idx("last student sub status") >= 0 ? T.idx("last student sub status") : 9, map = new Map();
@@ -9645,9 +9660,13 @@
       return row * 3 + (pernah ? 0 : att <= 5 ? 1 : 2) + 1;
     }
     function plCompute() {
-      const sig = `${euUsers.length}|${pl.noOrtu ? pl.noOrtu.size : -1}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.liveH ? pl.liveH.n : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
+      const sig = `${euUsers.length}|${pl.noOrtu ? pl.noOrtu.size : -1}|${pl.fz ? pl.fz.size : -1}|${pl.log ? pl.log.size : -1}|${pl.nonvo.length}|${callRows.length}|${pl.paid.rows}|${pl.ver || 0}|${pl.full ? pl.full.rows : -1}|${pl.live ? pl.live.rowCount : -1}|${pl.liveH ? pl.liveH.n : -1}|${pl.newParent ? pl.newParent.rows : -1}|${pl.tutor ? pl.tutor.n : pl.tutor}`;
       if (pl.memo && pl.memoSig === sig) return pl.memo;
       const ci = plCallIndex(), today = new Date(); today.setHours(0, 0, 0, 0);
+      /* semua nomor yang sudah ada di Daftar Nomor (nomor user, DATA LENGKAP, PAID, NO ORTU); NOMOR BARU hanya yang tidak ada di sini dan unik */
+      const knownNums = new Set(), nbUsed = new Set();
+      euUsers.forEach((eu) => (eu.nums || []).forEach((x) => knownNums.add(x.n)));
+      [pl.full && pl.full.map, pl.paid && pl.paid.nums, pl.noOrtuNums].forEach((mm) => { if (mm) mm.forEach((m2) => m2.forEach((v, n) => knownNums.add(n))); });
       const todayNum = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) / 864e5;
       const seenKey = new Set(); let all = [];
       euUsers.forEach((u) => { u.src = "extend user"; all.push(u); });
@@ -9698,7 +9717,7 @@
         };
         u.calls = u.nums.map(statOf);
         /* nomor tambahan dari DATA LENGKAP yang belum ada di sheet extend (tidak mengubah prio; hanya ditampilkan di Daftar Nomor) */
-        u.extra = []; u.inFull = false;
+        u.extra = []; u.nb = []; u.inFull = false;
         if (pl.full && emailKey && pl.full.map.has(emailKey)) {
           u.inFull = true; const have = new Set(u.nums.map((x) => x.n));
           pl.full.map.get(emailKey).forEach((v, n) => { if (!have.has(n)) { have.add(n); u.extra.push({ ...statOf({ role: v.role, n }), baru: true, src: v.src }); } });
@@ -9706,6 +9725,10 @@
         if (emailKey && pl.paid.nums && pl.paid.nums.has(emailKey)) {
           const have = new Set(u.nums.concat(u.extra).map((x) => x.n));
           pl.paid.nums.get(emailKey).forEach((v, n) => { if (!have.has(n)) { have.add(n); u.extra.push({ ...statOf({ role: v.role, n }), baru: true, src: v.src }); } });
+        }
+        if (emailKey && pl.newParent && pl.newParent.map.has(emailKey)) {
+          const have = new Set(u.nums.concat(u.extra).map((x) => x.n));
+          pl.newParent.map.get(emailKey).forEach((v, n) => { if (!have.has(n) && !knownNums.has(n) && !nbUsed.has(n)) { have.add(n); nbUsed.add(n); u.nb.push({ ...statOf({ role: v.role, n }), baru: true, src: v.src }); } });
         }
         if (emailKey && pl.noOrtuNums && pl.noOrtuNums.has(emailKey)) {
           const have = new Set(u.nums.concat(u.extra).map((x) => x.n));
@@ -9891,7 +9914,7 @@
       return toks.some((t) => t.k === "email" ? email.includes(t.v) : t.k === "num" ? (t.v ? nums.includes(t.v) : false) || (t.d.length >= 6 && nums.some((n) => n.includes(t.d))) : hay.includes(t.v));
     }
     function pnFiltered(memo) {
-      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall"), lg = pnVal("log");
+      const vo = pnVal("vo"), prio = pnVal("prio"), coach = pnVal("coach"), agent = pnVal("agent"), paid = pnVal("paid"), cond = splitFilterValue(pnVal("cond")), q = pnTokens(pnVal("q")), cat = pnVal("cat"), lvl = pnVal("lvl"), dial = pnVal("dial"), att = pnVal("att"), dS = pnVal("dials"), dO = pnVal("dialo"), dL = pnVal("diall"), dN = pnVal("dialn"), lg = pnVal("log");
       const all = memo.list.map((u) => ({ u, paid: false })).concat(memo.paidList.map((u) => ({ u, paid: true })));
       const aF = pnVal("afrom"), aT = pnVal("ato"), mins = Number(pnVal("mins")) || 0, rec = pnVal("rec"), recb = pnVal("recb");
       return all.filter(({ u, paid: pd }) => {
@@ -9902,6 +9925,7 @@
         if (!(filterMatches(vo, plType(u)) && filterMatches(prio, u.prio ? String(u.prio) : "x") && filterMatches(coach, u.coach) && filterMatches(agent, u.agent) && filterMatches(paid, pd ? "paid" : "belum") && filterMatches(cat, u.catName) && filterMatches(lvl, pnBest(u)) && filterMatches(dial, pnBandOf(pnDialAll(u))) && filterMatches(att, pnBandOf(pnAttAll(u))))) return false;
         if (lg && !filterMatches(lg, u.llog || "__none")) return false;
         if (q.length && !pnSearchMatch(u, q, pd)) return false;
+        if (dN && !(u.nb || []).some((x) => splitFilterValue(dN).includes("ada") || filterMatches(dN, pnBandOf(x.dial)))) return false;
         if (dS || dO || dL) {
           const sl = pnSlots(u);
           if (dS && !(sl.siswa && filterMatches(dS, pnBandOf(sl.siswa.dial)))) return false;
@@ -9920,7 +9944,7 @@
     function pnCell(x) {
       if (!x) return `<span class="eu-none">-</span>`;
       const st = pnStat(x);
-      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">BARU</small>` : ""}${x.fix ? ` <small class="pn-new" title="nomor ortu menurut tab NO ORTU">${x.fix === "beda" ? "ORTU DIGANTI" : "ORTU BARU"}</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}${x.maxDur ? ` · terlama ${euMin(x.maxDur)}` : ""}</small></div>`;
+      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">${x.src === "NOMOR BARU" ? "NOMOR BARU" : "BARU"}</small>` : ""}${x.fix ? ` <small class="pn-new" title="nomor ortu menurut tab NO ORTU">${x.fix === "beda" ? "ORTU DIGANTI" : "ORTU BARU"}</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}${x.maxDur ? ` · terlama ${euMin(x.maxDur)}` : ""}</small></div>`;
     }
     function pnRender(memo) {
       const pool = memo.paidList.concat(memo.list);
@@ -9936,6 +9960,7 @@
       setFilterEntries("pnDialSF", PN_BANDS.map(([v, l]) => ({ value: v, label: l })), "Semua (siswa)");
       setFilterEntries("pnDialOF", PN_BANDS.map(([v, l]) => ({ value: v, label: l })), "Semua (ortu)");
       setFilterEntries("pnDialLF", PN_BANDS.map(([v, l]) => ({ value: v, label: l })), "Semua (nomor lain)");
+      setFilterEntries("pnDialNF", [{ value: "ada", label: "Punya NOMOR BARU (semua)" }].concat(PN_BANDS.map(([v, l]) => ({ value: v, label: l }))), "Semua (nomor baru)");
       setFilterEntries("pnAttF", PN_BANDS.map(([v, l]) => ({ value: v, label: l })), "Semua attempt");
       setFilterEntries("pnPaidF", [{ value: "belum", label: "Belum paid" }, { value: "paid", label: "Sudah paid" }], "Semua status");
       setFilterEntries("pnCondF", PN_COND.map(([v, l]) => ({ value: v, label: l })), "Semua kondisi");
@@ -9947,21 +9972,21 @@
       const shown = rows.slice(pnPage * PN_PAGE, (pnPage + 1) * PN_PAGE);
       const body = shown.map(({ u, paid }) => {
         const sl = pnSlots(u);
-        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}${u.rec ? `<small style="color:#0f766e;font-weight:700" title="${escapeHtml(PL_REC_BASIS[u.rec.basis])}">Telepon ${plRecText(u)} · ${u.rec.basis === "keduanya" ? "angkat+belajar" : u.rec.basis === "angkat" ? "jam angkat" : "jam belajar"}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${escapeHtml(u.llog || "-")}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}</tr>`;
+        return `<tr><td class="ct-first"><b>${escapeHtml(u.name)}</b>${u.kelas ? `<small>${escapeHtml(/^kelas/i.test(u.kelas) ? u.kelas : "kelas " + u.kelas)}</small>` : ""}${u.rec ? `<small style="color:#0f766e;font-weight:700" title="${escapeHtml(PL_REC_BASIS[u.rec.basis])}">Telepon ${plRecText(u)} · ${u.rec.basis === "keduanya" ? "angkat+belajar" : u.rec.basis === "angkat" ? "jam angkat" : "jam belajar"}</small>` : ""}</td><td style="word-break:break-all;font-size:12px">${escapeHtml(u.email || "-")}</td><td>${escapeHtml(u.agent)}</td><td>${escapeHtml(pnAssign(u))}</td><td>${escapeHtml(u.llog || "-")}</td><td>${u.prio ? plPrioLabel(u.prio).replace("Prio ", "") : "-"}</td><td>${paid ? "Paid" : "Belum"}</td><td>${pnCell(sl.siswa)}</td><td>${pnCell(sl.ortu)}</td>${Array.from({ length: maxL }, (_, i) => `<td>${pnCell(sl.lain[i])}</td>`).join("")}<td>${(u.nb || []).length ? u.nb.map((x) => pnCell(x)).join("") : `<span class="eu-none">-</span>`}</td></tr>`;
       }).join("");
       const more = rows.some((r) => pnSlots(r.u).lain.length > 9) ? ` · ada user dengan lebih dari 9 nomor lain (lengkapnya di export)` : "";
       const pager = `<div class="note pn-pager">${number.format(rows.length)} user · halaman ${pnPage + 1} dari ${pages}${more} <button type="button" class="pl-export" data-pn-page="-1" ${pnPage ? "" : "disabled"}>‹ Sebelumnya</button> <button type="button" class="pl-export" data-pn-page="1" ${pnPage < pages - 1 ? "" : "disabled"}>Berikutnya ›</button></div>`;
-      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${770 + (2 + maxL) * 175}px"><colgroup><col style="width:12%"><col style="width:12%"><col style="width:8%"><col style="width:6.5%"><col style="width:8%"><col style="width:3.5%"><col style="width:4.5%">${Array.from({ length: 2 + maxL }, () => `<col style="width:${(45.5 / (2 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Agent</th><th>Assign</th><th>Log activity</th><th>Prio</th><th>Bayar</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
+      box.innerHTML = rows.length ? `${pager}<div class="pn-wrap"><table class="ct-table eu-table pn-table" style="min-width:${770 + (3 + maxL) * 175}px"><colgroup><col style="width:12%"><col style="width:12%"><col style="width:8%"><col style="width:6.5%"><col style="width:8%"><col style="width:3.5%"><col style="width:4.5%">${Array.from({ length: 3 + maxL }, () => `<col style="width:${(45.5 / (3 + maxL)).toFixed(2)}%">`).join("")}</colgroup><thead><tr><th class="ct-first">Siswa</th><th>Email</th><th>Agent</th><th>Assign</th><th>Log activity</th><th>Prio</th><th>Bayar</th><th>No Siswa</th><th>No Ortu</th>${Array.from({ length: maxL }, (_, i) => `<th>Nomor ${i + 1}</th>`).join("")}<th>NOMOR BARU</th></tr></thead><tbody>${body}</tbody></table></div>${pager}` : `<p class="note" style="margin-top:12px">Tidak ada user untuk filter ini.</p>`;
     }
     function pnExport() {
       const memo = plCompute(), rows = pnFiltered(memo);
       const maxL = rows.reduce((m, r) => Math.max(m, pnSlots(r.u).lain.length), 0);
       const slotHead = (lb) => [lb, `Dial ${lb}`, `Dial 14 hari ${lb}`, `Angkat ${lb}`, `Status ${lb}`];
-      const head = ["Siswa", "Kelas", "Agent", "Leader Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)", "Talktime terlama (menit)", "Rekomendasi jam telepon", "Dasar rekomendasi"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)"]);
+      const head = ["Siswa", "Kelas", "Agent", "Leader Coach", "Tipe (VO / NON VO 1-3)", "Prio", "Kategori", "Status bayar", "Email User", "Tanggal assign", "Log activity", "Nomor baru dari sheet lain (jumlah)", "Talktime terlama (menit)", "Rekomendasi jam telepon", "Dasar rekomendasi"].concat(slotHead("No Siswa"), slotHead("No Ortu"), ...Array.from({ length: maxL }, (_, i) => slotHead(`Nomor ${i + 1}`)), ["Keterangan nomor BARU (sumber)", "NOMOR BARU", "Dial NOMOR BARU", "Attempt 14hr NOMOR BARU", "Status NOMOR BARU"]);
       const cells = (x) => (x ? [`62${x.n}`, x.dial, x.att14, x.ans, pnStat(x)[0]] : ["", "", "", "", ""]);
       const baruTxt = (sl) => [sl.siswa && sl.siswa.baru ? `No Siswa (${sl.siswa.src})` : "", sl.ortu && sl.ortu.baru ? `No Ortu (${sl.ortu.src})` : sl.ortu && sl.ortu.fix ? `No Ortu (${sl.ortu.fix === "beda" ? "diganti" : "baru"} dari tab NO ORTU)` : "", ...sl.lain.map((x, i) => (x.baru ? `Nomor ${i + 1} (${x.src})` : ""))].filter(Boolean).join("; ");
-      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length, Math.round(pnMaxTalk(u) / 6) / 10, plRecText(u), u.rec ? PL_REC_BASIS[u.rec.basis] : ""].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl)]); });
-      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16, 14, 16, 26].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34]);
+      const out = rows.map(({ u, paid }) => { const sl = pnSlots(u); return [u.name, u.kelas, u.agent, u.coach, plTypeLabel(u), u.prio ? plPrioLabel(u.prio) : PL_X, u.catName, paid ? "Sudah paid" : "Belum paid", u.email || "", pnAssign(u), u.llog || "", (u.extra || []).length, Math.round(pnMaxTalk(u) / 6) / 10, plRecText(u), u.rec ? PL_REC_BASIS[u.rec.basis] : ""].concat(cells(sl.siswa), cells(sl.ortu), ...Array.from({ length: maxL }, (_, i) => cells(sl.lain[i])), [baruTxt(sl), (u.nb || []).map((x) => `62${x.n}`).join(" | "), (u.nb || []).map((x) => x.dial).join(" | "), (u.nb || []).map((x) => x.att14).join(" | "), (u.nb || []).map((x) => pnStat(x)[0]).join(" | ")]); });
+      const widths = [24, 10, 22, 20, 12, 14, 34, 12, 28, 14, 22, 16, 14, 16, 26].concat(Array(2 + maxL).fill([16, 9, 10, 9, 22]).flat(), [34, 18, 10, 12, 22]);
       const blob = xlsxBlob("Daftar Nomor", head, out, widths);
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `daftar-nomor-user-${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -9994,7 +10019,7 @@
       }).catch((e) => { rf.err = e.message; rf.rows = []; }).then(done);
     }
     function rfCompute() {
-      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}|${pl.logRf ? pl.logRf.size : -1}`;
+      const sig = `${rf.rows.length}|${callRows.length}|${euUsers.length}|${pl.logRf ? pl.logRf.size : -1}|${pl.newParent ? pl.newParent.rows : -1}`;
       if (rfMemo && rfMemoSig === sig) return rfMemo;
       const ci = plCallIndex();
       const list = rf.rows.map((u) => {
@@ -10040,7 +10065,7 @@
     function rfCell(x) {
       if (!x) return `<span class="eu-none">-</span>`;
       const st = pnStat(x);
-      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}${x.total > x.dial ? ` · total ${x.total}×` : ""}</small></div>`;
+      return `<div class="pn-nm"><div class="pn-top"><span>0${x.n}${x.baru ? ` <small class="pn-new" title="ditemukan di ${x.src}">BARU</small>` : ""}</span><b class="${x.dial ? (x.conn ? "ct-up" : "") : "ct-down"}">${x.dial}×</b></div><small class="${st[1]}">${st[0]} · 14 hr: ${x.att14}×${x.ans ? ` · angkat ${x.ans}×` : ""}${x.total > x.dial ? ` · total ${x.total}×` : ""}</small></div>`;
     }
     function rfRender() {
       const box = document.getElementById("rfList"); if (!box) return;
@@ -10281,7 +10306,7 @@
     });
     document.addEventListener("click", (e) => {
       const t = e.target; if (!t.closest) return;
-      if (t.closest("#pnReset")) { document.getElementById("pnAFrom").value = ""; document.getElementById("pnATo").value = ""; document.getElementById("pnMinsF").value = ""; document.getElementById("pnRecF").value = ""; document.getElementById("pnRecBF").value = "";  ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "att", "cond", "log"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
+      if (t.closest("#pnReset")) { document.getElementById("pnAFrom").value = ""; document.getElementById("pnATo").value = ""; document.getElementById("pnMinsF").value = ""; document.getElementById("pnRecF").value = ""; document.getElementById("pnRecBF").value = "";  ["vo", "prio", "coach", "agent", "cat", "paid", "lvl", "dial", "dials", "dialo", "diall", "dialn", "att", "cond", "log"].forEach((k) => { const el = document.querySelector(`.pn-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("pnQ").value = ""; pnPage = 0; renderPrioritasLeads(); return; }
       if (t.closest("#pnExport")) { pnExport(); return; }
       if (t.closest("#rfReset")) { document.getElementById("rfAFrom").value = ""; document.getElementById("rfATo").value = "";  ["camp", "coach", "agent", "lvl", "dial", "dials", "dialo", "diall", "cond", "log"].forEach((k) => { const el = document.querySelector(`.rf-f[data-f="${k}"]`); if (el) setFilterValues(el.id, []); }); document.getElementById("rfQ").value = ""; rfPage = 0; rfRender(); return; }
       if (t.closest("#rfExport")) { if (rf.rows && !rf.err) rfExport(); return; }

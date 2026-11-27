@@ -3093,6 +3093,9 @@
     #euAgents td.eu-w-ort, #euAgents td.eu-w-ort2 { color: #1e0a4a; }
     #euAgents tr.eu-total td { color: #fff !important; }
     #euAgents tr.eu-total td.ct-key { color: #3b1100 !important; }
+    .cd-box { margin: 12px 0; } .cd-box textarea { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 14px; font: inherit; resize: vertical; }
+    .cd-act { display: flex; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; } .cd-clear { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+    #cdOut .table-wrap { overflow: auto; max-height: 70vh; } #cdMiss { margin: 6px 0; color: #b91c1c; }
     .pl-export { background: #0f2744; color: #fff; border: 0; border-radius: 10px; padding: 10px 18px; font: inherit; font-weight: 800; cursor: pointer; }
     .pl-export:hover { background: #2563eb; }
     .pl-num { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; font-weight: 800; color: #0b1830; }
@@ -3272,6 +3275,7 @@
 
     <div class="page-tabs" id="pageTabs">
       <button type="button" class="active" data-page="pageActivityRenewal">ACTIVITY RENEWAL</button>
+      <button type="button" data-page="pageCariData">CARI DATA</button>
       <button type="button" data-page="pageLeader">COMPARE COACH &amp; SPV</button>
       <button type="button" data-page="pageUpdateToday">UPDATE TODAY</button>
       <button type="button" data-page="pageCallTracking">Call Tracking</button>
@@ -3287,6 +3291,18 @@
       <div class="kpi"><span>Total Transaksi</span><strong id="totalTxn">0</strong></div>
       <div class="kpi"><span>Agent Aktif</span><strong id="activeAgents">0</strong></div>
       <div class="kpi"><span>Agent Terpilih</span><strong id="selectedAgent">Semua</strong></div>
+    </section>
+
+    <section class="page" id="pageCariData">
+      <section class="panel compare-panel">
+        <div class="panel-head"><h2>CARI DATA</h2><span class="note" id="cdNote">tempel email, user ID, atau nomor (format 08 / 62 / 8 sama saja), boleh banyak sekaligus, lalu Enter</span></div>
+        <div class="cd-box">
+          <textarea id="cdInput" rows="3" placeholder="contoh: email@gmail.com, USEROR3811BH, 0812xxxxxxx ... (Enter = cari, Shift+Enter = baris baru)"></textarea>
+          <div class="cd-act"><button type="button" class="pl-export" id="cdGo">Cari</button><button type="button" class="cd-clear" id="cdClear">Bersihkan</button><button type="button" class="cd-clear" id="cdXls">Download Excel</button><span class="note" id="cdStat"></span></div>
+        </div>
+        <div id="cdMiss" class="note"></div>
+        <div id="cdOut"></div>
+      </section>
     </section>
 
     <section class="page" id="pageLeader">
@@ -4485,6 +4501,9 @@
           break;
         case "pagePrioritasLeads":
           renderPrioritasLeads();
+          break;
+        case "pageCariData":
+          cdOpen();
           break;
         case "pageDailyClosing":
           setDailyClosingOptions();
@@ -9036,6 +9055,9 @@
     const EU_PAGE = 150;
     const euOpen = new Set();
     let euAgView = "call";
+    /* koreksi email user (email lama di sheet -> email yang benar); dipakai saat membaca tab extend user dan NON VO */
+    const EMAIL_FIX = { "adiba.shakila@gmail.com": "ghazyoalvaroaura@gmail.com", "aysarrizqullah6@gmail.com": "gudangamplop024@gmail.com" };
+    const emailFix = (e) => EMAIL_FIX[e] || e;
     let euUsers = [], euLoaded = false, euLoading = false, euShown = EU_PAGE, euIndex = null, euIndexFor = null;
     function euNorm(value) {
       let s = String(value ?? "").replace(/\D/g, "");
@@ -9066,7 +9088,7 @@
           const name = clean(cell(iName)); if (!name) return null;
           const seen = new Set(), nums = [];
           phoneIdx.forEach(({ c, i }) => { const n = euNorm(cell(i)); if (!n || seen.has(n)) return; seen.add(n); nums.push({ role: /siswa/i.test(c) ? "Siswa" : /ortu/i.test(c) ? "Ortu" : "Lain", n }); });
-          return { cat: clean(cell(iCat)), name, agent: clean(cell(iAgent)) || "Tanpa agent", kelas: clean(cell(iKelas)), log: clean(cell(iLog)), assign: clean(cell(iAssign)), ortuName: iOrtu >= 0 ? clean(cell(iOrtu)) : "", sma: iSma >= 0 ? clean(cell(iSma)) : "", kota: iKota >= 0 ? clean(cell(iKota)) : "", email: iEmailS >= 0 ? clean(cell(iEmailS)).toLowerCase() : "", nums };
+          return { cat: clean(cell(iCat)), name, agent: clean(cell(iAgent)) || "Tanpa agent", kelas: clean(cell(iKelas)), log: clean(cell(iLog)), assign: clean(cell(iAssign)), ortuName: iOrtu >= 0 ? clean(cell(iOrtu)) : "", sma: iSma >= 0 ? clean(cell(iSma)) : "", kota: iKota >= 0 ? clean(cell(iKota)) : "", email: iEmailS >= 0 ? emailFix(clean(cell(iEmailS)).toLowerCase()) : "", nums };
         }).filter(Boolean);
         euLoaded = true; euLoading = false;
         if (activePageId() === "pageExtendUser") renderExtendUser();
@@ -9414,6 +9436,79 @@
       const rows = table.rows.map((r) => (r.c || []).map((c) => (c ? (c.f ?? c.v ?? "") : "")));
       return { cols, idx, rows };
     }
+    /* ===== CARI DATA: pencarian email / user ID / nomor di spreadsheet assign ===== */
+    const CARI_SHEET_ID = "1ODJZggPP7-RQtyXUP_U_jMmXgBuOHrl0yTlAPD6sYEM";
+    const cd = { loaded: false, loading: false, err: "", cols: [], rows: [], last: null, wired: false };
+    function cdOpen() {
+      if (!cd.wired) {
+        cd.wired = true;
+        const inp = document.getElementById("cdInput");
+        inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); cdRun(); } });
+        document.getElementById("cdGo").addEventListener("click", cdRun);
+        document.getElementById("cdClear").addEventListener("click", () => { inp.value = ""; document.getElementById("cdOut").innerHTML = ""; document.getElementById("cdMiss").textContent = ""; document.getElementById("cdStat").textContent = ""; cd.last = null; inp.focus(); });
+        document.getElementById("cdXls").addEventListener("click", cdExport);
+      }
+      cdLoad();
+    }
+    /* muat spreadsheet assign hanya saat tab dibuka; coba ulang otomatis bila gagal (nama sheet, lalu gid=0) */
+    function cdLoad(attempt) {
+      if (cd.loaded || cd.loading) return;
+      attempt = attempt || 0; cd.loading = true; const stat = document.getElementById("cdStat"); stat.textContent = "memuat spreadsheet...";
+      const urls = [plGv(CARI_SHEET_ID, "Sheet1"), `https://docs.google.com/spreadsheets/d/${CARI_SHEET_ID}/gviz/tq?gid=0`, plGv(CARI_SHEET_ID, "Sheet1")];
+      plFetch(urls[attempt]).then((t) => {
+        const T = plTable(t); cd.cols = T.cols.map((c, i) => t.cols[i].label || `Kolom ${i + 1}`); cd.rows = T.rows.filter((r) => r.some((c) => String(c).trim() !== "")); cd.low = null; cd.loaded = true; cd.err = "";
+        stat.textContent = `${cd.rows.length.toLocaleString("id-ID")} baris siap dicari`;
+        if (document.getElementById("cdInput").value.trim()) cdRun();
+      }).catch((e) => {
+        cd.err = e.message; cd.loading = false;
+        if (attempt < 2) { setTimeout(() => cdLoad(attempt + 1), 1200); return; }
+        stat.textContent = "belum bisa memuat spreadsheet. Pastikan sudah login Google di browser ini, lalu klik Cari untuk mencoba lagi.";
+      }).then(() => { if (cd.loaded) cd.loading = false; });
+    }
+    function cdRun() {
+      const miss = document.getElementById("cdMiss"), out = document.getElementById("cdOut"), stat = document.getElementById("cdStat");
+      if (!cd.loaded) { if (cd.loading) stat.textContent = "masih memuat spreadsheet, coba lagi sebentar..."; else cdLoad(0); return; }
+      const toks = [...new Set(document.getElementById("cdInput").value.replace(/\+62\s+/g, "62").replace(/(\d)[-.](?=\d)/g, "$1").split(/[\s,;|]+/).map((x) => x.trim()).filter(Boolean))];
+      if (!toks.length) { out.innerHTML = ""; miss.textContent = ""; stat.textContent = "isi dulu yang mau dicari"; return; }
+      /* data extend user (berat) hanya dimuat bila ada nomor telepon yang dicari */
+      if (toks.some((tk) => /^[+(]?\d[\d()]{6,}$/.test(tk) && euNorm(tk)) && !euLoaded) {
+        stat.textContent = "memuat data nomor (tab extend user)...";
+        if (!cd.waitEu) { cd.waitEu = setInterval(() => { if (euLoaded) { clearInterval(cd.waitEu); cd.waitEu = null; cdRun(); } }, 600); setTimeout(() => { if (cd.waitEu) { clearInterval(cd.waitEu); cd.waitEu = null; stat.textContent = "data nomor gagal dimuat"; } }, 90000); }
+        loadExtendUserSheet(); return;
+      }
+      const cols = cd.cols.map((c) => String(c).toLowerCase());
+      const iMail = (() => { let i = cols.findIndex((c) => c === "user_email" || c === "email siswa" || c === "email"); if (i < 0) i = cols.findIndex((c) => c.includes("email") && !c.includes("agent")); return i >= 0 ? i : cols.findIndex((c) => c.includes("email")); })(), iUid = cols.findIndex((c) => c === "user_id" || c.includes("user_id"));
+      if (!cd.low) cd.low = cd.rows.map((r) => r.map((c) => String(c).toLowerCase()));
+      const lowRows = cd.low;
+      const numOwners = new Map(); /* nomor (tanpa 0/62) -> email, dari tab extend user */
+      (typeof euUsers !== "undefined" ? euUsers : []).forEach((u) => { if (u.email) u.nums.forEach((x) => { if (!numOwners.has(x.n)) numOwners.set(x.n, new Set()); numOwners.get(x.n).add(u.email); }); });
+      const emailNums = new Map(); (typeof euUsers !== "undefined" ? euUsers : []).forEach((u) => { if (u.email) emailNums.set(u.email, u.nums.map((x) => "0" + x.n).join(", ")); });
+      const hit = new Map(), missing = [];
+      toks.forEach((tk) => {
+        const q = tk.toLowerCase(); let idxs = [];
+        const ph = /^[+(]?\d[\d()]{6,}$/.test(tk) ? euNorm(tk) : ""; /* format 08.., 628.., +628.., 8.. semua dihitung dari angka 8 */
+        if (ph) {
+          const mails = numOwners.get(ph); if (mails) Object.keys(EMAIL_FIX).forEach((o) => { if (mails.has(EMAIL_FIX[o])) mails.add(o); }); if (mails) lowRows.forEach((r, i) => { if (iMail >= 0 && mails.has(r[iMail])) idxs.push(i); });
+        } else if (q.includes("@")) { const qs = new Set([q]); Object.keys(EMAIL_FIX).forEach((o) => { if (EMAIL_FIX[o] === q) qs.add(o); if (o === q) qs.add(EMAIL_FIX[o]); }); lowRows.forEach((r, i) => { if (iMail >= 0 && qs.has(r[iMail])) idxs.push(i); }); }
+        else { lowRows.forEach((r, i) => { if (iUid >= 0 && r[iUid] === q) idxs.push(i); }); if (!idxs.length) lowRows.forEach((r, i) => { if (r.some((c) => c === q)) idxs.push(i); }); }
+        if (!idxs.length && q.length >= 4 && !ph) lowRows.forEach((r, i) => { if (r.some((c) => c.includes(q))) idxs.push(i); }); /* cadangan: mengandung kata */
+        if (!idxs.length) missing.push(tk); idxs.forEach((i) => { if (!hit.has(i)) hit.set(i, tk); });
+      });
+      const list = [...hit.entries()].sort((a, b) => a[0] - b[0]);
+      miss.textContent = missing.length ? `Tidak ditemukan (${missing.length}): ${missing.join(", ")}` : "";
+      const withNum = euLoaded;
+      const head = ["Kata kunci"].concat(cd.cols, withNum ? ["Nomor (tab extend user)"] : []);
+      const body = list.map(([i, tk]) => [tk].concat(cd.rows[i].map((c) => String(c)), withNum ? [emailNums.get(iMail >= 0 ? String(cd.rows[i][iMail]).toLowerCase() : "") || ""] : []));
+      cd.last = { head, body };
+      stat.textContent = `${toks.length} kata kunci · ${body.length} baris ditemukan${missing.length ? ` · ${missing.length} tidak ketemu` : ""}`;
+      out.innerHTML = body.length ? `<div class="table-wrap"><table class="ct-table eu-table"><thead><tr>${head.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead><tbody>${body.map((r) => `<tr>${r.map((c, k) => `<td${k === 0 ? ' class="ct-first"' : ""}>${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : `<p class="note" style="margin-top:12px">Tidak ada data yang cocok.</p>`;
+    }
+    function cdExport() {
+      if (!cd.last || !cd.last.body.length) return;
+      const blob = xlsxBlob("Hasil cari", cd.last.head, cd.last.body, cd.last.head.map((h, i) => (i === 0 ? 24 : /email/i.test(h) ? 30 : /nomor/i.test(h) ? 28 : 18)));
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `cari-data-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
     function plDayNum(key) { const m = String(key || "").match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) / 864e5 : NaN; }
     function plDateKey(v) {
       const s = clean(v); if (!s) return "";
@@ -9446,7 +9541,7 @@
           const name = g(r, iN); if (!name) return null;
           const nums = [], seen = new Set();
           [[iP, "Siswa"], [iOP, "Ortu"]].forEach(([i, role]) => { const n = i >= 0 ? euNorm(r[i]) : ""; if (n && !seen.has(n)) { seen.add(n); nums.push({ role, n }); } });
-          return { src: "NON VO", cat: "Non Voucher Owner", name, email: g(r, iE).toLowerCase(), agent: g(r, iA) || "Tanpa agent", kelas: g(r, iK), log: g(r, iC), assign: plDateKey(g(r, iD)) || g(r, iD), ortuName: g(r, iO), sma: "", kota: "", nums, spv: g(r, iS) };
+          return { src: "NON VO", cat: "Non Voucher Owner", name, email: emailFix(g(r, iE).toLowerCase()), agent: g(r, iA) || "Tanpa agent", kelas: g(r, iK), log: g(r, iC), assign: plDateKey(g(r, iD)) || g(r, iD), ortuName: g(r, iO), sma: "", kota: "", nums, spv: g(r, iS) };
         }).filter(Boolean);
       }).catch((e) => { pl.errs.nonvo = e.message; pl.nonvo = []; }).then(done);
       plFetch(plGv(EXTEND_SHEET_ID, "PAID")).then((t) => {
